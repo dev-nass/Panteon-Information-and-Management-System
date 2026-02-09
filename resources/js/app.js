@@ -1,8 +1,9 @@
+import "../css/app.css";
 import "./bootstrap.js";
 import "preline";
 
 import { createApp, h } from "vue";
-import { createInertiaApp } from "@inertiajs/vue3";
+import { createInertiaApp, router } from "@inertiajs/vue3";
 
 createInertiaApp({
     resolve: (name) => {
