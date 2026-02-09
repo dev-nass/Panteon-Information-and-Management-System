@@ -23,8 +23,14 @@ createInertiaApp({
  */
 
 // This event fires on every page change, including Back/Forward browser buttons
-router.on("navigate", (event) => {
-    window.HSStaticMethods.autoInit();
+// router.on("navigate", (event) => {
+//     window.HSStaticMethods.autoInit();
+// });
+
+document.addEventListener("inertia:navigate", (event) => {
+    if (typeof window.HSStaticMethods !== "undefined") {
+        window.HSStaticMethods.autoInit();
+    }
 });
 
 // // 1. Handle Inertia navigations (Page swaps)
