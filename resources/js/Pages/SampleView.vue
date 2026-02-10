@@ -29,16 +29,18 @@ import Navbar from "@/Components/Navbar.vue";
                     <div
                         class="flex mt-5 gap-4 flex-wrap justify-center md:justify-start"
                     >
-                        <button
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition"
+                        <a
+                            href="#_"
+                            class="inline-flex items-center justify-center px-5 py-3 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-green-500 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-green-600 hover:border-white/40 hover:shadow-xl focus:shadow-xs focus:no-underline shadow-lg"
                         >
-                            View Map
-                        </button>
-                        <button
-                            class="border-2 border-white hover:bg-white hover:text-gray-900 text-white px-8 py-3 rounded-lg font-semibold transition"
+                            Button Text
+                        </a>
+                        <a
+                            href="#_"
+                            class="inline-flex items-center justify-center px-5 py-3 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-white/10 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-white/20 hover:border-white/40 focus:shadow-xs focus:no-underline shadow-lg"
                         >
-                            Contact Us
-                        </button>
+                            Button Text
+                        </a>
                     </div>
                 </div>
             </div>
