@@ -4,9 +4,9 @@ import Navbar from "@/Components/Navbar.vue";
 <template>
     <Navbar />
     <!-- Hero -->
-    <div class="container mx-auto px-4 sm:px-6 lg:px-4">
+    <div class="px-4 sm:px-6 lg:px-4">
         <div
-            class="relative h-150 md:h-[90dvh] flex flex-col bg-[url('/images/hero-background.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
+            class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/hero-background.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >
             <!-- Overlay -->
             <div class="absolute inset-0 bg-black/40 rounded-2xl"></div>
