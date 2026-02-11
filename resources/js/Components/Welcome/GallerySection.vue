@@ -33,7 +33,7 @@
                         </div>
                         <div class="absolute top-0 start-0 end-0 p-2 sm:p-4">
                             <div
-                                class="text-sm font-semibold bg-transparent text-white rounded-lg p-4 md:text-xl lg:text-6xl"
+                                class="text-3xl text-left font-semibold bg-transparent text-white rounded-lg p-4 md:text-5xl lg:text-6xl"
                             >
                                 Columbarium <br />
                                 Type
@@ -49,7 +49,7 @@
                     <div class="col-span-6 h-full">
                         <!-- Card -->
                         <a
-                            class="group relative block rounded-xl overflow-hidden focus:outline-none h-auto sm:h-[15rem] md:h-full"
+                            class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
                             href="#"
                         >
                             <div
@@ -72,7 +72,7 @@
                     <div class="col-span-6 h-full">
                         <!-- Card -->
                         <a
-                            class="group relative block rounded-xl overflow-hidden focus:outline-none h-auto sm:h-[15rem] md:h-full"
+                            class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
                             href="#"
                         >
                             <div
@@ -116,7 +116,7 @@
                             class="absolute top-1/2 start-0 end-0 -translate-y-1/2 p-2 sm:p-4"
                         >
                             <div
-                                class="text-sm text-center font-semibold bg-transparent text-white rounded-lg p-4 md:text-xl lg:text-6xl"
+                                class="text-3xl text-center font-semibold bg-transparent text-white rounded-lg p-4 md:text-5xl lg:text-6xl"
                             >
                                 Underground <br />
                                 Type
@@ -145,7 +145,7 @@
                         </div>
                         <div class="absolute top-0 start-0 end-0 p-2 sm:p-4">
                             <div
-                                class="text-sm text-right font-semibold bg-transparent text-white rounded-lg p-4 md:text-xl lg:text-6xl"
+                                class="text-3xl text-right font-semibold bg-transparent text-white rounded-lg p-4 md:text-5xl lg:text-6xl"
                             >
                                 Apartment <br />
                                 Type
