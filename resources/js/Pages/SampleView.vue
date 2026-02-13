@@ -17,20 +17,10 @@ import ContactUsSection from "@/Components/Welcome/ContactUsSection.vue";
 
     <!-- ========== FOOTER ========== -->
     <footer
-        class="mt-auto bg-green-500 text-white w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto"
+        class="mt-auto dasma-green text-white w-full pt-10 pb-2 px-4 sm:px-6 lg:px-8 mx-auto"
     >
         <!-- Grid -->
         <div class="text-center">
-            <div>
-                <a
-                    class="flex-none text-xl font-semibold text-gray-800 dark:text-neutral-200"
-                    href="#"
-                    aria-label="Brand"
-                    >Brand</a
-                >
-            </div>
-            <!-- End Col -->
-
             <div class="mt-3">
                 <p class="text-gray-500 dark:text-neutral-400">
                     We're part of the
@@ -118,6 +108,15 @@ import ContactUsSection from "@/Components/Welcome/ContactUsSection.vue";
                 </a>
             </div>
             <!-- End Social Brands -->
+            <div class="mt-10 hidden lg:block">
+                <h2
+                    class="bona-nova-heading dasma-yellow-text leading-none flex-none text-9xl font-thin text-gray-800 dark:text-neutral-200"
+                    aria-label="Brand"
+                >
+                    Panteon De Dasmariñas
+                </h2>
+            </div>
+            <!-- End Col -->
         </div>
         <!-- End Grid -->
     </footer>
