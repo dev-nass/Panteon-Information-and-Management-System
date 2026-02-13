@@ -1,7 +1,7 @@
 <template>
     <!-- ========== HEADER ========== -->
     <header
-        class="sticky top-4 inset-x-0 before:absolute before:inset-0 before:max-w-5xl before:mx-2 lg:before:mx-auto before:rounded-4xl before:border before:border-white/20 dark:before:border-white/10 before:backdrop-blur-xl before:bg-white/70 dark:before:bg-neutral-900/70 before:shadow-lg before:shadow-gray-200/50 dark:before:shadow-black/50 after:absolute after:inset-0 after:-z-1 after:max-w-5xl after:mx-2 lg:after:mx-auto after:rounded-4xl flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full"
+        class="sticky top-2 inset-x-0 before:absolute before:inset-0 before:max-w-5xl before:mx-2 lg:before:mx-auto before:rounded-4xl before:border before:border-white/20 dark:before:border-white/10 before:backdrop-blur-xl before:bg-white/70 dark:before:bg-neutral-900/70 before:shadow-lg before:shadow-gray-200/50 dark:before:shadow-black/50 after:absolute after:inset-0 after:-z-1 after:max-w-5xl after:mx-2 lg:after:mx-auto after:rounded-4xl flex flex-wrap md:justify-start md:flex-nowrap z-50 w-full"
     >
         <nav
             class="relative max-w-5xl w-full md:flex md:items-center md:justify-between md:gap-3 ps-5 pe-2 mx-2 lg:mx-auto py-2"
