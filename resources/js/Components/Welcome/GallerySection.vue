@@ -46,7 +46,7 @@
 
                 <div class="grid grid-cols-12 gap-6 col-span-12">
                     <!-- Cols 2 / 5 -->
-                    <div class="col-span-6 h-full">
+                    <div class="col-span-12 md:col-span-6 h-full">
                         <!-- Card -->
                         <a
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
@@ -69,7 +69,7 @@
                     </div>
 
                     <!-- Cols 3 / 5 -->
-                    <div class="col-span-6 h-full">
+                    <div class="col-span-12 md:col-span-6 h-full">
                         <!-- Card -->
                         <a
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
