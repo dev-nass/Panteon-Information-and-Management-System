@@ -15,7 +15,7 @@
                 class="grid grid-cols-12 col-span-12 sm:grid-cols-12 lg:col-span-6 gap-6"
             >
                 <!-- Cols 1 / 5 -->
-                <div class="col-span-12 lg:col-span-12">
+                <div class="col-span-12 lg:col-span-12" data-aos="fade-right">
                     <!-- Card -->
                     <a
                         class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
@@ -46,7 +46,10 @@
 
                 <div class="grid grid-cols-12 gap-6 col-span-12">
                     <!-- Cols 2 / 5 -->
-                    <div class="col-span-12 md:col-span-6 h-full">
+                    <div
+                        class="col-span-12 md:col-span-6 h-full"
+                        data-aos="fade-up"
+                    >
                         <!-- Card -->
                         <a
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
@@ -69,7 +72,10 @@
                     </div>
 
                     <!-- Cols 3 / 5 -->
-                    <div class="col-span-12 md:col-span-6 h-full">
+                    <div
+                        class="col-span-12 md:col-span-6 h-full"
+                        data-aos="fade-up"
+                    >
                         <!-- Card -->
                         <a
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
@@ -97,7 +103,7 @@
                 class="grid grid-cols-1 sm:grid-cols-12 gap-6 col-span-12 lg:col-span-6 md:grid-cols-6"
             >
                 <!-- Cols 4 / 5 -->
-                <div class="sm:col-span-12 md:col-span-6">
+                <div class="sm:col-span-12 md:col-span-6" data-aos="fade-left">
                     <!-- Card -->
                     <a
                         class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
@@ -128,7 +134,7 @@
                 <!-- End Col -->
 
                 <!-- Cols 5 / 5 -->
-                <div class="sm:col-span-12 md:col-span-6">
+                <div class="sm:col-span-12 md:col-span-6" data-aos="fade-up">
                     <!-- Card -->
                     <a
                         class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
