@@ -17,7 +17,7 @@ import ContactUsSection from "@/Components/Welcome/ContactUsSection.vue";
 
     <!-- ========== FOOTER ========== -->
     <footer
-        class="mt-auto bg-green-600 text-white w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto"
+        class="mt-auto bg-green-500 text-white w-full max-w-[85rem] py-10 px-4 sm:px-6 lg:px-8 mx-auto"
     >
         <!-- Grid -->
         <div class="text-center">

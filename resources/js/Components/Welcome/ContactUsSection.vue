@@ -221,11 +221,9 @@
                             referrerpolicy="no-referrer-when-downgrade"
                         ></iframe>
                         <div
-                            class="absolute bottom-2 w-[95%] bg-white px-2 py-1 left-1/2 transform -translate-x-1/2"
+                            class="absolute bottom-2 w-[95%] bg-white dark:text-black px-2 py-1 left-1/2 transform -translate-x-1/2"
                         >
-                            <p
-                                class="mt-1 font-medium text-black dark:text-neutral-300"
-                            >
+                            <p class="mt-1 font-medium text-black">
                                 Visit Our Office
                             </p>
                             <article class="flex space-x-2">
