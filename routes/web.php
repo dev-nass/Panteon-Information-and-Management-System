@@ -6,7 +6,6 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('WelcomeView');
 });
-
 Route::get('/sample', function () {
     return Inertia::render('SampleView');
 });
