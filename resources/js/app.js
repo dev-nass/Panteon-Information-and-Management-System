@@ -1,8 +1,11 @@
+import "../css/app.css";
 import "./bootstrap.js";
 import "preline";
 
 import { createApp, h } from "vue";
-import { createInertiaApp } from "@inertiajs/vue3";
+import { createInertiaApp, router } from "@inertiajs/vue3";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 createInertiaApp({
     resolve: (name) => {
@@ -13,7 +16,24 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .mount(el);
+
+        // Initialize AOS
+        AOS.init({
+            duration: 1000, // global animation duration in ms
+            once: true, // whether animation should happen only once - while scrolling down
+            offset: 150, // trigger only when element is close to viewport
+            anchorPlacement: "top-bottom", // element top hits bottom of viewport
+        });
     },
+});
+
+// ✅ Re-init plugins after Inertia navigation
+router.on("finish", () => {
+    if (window.HSStaticMethods) {
+        window.HSStaticMethods.autoInit();
+    }
+
+    AOS.refresh();
 });
 
 /**
@@ -22,8 +42,14 @@ createInertiaApp({
  */
 
 // This event fires on every page change, including Back/Forward browser buttons
-router.on("navigate", (event) => {
-    window.HSStaticMethods.autoInit();
+// router.on("navigate", (event) => {
+//     window.HSStaticMethods.autoInit();
+// });
+
+document.addEventListener("inertia:navigate", (event) => {
+    if (typeof window.HSStaticMethods !== "undefined") {
+        window.HSStaticMethods.autoInit();
+    }
 });
 
 // // 1. Handle Inertia navigations (Page swaps)

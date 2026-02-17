@@ -9,3 +9,7 @@ List of all the packages used and their installation
 ### Preline Installation
 
 - <https://preline.co/docs/frameworks-laravel.html>
+
+### Aos (Scroll Animation)
+
+- <https://michalsnik.github.io/aos/>
