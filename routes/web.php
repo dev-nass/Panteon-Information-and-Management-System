@@ -9,3 +9,6 @@ Route::get('/', function () {
 Route::get('/sample', function () {
     return Inertia::render('SampleView');
 });
+Route::get('/clerk-dashboard', function () {
+    return Inertia::render('Clerks/DashboardView');
+});
