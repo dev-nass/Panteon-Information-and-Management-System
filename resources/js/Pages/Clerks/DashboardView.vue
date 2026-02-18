@@ -238,7 +238,7 @@
             <!-- End Body -->
 
             <!-- Footer -->
-            <footer class="mt-auto p-2 border-t border-sidebar-divider">
+            <footer class="">
                 <!-- Account Dropdown -->
                 <div
                     class="hs-dropdown [--strategy:absolute] [--auto-close:inside] relative w-full inline-flex"
@@ -257,7 +257,7 @@
                             alt="Avatar"
                         />
                         <div
-                            class="hs-overlay-minified:hidden border text-nowrap flex items-center justify-center w-full"
+                            class="hs-overlay-minified:hidden text-nowrap flex items-center justify-center w-full"
                         >
                             Mia Hudson
                             <svg
@@ -303,8 +303,35 @@
                             >
                                 Billing
                             </a>
+
+                            <div class="flex justify-between">
+                                <p
+                                    class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-dropdown-item-foreground hover:bg-dropdown-item-hover focus:outline-hidden focus:bg-dropdown-item-focus"
+                                >
+                                    Dark Mode
+                                </p>
+                                <label
+                                    for="hs-basic-usage"
+                                    class="relative inline-block w-11 h-6 cursor-pointer"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="hs-basic-usage"
+                                        class="peer sr-only"
+                                        data-hs-theme-switch
+                                    />
+
+                                    <span
+                                        class="absolute inset-0 bg-gray-200 dark:bg-neutral-600 rounded-full transition-colors duration-200 ease-in-out peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500"
+                                    ></span>
+
+                                    <span
+                                        class="absolute top-1/2 start-0.5 -translate-y-1/2 size-5 bg-white rounded-full shadow-sm transition-transform duration-200 ease-in-out peer-checked:translate-x-full"
+                                    ></span>
+                                </label>
+                            </div>
                             <a
-                                class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-dropdown-item-foreground hover:bg-dropdown-item-hover focus:outline-hidden focus:bg-dropdown-item-focus"
+                                class="text-red-500 flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-dropdown-item-foreground hover:bg-dropdown-item-hover focus:outline-hidden focus:bg-dropdown-item-focus"
                                 href="#"
                             >
                                 Sign out
