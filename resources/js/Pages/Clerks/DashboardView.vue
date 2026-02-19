@@ -1,3 +1,6 @@
+<script setup>
+import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
+</script>
 <template>
     <!-- Navigation Toggle -->
     <div class="lg:hidden flex justify-start text-center border">
@@ -131,10 +134,7 @@
                 <div class="pb-0 px-2 w-full flex flex-col flex-wrap">
                     <ul class="space-y-1">
                         <li>
-                            <a
-                                class="min-h-[36px] flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 dark:bg-neutral-700 text-sm text-gray-800 dark:text-neutral-200 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700"
-                                href="#"
-                            >
+                            <SidebarLink>
                                 <svg
                                     class="size-4"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -155,14 +155,10 @@
                                 <span class="hs-overlay-minified:hidden"
                                     >Dashboard</span
                                 >
-                            </a>
+                            </SidebarLink>
                         </li>
-
                         <li>
-                            <a
-                                class="min-h-[36px] w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-gray-800 dark:text-neutral-200 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700"
-                                href="#"
-                            >
+                            <SidebarLink>
                                 <svg
                                     class="size-4"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -201,13 +197,10 @@
                                         >New</span
                                     ></span
                                 >
-                            </a>
+                            </SidebarLink>
                         </li>
                         <li>
-                            <a
-                                class="min-h-[36px] w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm text-gray-800 dark:text-neutral-200 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700"
-                                href="#"
-                            >
+                            <SidebarLink>
                                 <svg
                                     class="size-4"
                                     xmlns="http://www.w3.org/2000/svg"
@@ -230,7 +223,7 @@
                                 <span class="hs-overlay-minified:hidden"
                                     >Documentation</span
                                 >
-                            </a>
+                            </SidebarLink>
                         </li>
                     </ul>
                 </div>
