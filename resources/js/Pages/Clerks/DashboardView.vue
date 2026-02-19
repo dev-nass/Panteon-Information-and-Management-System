@@ -45,7 +45,7 @@
                     class="flex-none font-semibold text-xl text-gray-800 dark:text-white focus:outline-hidden focus:opacity-80 hs-overlay-minified:hidden"
                     href="#"
                     aria-label="Brand"
-                    >Brand</a
+                    >Panteon Dasma</a
                 >
 
                 <div class="lg:hidden">
