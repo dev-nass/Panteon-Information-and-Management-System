@@ -54,7 +54,7 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
                     <img
                         class="h-10"
                         src="/public/images/dasmarinas-logo.png"
-                        alt="Dasmariñas-Logo"
+                        alt="Dasmariñas Logo"
                     />
                     panteon.
                 </Link>
