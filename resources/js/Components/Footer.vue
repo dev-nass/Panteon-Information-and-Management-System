@@ -6,7 +6,7 @@
         <!-- Grid -->
         <div class="text-center">
             <div class="mt-3">
-                <p class="text-gray-500 dark:text-neutral-400">
+                <p class="text-gray-500 dark:text-white">
                     We're part of the
                     <a
                         class="text-blue-600 dark:text-blue-500 decoration-2 hover:underline focus:outline-hidden focus:underline font-medium"
@@ -15,7 +15,7 @@
                     >
                     family.
                 </p>
-                <p class="text-gray-500 dark:text-neutral-400">
+                <p class="text-gray-500 dark:text-white">
                     © 2026 Preline Labs.
                 </p>
             </div>
@@ -23,7 +23,7 @@
             <!-- Social Brands -->
             <div class="mt-3 space-x-2">
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -40,7 +40,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -57,7 +57,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -74,7 +74,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
