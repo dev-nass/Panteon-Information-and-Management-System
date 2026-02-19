@@ -1,4 +1,6 @@
 <script setup>
+import { Link } from "@inertiajs/vue3";
+
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 </script>
 <template>
@@ -44,12 +46,18 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
         <div class="relative flex flex-col h-full max-h-full">
             <!-- Header -->
             <header class="py-4 px-2 flex justify-between items-center gap-x-2">
-                <a
-                    class="flex-none font-semibold text-xl text-gray-800 dark:text-white focus:outline-hidden focus:opacity-80 hs-overlay-minified:hidden"
+                <Link
+                    class="flex gap-x-2 justify-center font-semibold text-xl text-gray-800 dark:text-white focus:outline-hidden focus:opacity-80 hs-overlay-minified:hidden"
                     href="#"
-                    aria-label="Brand"
-                    >Panteon Dasma</a
+                    aria-label="Panteon-de-Dasmariñas"
                 >
+                    <img
+                        class="h-10"
+                        src="/public/images/dasmarinas-logo.png"
+                        alt="Dasmariñas-Logo"
+                    />
+                    panteon.
+                </Link>
 
                 <div class="lg:hidden">
                     <!-- Close Button -->
