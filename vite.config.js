@@ -2,7 +2,6 @@ import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import path from "path"; // 👈 add this
 
 export default defineConfig({
     plugins: [
@@ -13,11 +12,6 @@ export default defineConfig({
         tailwindcss(),
         vue(),
     ],
-    resolve: {
-        alias: {
-            "ziggy-js": path.resolve("vendor/tightenco/ziggy"),
-        },
-    },
     server: {
         watch: {
             ignored: ["**/storage/framework/views/**"],

@@ -11,7 +11,7 @@ import "aos/dist/aos.css"; // AOS (scroll animation library)
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import { ZiggyVue } from "ziggy-js";
+import { ZiggyVue } from "ziggy-js"; // laravel routes
 
 createInertiaApp({
     resolve: (name) => {

@@ -13,3 +13,11 @@ List of all the packages used and their installation
 ### Aos (Scroll Animation)
 
 - <https://michalsnik.github.io/aos/>
+
+### Leaflet
+
+### Ziggy
+
+- <https://www.npmjs.com/package/ziggy-js>
+- Install on composer and NPM
+- add `@routes` directory on `app.blade.php`
