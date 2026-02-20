@@ -3,6 +3,7 @@ import { Link } from "@inertiajs/vue3";
 
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 </script>
+
 <template>
     <!-- Navigation Toggle -->
     <div class="lg:hidden flex justify-start text-center border">
@@ -56,7 +57,7 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
                         src="/public/images/dasmarinas-logo.png"
                         alt="Dasmariñas Logo"
                     />
-                    panteon.
+                    <p class="mt-[2px]">panteon.</p>
                 </Link>
 
                 <div class="lg:hidden">
