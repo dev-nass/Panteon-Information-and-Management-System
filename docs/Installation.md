@@ -21,3 +21,8 @@ List of all the packages used and their installation
 - <https://www.npmjs.com/package/ziggy-js>
 - Install on composer and NPM
 - add `@routes` directory on `app.blade.php`
+
+### NProgress
+
+- <https://inertiajs.com/docs/v2/advanced/progress-indicators#custom>
+- Make sure to add the event listener, don't just read the installation
