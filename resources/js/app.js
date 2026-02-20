@@ -13,7 +13,19 @@ import "leaflet/dist/leaflet.css";
 
 import { ZiggyVue } from "ziggy-js"; // laravel routes
 
+import NProgress from "nprogress";
+
 createInertiaApp({
+    progress: {
+        // The delay after which the progress bar will appear, in milliseconds...
+        delay: 250,
+        // The color of the progress bar...
+        color: "#00FF00",
+        // Whether to include the default NProgress styles...
+        includeCSS: true,
+        // Whether the NProgress spinner will be shown...
+        showSpinner: false,
+    },
     resolve: (name) => {
         const pages = import.meta.glob("./Pages/**/*.vue", { eager: true });
         return pages[`./Pages/${name}.vue`];
@@ -34,6 +46,8 @@ createInertiaApp({
     },
 });
 
+router.on("start", () => NProgress.start());
+
 // ✅ Re-init plugins after Inertia navigation
 router.on("finish", () => {
     if (window.HSStaticMethods) {
@@ -41,6 +55,7 @@ router.on("finish", () => {
     }
 
     AOS.refresh();
+    NProgress.done();
 });
 
 // --------- AI SUGGESTION for leaflet, BUT ITS CAUSING ERROR
