@@ -5,7 +5,9 @@ import "preline";
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
 import AOS from "aos";
-import "aos/dist/aos.css";
+import "aos/dist/aos.css"; // AOS (scroll animation library)
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 createInertiaApp({
     resolve: (name) => {
@@ -34,6 +36,13 @@ router.on("finish", () => {
     }
 
     AOS.refresh();
+});
+
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
 });
 
 /**
