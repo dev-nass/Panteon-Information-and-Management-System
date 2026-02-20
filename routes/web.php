@@ -15,10 +15,10 @@ Route::prefix('clerk')
     ->group(function () {
 
         Route::get('dashboard', function () {
-            return Inertia::render('Clerks/DashboardView');
+            return Inertia::render('Clerk/DashboardView');
         })->name('dashboard');
 
         Route::get('/map', function () {
-            return Inertia::render('Clerks/Map/IndexView');
+            return Inertia::render('Clerk/Map/IndexView');
         })->name('map.index');
     });

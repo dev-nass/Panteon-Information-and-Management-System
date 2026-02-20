@@ -1,10 +1,11 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
 import { defineEmits } from "vue";
 import { route } from "ziggy-js";
 
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
+const page = usePage();
 const emit = defineEmits(["toggle"]);
 
 const toggleIsActive = () => {
@@ -152,7 +153,12 @@ const toggleIsActive = () => {
                 <div class="pb-0 px-2 w-full flex flex-col flex-wrap">
                     <ul class="space-y-1">
                         <li>
-                            <SidebarLink isActive="true">
+                            <SidebarLink
+                                :href="route('clerk.dashboard')"
+                                :isActive="
+                                    page.component === 'Clerk/DashboardView'
+                                "
+                            >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="20"
@@ -242,7 +248,12 @@ const toggleIsActive = () => {
                             </SidebarLink>
                         </li>
                         <li>
-                            <SidebarLink :href="route('clerk.map.index')">
+                            <SidebarLink
+                                :href="route('clerk.map.index')"
+                                :isActive="
+                                    page.component === 'Clerk/Map/IndexView'
+                                "
+                            >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="18"

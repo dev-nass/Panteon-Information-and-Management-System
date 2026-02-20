@@ -43,12 +43,14 @@ router.on("finish", () => {
     AOS.refresh();
 });
 
+// --------- AI SUGGESTION for leaflet, BUT ITS CAUSING ERROR
 // delete L.Icon.Default.prototype._getIconUrl;
 //
 // L.Icon.Default.mergeOptions({
 //     iconUrl: icon,
 //     shadowUrl: iconShadow,
 // });
+// ---------
 
 /**
  * The following event listener are used for listening to

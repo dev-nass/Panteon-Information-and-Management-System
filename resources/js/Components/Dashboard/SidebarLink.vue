@@ -4,7 +4,6 @@ import { Link } from "@inertiajs/vue3";
 const props = defineProps({
     isActive: {
         type: Boolean,
-        default: false,
     },
 });
 </script>
