@@ -10,9 +10,15 @@ Route::get('/sample', function () {
     return Inertia::render('SampleView');
 });
 
-Route::prefix('clerk')->group(function () {
+Route::prefix('clerk')
+    ->name('clerk.')
+    ->group(function () {
 
-    Route::get('dashboard', function () {
-        return Inertia::render('Clerks/DashboardView');
+        Route::get('dashboard', function () {
+            return Inertia::render('Clerks/DashboardView');
+        })->name('dashboard');
+
+        Route::get('/map', function () {
+            return Inertia::render('Clerks/Map/IndexView');
+        })->name('map.index');
     });
-});

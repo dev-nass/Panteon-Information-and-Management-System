@@ -11,7 +11,6 @@ const props = defineProps({
 
 <template>
     <Link
-        href="#"
         :class="[
             'min-h-[36px] w-full flex items-center gap-x-3.5 py-2 px-2.5 text-sm rounded-lg transition-colors',
             props.isActive

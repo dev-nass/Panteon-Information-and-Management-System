@@ -4,10 +4,14 @@ import "preline";
 
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
+
 import AOS from "aos";
 import "aos/dist/aos.css"; // AOS (scroll animation library)
+
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+
+import { ZiggyVue } from "ziggy-js";
 
 createInertiaApp({
     resolve: (name) => {
@@ -17,6 +21,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(ZiggyVue)
             .mount(el);
 
         // Initialize AOS
@@ -38,12 +43,12 @@ router.on("finish", () => {
     AOS.refresh();
 });
 
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-    iconUrl: icon,
-    shadowUrl: iconShadow,
-});
+// delete L.Icon.Default.prototype._getIconUrl;
+//
+// L.Icon.Default.mergeOptions({
+//     iconUrl: icon,
+//     shadowUrl: iconShadow,
+// });
 
 /**
  * The following event listener are used for listening to

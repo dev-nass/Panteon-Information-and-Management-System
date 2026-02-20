@@ -1,6 +1,7 @@
 <script setup>
 import { Link } from "@inertiajs/vue3";
 import { defineEmits } from "vue";
+import { route } from "ziggy-js";
 
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
@@ -241,7 +242,7 @@ const toggleIsActive = () => {
                             </SidebarLink>
                         </li>
                         <li>
-                            <SidebarLink>
+                            <SidebarLink :href="route('clerk.map.index')">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     width="18"
