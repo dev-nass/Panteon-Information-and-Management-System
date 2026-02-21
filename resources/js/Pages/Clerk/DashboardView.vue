@@ -5,5 +5,4 @@ defineOptions({
     layout: Dashboard,
 });
 </script>
-
-<template>This is the dashboard view</template>
+<template>This is the dashboard map page</template>
