@@ -18,12 +18,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <section id="map-wrapper" class="border border-red-500">
-        <div
-            ref="mapContainer"
-            id="map"
-            class="h-full w-full z-0"
-            style="height: 97vh"
-        ></div>
+    <section id="map-wrapper" class="relative" style="height: 98vh">
+        <div ref="mapContainer" id="map" class="h-full w-full"></div>
     </section>
 </template>
