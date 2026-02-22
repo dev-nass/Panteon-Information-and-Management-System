@@ -35,12 +35,7 @@ onBeforeUnmount(() => {
 
 <template>
     <section id="map-wrapper" class="relative" style="height: 98vh">
-        <div
-            v-if="toggleMap"
-            key="map"
-            class="h-full w-full"
-            data-aos="zoom-out"
-        >
+        <div v-if="toggleMap" key="map" class="h-full w-full">
             <!-- Map container -->
             <div ref="mapContainer" id="map" class="h-full w-full"></div>
         </div>
@@ -49,7 +44,7 @@ onBeforeUnmount(() => {
             v-else
             key="table"
             @toggleTable="toggleMapEvent"
-            data-aos="zoom-in"
+            data-aos="zoom-out"
         />
 
         <div
