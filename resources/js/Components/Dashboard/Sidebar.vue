@@ -324,13 +324,13 @@ const toggleIsActive = () => {
                     <button
                         id="hs-sidebar-footer-example-with-dropdown"
                         type="button"
-                        class="w-full inline-flex shrink-0 items-center gap-x-2 p-2 text-start text-sm text-foreground rounded-md hover:bg-muted-hover focus:outline-hidden focus:bg-muted-focus"
+                        class="w-full inline-flex shrink-0 items-center gap-x-3 p-2 text-start text-sm text-foreground rounded-md hover:bg-muted-hover focus:outline-hidden focus:bg-muted-focus"
                         aria-haspopup="menu"
                         aria-expanded="false"
                         aria-label="Dropdown"
                     >
                         <img
-                            class="shrink-0 size-5 rounded-full"
+                            class="shrink-0 size-7 rounded-full"
                             src="https://images.unsplash.com/photo-1734122415415-88cb1d7d5dc0?q=80&w=320&h=320&auto=format&fit=facearea&facepad=3&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                             alt="Avatar"
                         />

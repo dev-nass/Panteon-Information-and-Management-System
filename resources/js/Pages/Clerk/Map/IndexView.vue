@@ -3,10 +3,22 @@ import { useMap } from "@/composables/clerk/useMap";
 import { ref, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
+import DeceasedRecordTable from "@/Components/Clerk/DeceasedRecordTable.vue";
 
 const { initializeMap, cleanupMap } = useMap();
 
 const mapContainer = ref(null);
+const toggleMap = ref(true);
+
+// NOTE: toggle map and table view
+const toggleMapEvent = () => {
+    toggleMap.value = !toggleMap.value;
+    if (toggleMap.value) {
+        cleanupMap();
+        // Need to wait for DOM update so mapContainer ref is available
+        setTimeout(() => initializeMap(mapContainer.value), 0);
+    }
+};
 
 defineOptions({
     layout: Dashboard,
@@ -23,9 +35,27 @@ onBeforeUnmount(() => {
 
 <template>
     <section id="map-wrapper" class="relative" style="height: 98vh">
-        <div ref="mapContainer" id="map" class="h-full w-full"></div>
+        <div
+            v-if="toggleMap"
+            key="map"
+            class="h-full w-full"
+            data-aos="zoom-out"
+        >
+            <!-- Map container -->
+            <div ref="mapContainer" id="map" class="h-full w-full"></div>
+        </div>
 
-        <div class="absolute top-2 inset-x-0 flex justify-between z-999 px-4">
+        <DeceasedRecordTable
+            v-else
+            key="table"
+            @toggleTable="toggleMapEvent"
+            data-aos="zoom-in"
+        />
+
+        <div
+            v-if="toggleMap"
+            class="absolute top-2 inset-x-0 flex justify-between z-999 px-4"
+        >
             <div
                 class="flex items-center gap-2 w-full max-w-md px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
             >
@@ -56,6 +86,7 @@ onBeforeUnmount(() => {
 
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this into offcanvas or modal button --->
+                <!--- NOTE: Filter button  --->
                 <div
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
@@ -80,7 +111,9 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!---  ISSUE: Change this into button that toggle between showing the map and the table VIEW component --->
-                <div
+                <!--- NOTE: Toggle table view button --->
+                <button
+                    @click="toggleMapEvent"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
                     <svg
@@ -100,13 +133,17 @@ onBeforeUnmount(() => {
                         <path d="m8 21-4-4 4-4" />
                         <path d="M4 17h16" />
                     </svg>
-                </div>
+                </button>
             </div>
         </div>
 
-        <div class="absolute bottom-5 inset-x-0 flex justify-end z-999 px-4">
+        <div
+            v-if="toggleMap"
+            class="absolute bottom-5 inset-x-0 flex justify-end z-999 px-4"
+        >
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
+                <!--- NOTE: Toggle polygon button --->
                 <div
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
