@@ -13,7 +13,7 @@ import "leaflet/dist/leaflet.css";
 
 import { ZiggyVue } from "ziggy-js"; // laravel routes
 
-import NProgress from "nprogress";
+import NProgress from "nprogress"; // progress indicator
 
 createInertiaApp({
     progress: {
