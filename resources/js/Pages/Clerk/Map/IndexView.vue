@@ -41,7 +41,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <section id="map-wrapper" class="relative" style="height: 98vh">
+    <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <div v-if="toggleMap" key="map" class="h-full w-full">
             <!-- Map container -->
             <div ref="mapContainer" id="map" class="h-full w-full"></div>
@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
 
         <div
             v-if="toggleMap"
-            class="absolute top-2 inset-x-0 flex justify-between z-999 px-4"
+            class="absolute top-2 inset-x-0 flex justify-between z-777 px-4"
         >
             <Input placeholder="Full name" type="search" />
 

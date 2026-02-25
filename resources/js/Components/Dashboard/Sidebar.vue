@@ -15,10 +15,10 @@ const toggleIsActive = () => {
 
 <template>
     <!-- Navigation Toggle -->
-    <div class="lg:hidden flex justify-start text-center border">
+    <div class="lg:hidden py-2 flex justify-start text-center">
         <button
             type="button"
-            class="py-2 px-3 inline-flex justify-center items-center gap-x-2 text-start bg-gray-900 dark:bg-white border border-transparent text-white dark:text-neutral-800 text-sm font-medium rounded-lg shadow-2xs hover:bg-gray-800 dark:hover:bg-neutral-100 focus:outline-hidden focus:bg-gray-800 dark:focus:bg-neutral-100"
+            class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
             aria-haspopup="dialog"
             aria-expanded="false"
             aria-controls="hs-sidebar-content-push-to-mini-sidebar"
@@ -48,7 +48,7 @@ const toggleIsActive = () => {
     <!-- Sidebar -->
     <div
         id="hs-sidebar-content-push-to-mini-sidebar"
-        class="group hs-overlay [--auto-close:lg] hs-overlay-minified:w-13 lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 w-64 hs-overlay-open:translate-x-0 -translate-x-full transition-all duration-300 transform h-full hidden overflow-x-hidden fixed top-0 start-0 bottom-0 z-60 bg-white dark:bg-neutral-800 border-e border-gray-200 dark:border-neutral-700"
+        class="group hs-overlay [--auto-close:lg] hs-overlay-minified:w-13 lg:block lg:translate-x-0 lg:end-auto lg:bottom-0 w-64 hs-overlay-open:translate-x-0 -translate-x-full transition-all duration-300 transform h-full hidden overflow-x-hidden fixed top-0 start-0 bottom-0 z-999 bg-white dark:bg-neutral-800 border-e border-gray-200 dark:border-neutral-700"
         role="dialog"
         tabindex="-1"
         aria-label="Sidebar"
