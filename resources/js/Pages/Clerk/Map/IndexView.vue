@@ -3,7 +3,7 @@ import { useMap } from "@/composables/clerk/useMap";
 import { ref, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
-import DeceasedRecordTable from "@/Components/Clerk/DeceasedRecordTable.vue";
+import DeceasedRecordTable from "@/Pages/Clerk/DeceasedRecords/IndexView.vue";
 
 const { initializeMap, cleanupMap } = useMap();
 

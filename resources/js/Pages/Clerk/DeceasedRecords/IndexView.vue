@@ -6,6 +6,7 @@ const toggleTableEvent = () => {
 };
 </script>
 
+<!--- NOTE: This has no dedicated page, we import this on Clerk/Map/IndexView --->
 <template>
     <!-- Table Section -->
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
@@ -96,7 +97,7 @@ const toggleTableEvent = () => {
                                                     y2="3"
                                                 />
                                             </svg>
-                                            Export
+                                            Import
                                         </button>
                                         <div
                                             class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg p-2 mt-2"
