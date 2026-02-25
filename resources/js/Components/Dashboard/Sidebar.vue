@@ -1,6 +1,5 @@
 <script setup>
 import { Link, usePage } from "@inertiajs/vue3";
-import { defineEmits } from "vue";
 import { route } from "ziggy-js";
 
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
