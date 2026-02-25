@@ -1,9 +1,19 @@
 <script setup>
+import Input from "@/Components/Form/Input.vue";
+
 const emit = defineEmits(["toggleTable"]);
 
 const toggleTableEvent = () => {
     emit("toggleTable");
 };
+
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        document
+            .querySelectorAll(".hs-overlay")
+            .forEach((el) => HSOverlay.open(el));
+    });
+});
 </script>
 
 <!--- NOTE: This has no dedicated page, we import this on Clerk/Map/IndexView --->
@@ -22,41 +32,7 @@ const toggleTableEvent = () => {
                             class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
                         >
                             <!-- Input -->
-                            <div class="sm:col-span-1">
-                                <label
-                                    for="hs-as-table-product-review-search"
-                                    class="sr-only"
-                                    >Search</label
-                                >
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        id="hs-as-table-product-review-search"
-                                        name="hs-as-table-product-review-search"
-                                        class="py-2 px-3 ps-11 block w-full bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:border-blue-700 dark:focus:border-blue-600 focus:ring-blue-700 dark:focus:ring-blue-600 disabled:opacity-50 disabled:pointer-events-none"
-                                        placeholder="Search"
-                                    />
-                                    <div
-                                        class="absolute inset-y-0 start-0 flex items-center pointer-events-none ps-4"
-                                    >
-                                        <svg
-                                            class="shrink-0 size-4 text-gray-400 dark:text-neutral-500"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <circle cx="11" cy="11" r="8" />
-                                            <path d="m21 21-4.3-4.3" />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
+                            <Input placeholder="Full Name" type="search" />
                             <!-- End Input -->
 
                             <div class="sm:col-span-2 md:grow">
