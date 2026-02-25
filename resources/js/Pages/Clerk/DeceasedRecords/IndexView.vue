@@ -1,5 +1,6 @@
 <script setup>
 import Input from "@/Components/Form/Input.vue";
+import Button from "@/Components/Form/Button.vue";
 
 const emit = defineEmits(["toggleTable"]);
 
@@ -40,10 +41,8 @@ window.addEventListener("load", () => {
                                     <div
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                     >
-                                        <button
+                                        <Button
                                             id="hs-as-table-table-export-dropdown"
-                                            type="button"
-                                            class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-800 dark:text-white shadow-2xs hover:bg-gray-50 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-50 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                                             aria-haspopup="menu"
                                             aria-expanded="false"
                                             aria-label="Dropdown"
@@ -74,7 +73,7 @@ window.addEventListener("load", () => {
                                                 />
                                             </svg>
                                             Import
-                                        </button>
+                                        </Button>
                                         <div
                                             class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg p-2 mt-2"
                                             role="menu"
@@ -228,10 +227,9 @@ window.addEventListener("load", () => {
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                         data-hs-dropdown-auto-close="inside"
                                     >
-                                        <button
+                                        <Button
                                             id="hs-as-table-table-filter-dropdown"
                                             type="button"
-                                            class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-800 dark:text-white shadow-2xs hover:bg-gray-50 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-50 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                                             aria-haspopup="menu"
                                             aria-expanded="false"
                                             aria-label="Dropdown"
@@ -253,12 +251,13 @@ window.addEventListener("load", () => {
                                                 <path d="M10 18h4" />
                                             </svg>
                                             Filter
+
                                             <span
-                                                class="ps-2 text-xs font-semibold text-blue-600 dark:text-blue-500 border-s border-gray-200 dark:border-neutral-700"
+                                                class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                             >
                                                 1
                                             </span>
-                                        </button>
+                                        </Button>
 
                                         <div
                                             class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
@@ -275,7 +274,7 @@ window.addEventListener("load", () => {
                                                 >
                                                     <input
                                                         type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
                                                         id="hs-as-filters-dropdown-all"
                                                         checked
                                                     />
@@ -284,13 +283,14 @@ window.addEventListener("load", () => {
                                                         >All</span
                                                     >
                                                 </label>
+
                                                 <label
                                                     for="hs-as-filters-dropdown-published"
                                                     class="flex items-center py-2.5 px-3"
                                                 >
                                                     <input
                                                         type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
                                                         id="hs-as-filters-dropdown-published"
                                                     />
                                                     <span
@@ -298,13 +298,14 @@ window.addEventListener("load", () => {
                                                         >Published</span
                                                     >
                                                 </label>
+
                                                 <label
                                                     for="hs-as-filters-dropdown-pending"
                                                     class="flex items-center py-2.5 px-3"
                                                 >
                                                     <input
                                                         type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
                                                         id="hs-as-filters-dropdown-pending"
                                                     />
                                                     <span
@@ -317,19 +318,8 @@ window.addEventListener("load", () => {
                                     </div>
 
                                     <!--- NOTE: Toggle table button --->
-                                    <div
-                                        class="hs-dropdown [--placement:bottom-right] relative inline-block"
-                                        data-hs-dropdown-auto-close="inside"
-                                    >
-                                        <button
-                                            @click="toggleTableEvent"
-                                            id="hs-as-table-table-filter-dropdown"
-                                            type="button"
-                                            class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-gray-800 dark:text-white shadow-2xs hover:bg-gray-50 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-50 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
-                                            aria-haspopup="menu"
-                                            aria-expanded="false"
-                                            aria-label="Dropdown"
-                                        >
+                                    <div>
+                                        <Button @click="toggleTableEvent">
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 width="18"
@@ -348,62 +338,7 @@ window.addEventListener("load", () => {
                                                 <path d="M4 17h16" />
                                             </svg>
                                             Toggle
-                                        </button>
-
-                                        <div
-                                            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
-                                            role="menu"
-                                            aria-orientation="vertical"
-                                            aria-labelledby="hs-as-table-table-filter-dropdown"
-                                        >
-                                            <div
-                                                class="divide-y divide-gray-200 dark:divide-neutral-800"
-                                            >
-                                                <label
-                                                    for="hs-as-filters-dropdown-all"
-                                                    class="flex items-center py-2.5 px-3"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-all"
-                                                        checked
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >All</span
-                                                    >
-                                                </label>
-                                                <label
-                                                    for="hs-as-filters-dropdown-published"
-                                                    class="flex items-center py-2.5 px-3"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-published"
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Published</span
-                                                    >
-                                                </label>
-                                                <label
-                                                    for="hs-as-filters-dropdown-pending"
-                                                    class="flex items-center py-2.5 px-3"
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-blue-600 dark:text-blue-500 focus:ring-0 focus:ring-offset-0 checked:bg-blue-600 dark:checked:bg-blue-500 checked:border-blue-600 dark:checked:border-blue-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-pending"
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Pending</span
-                                                    >
-                                                </label>
-                                            </div>
-                                        </div>
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
