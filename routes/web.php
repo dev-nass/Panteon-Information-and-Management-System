@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Clerk\DeceasedRecordController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -18,7 +19,7 @@ Route::prefix('clerk')
             return Inertia::render('Clerk/DashboardView');
         })->name('dashboard');
 
-        Route::get('/map', function () {
-            return Inertia::render('Clerk/Map/IndexView');
-        })->name('map.index');
+        Route::controller(DeceasedRecordController::class)->group(function () {
+            Route::get('/map', 'index')->name('map.index');
+        });
     });
