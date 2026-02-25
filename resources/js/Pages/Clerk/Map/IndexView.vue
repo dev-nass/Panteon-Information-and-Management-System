@@ -5,27 +5,28 @@ import { ref, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import DeceasedRecordTable from "@/Pages/Clerk/DeceasedRecords/IndexView.vue";
 import Input from "@/Components/Form/Input.vue";
+import { Link } from "@inertiajs/vue3";
 
 const { initializeMap, cleanupMap } = useMap();
 
 const mapContainer = ref(null);
 const toggleMap = ref(true);
 
-// NOTE: toggle map and table view
-const toggleMapEvent = () => {
-    toggleMap.value = !toggleMap.value;
-    if (toggleMap.value) {
-        cleanupMap();
-        setTimeout(() => initializeMap(mapContainer.value), 0);
-    } else {
-        // Switched to table view - need to reinitialize Preline
-        setTimeout(() => {
-            if (window.HSStaticMethods) {
-                window.HSStaticMethods.autoInit();
-            }
-        }, 0);
-    }
-};
+// NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
+// const toggleMapEvent = () => {
+//     toggleMap.value = !toggleMap.value;
+//     if (toggleMap.value) {
+//         cleanupMap();
+//         setTimeout(() => initializeMap(mapContainer.value), 0);
+//     } else {
+//         // Switched to table view - need to reinitialize Preline
+//         setTimeout(() => {
+//             if (window.HSStaticMethods) {
+//                 window.HSStaticMethods.autoInit();
+//             }
+//         }, 0);
+//     }
+// };
 
 defineOptions({
     layout: Dashboard,
@@ -47,17 +48,7 @@ onBeforeUnmount(() => {
             <div ref="mapContainer" id="map" class="h-full w-full"></div>
         </div>
 
-        <DeceasedRecordTable
-            v-else
-            key="table"
-            @toggleTable="toggleMapEvent"
-            data-aos="zoom-out"
-        />
-
-        <div
-            v-if="toggleMap"
-            class="absolute top-2 inset-x-0 flex justify-between z-777 px-4"
-        >
+        <div class="absolute top-2 inset-x-0 flex justify-between z-999 px-4">
             <Input placeholder="Full name" type="search" />
 
             <div class="flex gap-x-2">
@@ -87,8 +78,9 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!--- NOTE: Toggle table view button --->
-                <button
-                    @click="toggleMapEvent"
+
+                <Link
+                    :href="route('clerk.deceased-records.index')"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
                     <svg
@@ -108,14 +100,11 @@ onBeforeUnmount(() => {
                         <path d="m8 21-4-4 4-4" />
                         <path d="M4 17h16" />
                     </svg>
-                </button>
+                </Link>
             </div>
         </div>
 
-        <div
-            v-if="toggleMap"
-            class="absolute bottom-5 inset-x-0 flex justify-end z-999 px-4"
-        >
+        <div class="absolute bottom-5 inset-x-0 flex justify-end z-999 px-4">
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
                 <!--- NOTE: Toggle polygon button --->

@@ -1,12 +1,15 @@
 <script setup>
+import { Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
+import Dashboard from "@/Layouts/Dashboard.vue";
 
-const emit = defineEmits(["toggleTable"]);
-
-const toggleTableEvent = () => {
-    emit("toggleTable");
-};
+// NOTE:(out for now since we ended up separating the MAP and TABLE)
+// const emit = defineEmits(["toggleTable"]);
+//
+// const toggleTableEvent = () => {
+//     emit("toggleTable");
+// };
 
 window.addEventListener("load", () => {
     setTimeout(() => {
@@ -15,14 +18,17 @@ window.addEventListener("load", () => {
             .forEach((el) => HSOverlay.open(el));
     });
 });
+
+defineOptions({
+    layout: Dashboard,
+});
 </script>
 
-<!--- NOTE: This has no dedicated page, we import this on Clerk/Map/IndexView --->
 <template>
     <!-- Table Section -->
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <!-- Card -->
-        <div class="flex flex-col">
+        <div class="flex flex-col" data-aos="zoom-out">
             <div class="-m-1.5 overflow-x-auto">
                 <div class="p-1.5 min-w-full inline-block align-middle">
                     <div
@@ -319,7 +325,10 @@ window.addEventListener("load", () => {
 
                                     <!--- NOTE: Toggle table button --->
                                     <div>
-                                        <Button @click="toggleTableEvent">
+                                        <Link
+                                            :href="route('clerk.map.index')"
+                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
+                                        >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
                                                 width="18"
@@ -338,7 +347,7 @@ window.addEventListener("load", () => {
                                                 <path d="M4 17h16" />
                                             </svg>
                                             Toggle
-                                        </Button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
