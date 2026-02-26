@@ -45,7 +45,11 @@ onBeforeUnmount(() => {
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <div v-if="toggleMap" key="map" class="h-full w-full">
             <!-- Map container -->
-            <div ref="mapContainer" id="map" class="h-full w-full"></div>
+            <div
+                ref="mapContainer"
+                id="map"
+                class="h-full w-full focus:outline-none"
+            ></div>
         </div>
 
         <div class="absolute top-2 inset-x-0 flex justify-between z-999 px-4">
