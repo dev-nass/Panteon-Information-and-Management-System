@@ -393,7 +393,7 @@ defineOptions({
                                     <th
                                         class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
-                                        Status
+                                        Precinct Num
                                     </th>
                                 </tr>
                             </thead>
@@ -444,7 +444,7 @@ defineOptions({
                                         <span
                                             class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400"
                                         >
-                                            View More
+                                            {{ record.precinct_num }}
                                         </span>
                                     </td>
                                 </tr>
