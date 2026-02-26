@@ -443,11 +443,11 @@ defineOptions({
                         </table>
                         <!-- End Table -->
 
-                        <!-- Footer -->
+                        <!-- Footer / Pagination -->
                         <div
                             class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
                         >
-                            <div class="max-w-sm space-y-3">
+                            <div class="max-w-sm space-y-3 space-x-1.5">
                                 <Component
                                     v-for="link in deceased_records.meta.links"
                                 >

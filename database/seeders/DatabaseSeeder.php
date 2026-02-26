@@ -23,6 +23,6 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        DeceasedRecord::factory()->count(50)->create();
+        DeceasedRecord::factory()->count(21000)->create();
     }
 }

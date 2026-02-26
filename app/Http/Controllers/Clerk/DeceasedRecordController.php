@@ -24,7 +24,7 @@ class DeceasedRecordController extends Controller
 
         return Inertia::render('Clerk/DeceasedRecords/IndexView', [
             'deceased_records' => DeceasedRecordResource::collection(
-                $query->paginate(10)->withQueryString()
+                $query->paginate(25)->withQueryString()
             ),
 
             'filters' => request()->only(['search']),
