@@ -24,6 +24,7 @@ Route::prefix('clerk')
         })->name('map.index');
 
         Route::controller(DeceasedRecordController::class)->group(function () {
-            Route::get('/deceased-records', 'index')->name('deceased-records.index');
+            Route::get('/deceased-records', 'index')->name('deceased_records.index');
+            Route::get('/deceased-records/{deceased_record}', 'show')->name('deceased_records.show');
         });
     });

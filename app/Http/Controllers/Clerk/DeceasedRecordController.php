@@ -30,4 +30,11 @@ class DeceasedRecordController extends Controller
             'filters' => request()->only(['search']),
         ]);
     }
+
+    public function show(DeceasedRecord $deceased_record)
+    {
+        return Inertia::render('Clerk/DeceasedRecords/ShowView', [
+            'deceased' => $deceased_record,
+        ]);
+    }
 }

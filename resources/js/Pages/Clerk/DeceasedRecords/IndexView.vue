@@ -404,7 +404,16 @@ defineOptions({
                                 <tr
                                     v-for="record in deceased_records.data"
                                     :key="record.id"
-                                    class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
+                                    class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
+                                    @click="
+                                        () =>
+                                            $inertia.visit(
+                                                route(
+                                                    'clerk.deceased_records.show',
+                                                    record.id,
+                                                ),
+                                            )
+                                    "
                                 >
                                     <td
                                         class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200"
