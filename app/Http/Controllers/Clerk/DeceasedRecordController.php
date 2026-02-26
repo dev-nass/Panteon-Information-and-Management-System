@@ -20,7 +20,7 @@ class DeceasedRecordController extends Controller
             $q->where('first_name', 'like', "%{$search}%")
               ->orWhere('middle_name', 'like', "%{$search}%")
               ->orWhere('last_name', 'like', "%{$search}%");
-        })->latest();
+        })->orderBy('id', 'desc');
 
         return Inertia::render('Clerk/DeceasedRecords/IndexView', [
             'deceased_records' => DeceasedRecordResource::collection(

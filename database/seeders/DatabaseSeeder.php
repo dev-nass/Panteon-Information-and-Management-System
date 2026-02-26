@@ -23,6 +23,12 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        DeceasedRecord::factory()->count(21000)->create();
+        DeceasedRecord::factory()
+            ->count(21000)
+            ->make()
+            ->chunk(1000)
+            ->each(function ($chunk) {
+                DeceasedRecord::insert($chunk->toArray());
+            });
     }
 }
