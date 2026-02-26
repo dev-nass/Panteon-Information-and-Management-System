@@ -3,10 +3,15 @@ const props = defineProps({
     placeholder: {
         type: String,
     },
+    modelValue: {
+        type: [String, Object],
+    },
     type: {
         type: String,
     },
 });
+
+const emits = defineEmits(["update:modelValue"]);
 </script>
 
 <template>
@@ -33,9 +38,11 @@ const props = defineProps({
 
         <!-- Input -->
         <input
+            class="flex-1 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             type="text"
             :placeholder="placeholder"
-            class="flex-1 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+            :value="modelValue"
+            @input="emits('update:modelValue', $event.target.value)"
         />
     </div>
 </template>

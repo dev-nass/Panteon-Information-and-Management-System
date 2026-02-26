@@ -26,3 +26,7 @@ List of all the packages used and their installation
 
 - <https://inertiajs.com/docs/v2/advanced/progress-indicators#custom>
 - Make sure to add the event listener, don't just read the installation
+
+### Lodash
+
+<https://www.npmjs.com/package/lodash>

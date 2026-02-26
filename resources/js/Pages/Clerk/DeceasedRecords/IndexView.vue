@@ -1,4 +1,6 @@
 <script setup>
+import { useSearchDeceasedRecords } from "@/composables/clerk/useSearchDeceasedRecords";
+
 import { Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
@@ -16,6 +18,8 @@ const props = defineProps({
         type: Object,
     },
 });
+
+const { search } = useSearchDeceasedRecords();
 
 window.addEventListener("load", () => {
     setTimeout(() => {
@@ -45,7 +49,7 @@ defineOptions({
                             class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
                         >
                             <!-- Input -->
-                            <Input placeholder="Full Name" type="search" />
+                            <Input placeholder="Full Name" v-model="search" />
                             <!-- End Input -->
 
                             <div class="sm:col-span-2 md:grow">
