@@ -402,17 +402,20 @@ defineOptions({
                                         ID
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
+                                        @click="sort('first_name')"
+                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Full Name
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
+                                        @click="sort('date_of_birth')"
+                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Birth Date
                                     </th>
                                     <th
-                                        class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
+                                        @click="sort('date_of_death')"
+                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Death Date
                                     </th>
