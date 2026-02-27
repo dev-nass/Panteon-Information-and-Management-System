@@ -480,32 +480,32 @@ defineOptions({
                             </tbody>
                         </table>
                         <!-- End Table -->
-
-                        <!-- Footer / Pagination -->
-                        <div
-                            class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
-                        >
-                            <div class="max-w-sm space-y-3 space-x-1.5">
-                                <Component
-                                    v-for="link in deceased_records.meta.links"
-                                >
-                                    <Link
-                                        v-if="link.url"
-                                        :href="link.url"
-                                        v-html="link.label"
-                                        preserve-scroll
-                                        class="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-2xs hover:bg-gray-50 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-50 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
-                                        :class="
-                                            link.active
-                                                ? 'text-green-500'
-                                                : 'text-gray-800 dark:text-white'
-                                        "
-                                    />
-                                </Component>
-                            </div>
-                        </div>
-                        <!-- End Footer -->
                     </div>
+
+                    <!-- Footer / Pagination -->
+                    <div
+                        class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
+                    >
+                        <div class="max-w-md space-y-3 space-x-1.5">
+                            <template v-if="deceased_records?.meta?.links">
+                                <component
+                                    v-for="link in deceased_records.meta.links"
+                                    :key="link.url ?? link.label"
+                                    :is="link.url ? Link : 'span'"
+                                    :href="link.url"
+                                    v-html="link.label"
+                                    preserve-scroll
+                                    :class="[
+                                        'py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-neutral-400',
+                                        link.active
+                                            ? 'text-green-500'
+                                            : 'text-gray-800 dark:text-neutral-400',
+                                    ]"
+                                />
+                            </template>
+                        </div>
+                    </div>
+                    <!-- End Footer -->
                 </div>
             </div>
         </div>
