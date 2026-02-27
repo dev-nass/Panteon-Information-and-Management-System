@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
             ></div>
         </div>
 
-        <div class="absolute top-2 inset-x-0 flex justify-between z-999 px-4">
+        <div class="absolute top-2 inset-x-0 flex justify-between z-888 px-4">
             <Input placeholder="Full name" type="search" />
 
             <div class="flex gap-x-2">

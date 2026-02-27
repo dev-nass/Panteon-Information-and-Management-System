@@ -11,6 +11,8 @@ Route::get('/sample', function () {
     return Inertia::render('SampleView');
 });
 
+Route::get('/dashboard-sample', fn() => Inertia::render('DashboardSampleView'));
+
 Route::prefix('clerk')
     ->name('clerk.')
     ->group(function () {

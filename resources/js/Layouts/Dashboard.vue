@@ -7,7 +7,7 @@ const isActive = ref(true);
 </script>
 
 <template>
-    <div class="flex items-start">
+    <div class="lg:flex items-start">
         <Sidebar @toggle="isActive = !isActive" />
         <!-- Main Content -->
         <main
