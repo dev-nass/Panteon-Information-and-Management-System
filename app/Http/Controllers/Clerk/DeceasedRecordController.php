@@ -14,20 +14,22 @@ class DeceasedRecordController extends Controller
     {
 
         $search = request('search');
+        $sortField = request('sort_field', 'id');
+        $sortDirection = request('sort_direction', 'desc');
 
-        // TODO: understand this again
-        $query = DeceasedRecord::query()->when($search, function ($q) use ($search) {
+        // todo: understand this again
+        $query = deceasedrecord::query()->when($search, function ($q) use ($search) {
             $q->where('first_name', 'like', "%{$search}%")
-              ->orWhere('middle_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%");
-        })->orderBy('id', 'desc');
+              ->orwhere('middle_name', 'like', "%{$search}%")
+              ->orwhere('last_name', 'like', "%{$search}%");
+        })->orderby($sortField, $sortDirection);
 
-        return Inertia::render('Clerk/DeceasedRecords/IndexView', [
-            'deceased_records' => DeceasedRecordResource::collection(
-                $query->paginate(25)->withQueryString()
+        return inertia::render('Clerk/DeceasedRecords/IndexView', [
+            'deceased_records' => deceasedrecordresource::collection(
+                $query->paginate(25)->withquerystring()
             ),
 
-            'filters' => request()->only(['search']),
+            'filters' => request()->only(['search', 'sort_field', 'sort_direction']),
         ]);
     }
 

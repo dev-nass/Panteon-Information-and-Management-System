@@ -11,7 +11,7 @@ export function useSearchDeceasedRecords() {
         search,
         debounce(function (value) {
             router.get(
-                route("clerk.deceased-records.index"),
+                route("clerk.deceased_records.index"),
                 { search: value },
                 {
                     preserveState: true,

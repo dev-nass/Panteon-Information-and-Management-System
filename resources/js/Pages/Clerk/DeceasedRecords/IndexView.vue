@@ -1,7 +1,7 @@
 <script setup>
 import { useSearchDeceasedRecords } from "@/composables/clerk/useSearchDeceasedRecords";
 
-import { Link } from "@inertiajs/vue3";
+import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -17,9 +17,34 @@ const props = defineProps({
     deceased_records: {
         type: Object,
     },
+    filters: Object,
 });
 
 const { search } = useSearchDeceasedRecords();
+
+const sort = (field) => {
+    let direction = "asc";
+
+    if (
+        props.filters.sort_field === field &&
+        props.filters.sort_direction === "asc"
+    ) {
+        direction = "desc";
+    }
+
+    router.get(
+        route("clerk.deceased_records.index"),
+        {
+            search: props.filters.search,
+            sort_field: field,
+            sort_direction: direction,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
+};
 
 window.addEventListener("load", () => {
     setTimeout(() => {
@@ -371,7 +396,8 @@ defineOptions({
                             <thead class="bg-gray-50 dark:bg-neutral-800">
                                 <tr>
                                     <th
-                                        class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
+                                        @click="sort('id')"
+                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         ID
                                     </th>

@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
                 <!--- NOTE: Toggle table view button --->
 
                 <Link
-                    :href="route('clerk.deceased-records.index')"
+                    :href="route('clerk.deceased_records.index')"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
                     <svg
