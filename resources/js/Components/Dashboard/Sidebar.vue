@@ -5,11 +5,6 @@ import { route } from "ziggy-js";
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
 const page = usePage();
-const emit = defineEmits(["toggle"]);
-
-const toggleIsActive = () => {
-    emit("toggle");
-};
 </script>
 
 <template>
@@ -141,10 +136,30 @@ const toggleIsActive = () => {
                             aria-label="Dropdown"
                         >
                             <div class="flex items-center gap-2">
-                                <span
-                                    class="bg-neutral-500 rounded-full h-7 w-7 p-2 flex items-center justify-center text-xs"
-                                    >JC</span
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-user-cog-icon lucide-user-cog"
                                 >
+                                    <path d="M10 15H6a4 4 0 0 0-4 4v2" />
+                                    <path d="m14.305 16.53.923-.382" />
+                                    <path d="m15.228 13.852-.923-.383" />
+                                    <path d="m16.852 12.228-.383-.923" />
+                                    <path d="m16.852 17.772-.383.924" />
+                                    <path d="m19.148 12.228.383-.923" />
+                                    <path d="m19.53 18.696-.382-.924" />
+                                    <path d="m20.772 13.852.924-.383" />
+                                    <path d="m20.772 16.148.924.383" />
+                                    <circle cx="18" cy="15" r="3" />
+                                    <circle cx="9" cy="7" r="4" />
+                                </svg>
                                 <span
                                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
                                     >James Collison</span
@@ -428,7 +443,10 @@ const toggleIsActive = () => {
                     </SidebarLink>
                 </li>
                 <li>
-                    <SidebarLink>
+                    <SidebarLink
+                        :href="route('clerk.map.index')"
+                        :isActive="page.component === 'Clerk/Map/IndexView'"
+                    >
                         <template v-slot:icon>
                             <span
                                 class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
@@ -456,12 +474,17 @@ const toggleIsActive = () => {
                                 </svg>
                             </span>
                         </template>
-                        <template v-slot:text> Ineractive Map </template>
+                        <template v-slot:text> Intertactive Map </template>
                     </SidebarLink>
                 </li>
 
                 <li>
-                    <SidebarLink>
+                    <SidebarLink
+                        :href="route('clerk.deceased_records.index')"
+                        :isActive="
+                            page.component === 'Clerk/DeceasedRecords/IndexView'
+                        "
+                    >
                         <template v-slot:icon>
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
