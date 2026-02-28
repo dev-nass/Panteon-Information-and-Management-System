@@ -1,21 +1,29 @@
 <script setup>
-import { ref } from "vue";
-
+import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 import Sidebar from "@/Components/Dashboard/Sidebar.vue";
-
-const isActive = ref(true);
+import Header from "@/Components/Dashboard/Header.vue";
 </script>
 
 <template>
-    <div class="lg:flex items-start">
-        <Sidebar @toggle="isActive = !isActive" />
-        <!-- Main Content -->
-        <main
-            id="main-content"
-            class="flex-1 transition-all duration-300 lg:ml-16 py-2 pl-2 lg:pl-0 pr-2"
-            :class="{ 'lg:ml-67': isActive }"
-        >
-            <slot />
-        </main>
+    <div
+        id="hs-pro-sidebar"
+        class="hs-overlay [--auto-close:md] hs-overlay-open:translate-x-0 -translate-x-full transition-all duration-300 transform w-65 hs-overlay-minified:w-13 overflow-hidden md:hs-overlay-minified:overflow-visible hidden fixed inset-y-0 z-60 start-0 bg-white dark:bg-neutral-800 border-e border-gray-200 dark:border-neutral-700 md:block md:translate-x-0 md:end-auto md:bottom-0"
+        role="dialog"
+        tabindex="-1"
+        aria-label="Sidebar"
+    >
+        <Sidebar />
     </div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main
+        class="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 h-screen flex flex-col bg-white dark:bg-neutral-900"
+    >
+        <Header />
+
+        <div class="h-full w-full p-2">
+            <slot />
+        </div>
+    </main>
+    <!-- ========== END MAIN CONTENT ========== -->
 </template>
