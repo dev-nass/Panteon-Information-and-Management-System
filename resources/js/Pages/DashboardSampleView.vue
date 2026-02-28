@@ -66,7 +66,7 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
                 <!-- Sidebar Toggle -->
                 <button
                     type="button"
-                    class="hidden md:hs-overlay-minified:hidden md:flex justify-center items-center flex-none gap-x-3 size-9 text-sm text-gray-500 dark:text-neutral-400 dark:bg-black rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700"
+                    class="hidden md:hs-overlay-minified:hidden md:flex justify-center items-center flex-none gap-x-3 size-9 text-sm text-gray-500 dark:text-neutral-400 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700"
                     aria-haspopup="dialog"
                     aria-expanded="true"
                     aria-controls="hs-pro-sidebar"
@@ -137,22 +137,11 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
                                 aria-expanded="false"
                                 aria-label="Dropdown"
                             >
-                                <div class="flex items-center gap-1">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="21"
-                                        height="21"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="lucide lucide-user-round-icon lucide-user-round"
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="bg-neutral-500 rounded-full h-7 w-7 p-2 flex items-center justify-center text-xs"
+                                        >JC</span
                                     >
-                                        <circle cx="12" cy="8" r="5" />
-                                        <path d="M20 21a8 8 0 0 0-16 0" />
-                                    </svg>
                                     <span
                                         class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
                                         >James Collison</span
@@ -416,140 +405,95 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
                         >Main</span
                     >
                     <li>
-                        <a
-                            class="group relative w-full flex items-center gap-1 py-1.5 px-2.5 text-sm rounded-lg before:absolute before:inset-y-0 before:-start-2 before:rounded-e-full before:w-1 before:h-full text-gray-800 dark:text-neutral-200 hover:bg-gray-100/70 dark:hover:bg-neutral-700/70 focus:bg-gray-100/70 dark:focus:bg-neutral-700/70"
-                            href="#"
-                        >
-                            <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
-                            >
-                                <svg
-                                    class="shrink-0 size-4 group-hover:scale-115 group-focus:scale-115 transition-transform duration-300"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                        <SidebarLink>
+                            <template v-slot:icon>
+                                <span
+                                    class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
                                 >
-                                    <path d="M5 12h14" />
-                                    <path d="M12 5v14" />
-                                </svg>
-                            </span>
-                            <span
-                                class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                >new chat</span
-                            >
-                        </a>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="lucide lucide-gauge-icon lucide-gauge"
+                                    >
+                                        <path d="m12 14 4-4" />
+                                        <path
+                                            d="M3.34 19a10 10 0 1 1 17.32 0"
+                                        />
+                                    </svg>
+                                </span>
+                            </template>
+                            <template v-slot:text> Dashboard </template>
+                        </SidebarLink>
                     </li>
                     <li>
-                        <button
-                            type="button"
-                            class="group w-full flex items-center gap-1 py-1.5 px-2.5 text-sm text-gray-800 dark:text-neutral-200 truncate rounded-lg hover:bg-gray-100/70 dark:hover:bg-neutral-700/70 focus:outline-hidden focus:bg-gray-100/70 dark:focus:bg-neutral-700/70"
-                            aria-haspopup="dialog"
-                            aria-expanded="false"
-                            aria-controls="hs-pro-dnsm"
-                            data-hs-overlay="#hs-pro-dnsm"
-                        >
-                            <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
-                            >
-                                <svg
-                                    class="shrink-0 size-4"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                        <SidebarLink>
+                            <template v-slot:icon>
+                                <span
+                                    class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
                                 >
-                                    <path
-                                        class="group-hover:scale-100 group-focus:scale-100 scale-115 transition-transform duration-300"
-                                        d="m21 21-4.34-4.34"
-                                    />
-                                    <circle cx="11" cy="11" r="8" />
-                                </svg>
-                            </span>
-                            <span
-                                class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                >Search chats</span
-                            >
-                        </button>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="lucide lucide-map-pin-house-icon lucide-map-pin-house"
+                                    >
+                                        <path
+                                            d="M15 22a1 1 0 0 1-1-1v-4a1 1 0 0 1 .445-.832l3-2a1 1 0 0 1 1.11 0l3 2A1 1 0 0 1 22 17v4a1 1 0 0 1-1 1z"
+                                        />
+                                        <path
+                                            d="M18 10a8 8 0 0 0-16 0c0 4.993 5.539 10.193 7.399 11.799a1 1 0 0 0 .601.2"
+                                        />
+                                        <path d="M18 22v-3" />
+                                        <circle cx="10" cy="10" r="3" />
+                                    </svg>
+                                </span>
+                            </template>
+                            <template v-slot:text> Ineractive Map </template>
+                        </SidebarLink>
                     </li>
+
                     <li>
-                        <a
-                            class="group relative w-full flex items-center gap-1 py-1.5 px-2.5 text-sm rounded-lg before:absolute before:inset-y-0 before:-start-2 before:rounded-e-full before:w-1 before:h-full text-gray-800 dark:text-neutral-200 hover:bg-gray-100/70 dark:hover:bg-neutral-700/70 focus:bg-gray-100/70 dark:focus:bg-neutral-700/70"
-                            href="#"
-                        >
-                            <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
-                            >
+                        <SidebarLink>
+                            <template v-slot:icon>
                                 <svg
-                                    class="shrink-0 size-4 group-hover:rotate-180 group-focus:rotate-180 transition-transform duration-300"
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
+                                    width="18"
+                                    height="18"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
+                                    class="lucide lucide-table-icon lucide-table"
                                 >
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path
-                                        d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"
+                                    <path d="M12 3v18" />
+                                    <rect
+                                        width="18"
+                                        height="18"
+                                        x="3"
+                                        y="3"
+                                        rx="2"
                                     />
-                                    <path d="M2 12h20" />
+                                    <path d="M3 9h18" />
+                                    <path d="M3 15h18" />
                                 </svg>
-                            </span>
-                            <span
-                                class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                >Explore</span
-                            >
-                        </a>
-                    </li>
-                    <li>
-                        <a
-                            class="group relative w-full flex items-center gap-1 py-1.5 px-2.5 text-sm rounded-lg before:absolute before:inset-y-0 before:-start-2 before:rounded-e-full before:w-1 before:h-full text-gray-800 dark:text-neutral-200 hover:bg-gray-100/70 dark:hover:bg-neutral-700/70 focus:bg-gray-100/70 dark:focus:bg-neutral-700/70"
-                            href="#"
-                        >
-                            <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
-                            >
-                                <svg
-                                    class="shrink-0 size-4"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path
-                                        class="group-hover:scale-110 group-focus:scale-110 transition-transform duration-300"
-                                        d="M14 9a2 2 0 0 1-2 2H6l-4 4V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2z"
-                                    />
-                                    <path
-                                        class="group-hover:scale-95 group-focus:scale-95 transition-transform duration-300"
-                                        d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"
-                                    />
-                                </svg>
-                            </span>
-                            <span
-                                class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                >Chat details</span
-                            >
-                        </a>
+                            </template>
+                            <template v-slot:text> Deceased Record </template>
+                        </SidebarLink>
                     </li>
                 </ul>
                 <!-- End List -->
@@ -757,11 +701,11 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
     <!-- ========== MAIN CONTENT ========== -->
     <main
-        class="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 pb-4 h-screen flex flex-col bg-white dark:bg-neutral-800"
+        class="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 pb-4 h-screen flex flex-col bg-white dark:bg-neutral-900"
     >
         <!-- ========== HEADER ========== -->
         <header
-            class="md:ms-65 xl:hs-overlay-layout-open:me-96 md:hs-overlay-minified:ms-13 transition-all duration-300 fixed top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-48 md:z-61 bg-white dark:bg-neutral-800 py-2.5"
+            class="md:ms-65 xl:hs-overlay-layout-open:me-96 md:hs-overlay-minified:ms-13 transition-all duration-300 fixed top-0 inset-x-0 flex flex-wrap md:justify-start md:flex-nowrap z-48 md:z-61 bg-white dark:bg-neutral-800"
         >
             <nav
                 class="px-4 sm:px-5.5 flex basis-full justify-between items-center w-full mx-auto"
@@ -1056,202 +1000,7 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
         <div
             class="h-full flex flex-col justify-between sm:justify-center max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8"
         >
-            <!-- Heading -->
-            <div
-                class="flex flex-col justify-center items-center grow sm:flex-none"
-            >
-                <h1
-                    class="mb-8 text-3xl text-center text-gray-800 dark:text-neutral-200"
-                >
-                    What can I help with?
-                </h1>
-            </div>
-            <!-- End Heading -->
-
-            <!-- Body -->
-            <div>
-                <!-- Textarea -->
-                <div
-                    class="bg-white dark:bg-neutral-800 border border-gray-300 dark:border-neutral-600 rounded-2xl shadow-xs"
-                >
-                    <label for="hs-pro-aimt" class="sr-only"
-                        >Ask anything...</label
-                    >
-                </div>
-                <!-- End Textarea -->
-
-                <div class="mt-4">
-                    <!-- Label Button Group -->
-                    <div class="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
-                                />
-                            </svg>
-                            Health
-                        </a>
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"
-                                />
-                                <path d="M22 10v6" />
-                                <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
-                            </svg>
-                            Learn
-                        </a>
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M12 20v2" />
-                                <path d="M12 2v2" />
-                                <path d="M17 20v2" />
-                                <path d="M17 2v2" />
-                                <path d="M2 12h2" />
-                                <path d="M2 17h2" />
-                                <path d="M2 7h2" />
-                                <path d="M20 12h2" />
-                                <path d="M20 17h2" />
-                                <path d="M20 7h2" />
-                                <path d="M7 20v2" />
-                                <path d="M7 2v2" />
-                                <rect
-                                    x="4"
-                                    y="4"
-                                    width="16"
-                                    height="16"
-                                    rx="2"
-                                />
-                                <rect x="8" y="8" width="8" height="8" rx="1" />
-                            </svg>
-                            Technology
-                        </a>
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M10 2v2" />
-                                <path d="M14 2v2" />
-                                <path
-                                    d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"
-                                />
-                                <path d="M6 2v2" />
-                            </svg>
-                            Life stuff
-                        </a>
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M6 18h8" />
-                                <path d="M3 22h18" />
-                                <path d="M14 22a7 7 0 1 0 0-14h-1" />
-                                <path d="M9 14h2" />
-                                <path
-                                    d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"
-                                />
-                                <path
-                                    d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"
-                                />
-                            </svg>
-                            Science
-                        </a>
-                        <a
-                            class="py-1.5 px-2.5 inline-flex items-center gap-x-1.5 text-sm text-gray-800 dark:text-neutral-200 bg-gray-100 dark:bg-neutral-700 hover:text-blue-700 dark:hover:text-blue-600 rounded-lg focus:outline-hidden focus:text-blue-700 dark:focus:text-blue-600"
-                            href="#"
-                        >
-                            <svg
-                                class="shrink-0 size-4"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="m5 8 6 6" />
-                                <path d="m4 14 6-6 2-3" />
-                                <path d="M2 5h12" />
-                                <path d="M7 2h1" />
-                                <path d="m22 22-5-10-5 10" />
-                                <path d="M14 18h6" />
-                            </svg>
-                            Language
-                        </a>
-                    </div>
-                    <!-- End Label Button Group -->
-                </div>
-            </div>
-            <!-- End Body -->
+            <slot />
         </div>
     </main>
     <!-- ========== END MAIN CONTENT ========== -->
