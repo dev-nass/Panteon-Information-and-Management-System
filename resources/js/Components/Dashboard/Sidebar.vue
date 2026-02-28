@@ -318,7 +318,7 @@ const toggleIsActive = () => {
             <footer class="">
                 <!-- Account Dropdown -->
                 <div
-                    class="hs-dropdown [--strategy:absolute] [--auto-close:inside] relative w-full inline-flex"
+                    class="hs-dropdown [--strategy:fixed] [--placement:bottom-right] [--auto-close:inside] relative w-full inline-flex"
                 >
                     <button
                         id="hs-sidebar-footer-example-with-dropdown"
