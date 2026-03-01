@@ -21,7 +21,7 @@ class SectionFactory extends Factory
             'section_name' => $this->faker->word(),
             'description' => $this->faker->sentence(),
             'total_capacity' => $this->faker->numberBetween(50, 200),
-            // 'status' => 'active',
+            'status' => 'active',
         ];
     }
 }

@@ -7,6 +7,8 @@ use App\Models\Lot;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+use function GuzzleHttp\json_encode;
+
 class PanteonDataSeeder extends Seeder
 {
     /**
@@ -14,31 +16,41 @@ class PanteonDataSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $this->seedSections();
+        $this->seedLots();
     }
 
     private function seedSections(): void
     {
-        $geoJsonPath = public_path('data/sectiion.geojson');
+        $geoJsonPath = public_path('data/sections.geojson');
 
         if (!$geoJsonPath) {
             $this->command->error("GeoJSON file for section not found at path $geoJsonPath");
             return;
         }
 
+        $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
+
+        if (!$geoJsonData['features']) {
+            $this->command->error("Invalid GeoJSON format: 'features' key not found.");
+            return;
+        }
+
         $this->command->info("Seeding sections from GeoJSON...");
 
-        foreach ($geoJsonPath['features'] as $feature) {
+        foreach ($geoJsonData['features'] as $feature) {
             // $section_attributes = $feature['properties'];
 
+            // holds the coordinates from QGIS
             $section_coords = [
-                'coordinates' => $feature['geometry'],
+                'coordinates' => json_encode($feature['geometry']),
             ];
 
+            // insert the other attributes using the factory definition & section variable data
             Section::factory()->create($section_coords);
         }
 
-        $this->command->info("Sections imported: " . count($geoJsonPath['features']));
+        $this->command->info("Sections imported: " . count($geoJsonData['features']));
     }
 
     private function seedLots(): void
@@ -70,11 +82,13 @@ class PanteonDataSeeder extends Seeder
         // REFERENCE OPERATOR
         foreach ($geoJsonData_underground['features'] as &$feature) {
             $feature['properties']['lot_type'] = 'underground';
+            $feature['properties']['total_capacity'] = 1;
             unset($feature); // Break reference
         }
 
         foreach ($geoJsonData_appartment['features'] as &$feature) {
             $feature['properties']['lot_type'] = 'apartment';
+            $feature['properties']['total_capacity'] = 371;
             unset($feature); // Break reference
         }
 
@@ -89,7 +103,7 @@ class PanteonDataSeeder extends Seeder
             $lot = [
                 'section_id' => $attributes['section_id'],
                 'lot_type' => $attributes['lot_type'],
-                'coordinates' => $feature['geometry'],
+                'coordinates' => json_encode($feature['geometry']),
             ];
 
             Lot::factory()->create($lot);
