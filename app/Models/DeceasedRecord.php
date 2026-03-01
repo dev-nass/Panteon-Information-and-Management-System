@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeceasedRecord extends Model
 {
@@ -36,4 +37,9 @@ class DeceasedRecord extends Model
         'part_of_LGBTQ',
         'precinct_num',
     ];
+
+    public function burial_records(): HasMany
+    {
+        return $this->hasMany(BurialRecord::class);
+    }
 }
