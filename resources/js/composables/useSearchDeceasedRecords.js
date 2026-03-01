@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { ref, watch } from "vue";
 import { route } from "ziggy-js";
 
-export function useSearchDeceasedRecords() {
+export function useSearchDeceasedRecords(route_name) {
     const page = usePage();
     const search = ref(page.props.filters.search || "");
 
@@ -11,7 +11,7 @@ export function useSearchDeceasedRecords() {
         search,
         debounce(function (value) {
             router.get(
-                route("clerk.deceased_records.index"),
+                route(route_name),
                 { search: value },
                 {
                     preserveState: true,

@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useClerkMapStates } from "@/stores/useClerkMapStates";
+import { useMapStates } from "@/stores/useMapStates";
 
 const { map, googleLayer } = useClerkMapStates();
 

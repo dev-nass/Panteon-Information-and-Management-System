@@ -1,5 +1,5 @@
 <script setup>
-import { useSearchDeceasedRecords } from "@/composables/clerk/useSearchDeceasedRecords";
+import { useSearchDeceasedRecords } from "@/composables/useSearchDeceasedRecords";
 
 import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
@@ -20,7 +20,7 @@ const props = defineProps({
     filters: Object,
 });
 
-const { search } = useSearchDeceasedRecords();
+const { search } = useSearchDeceasedRecords("clerk.deceased_records.index");
 
 const sort = (field) => {
     let direction = "asc";

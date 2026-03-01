@@ -1,5 +1,5 @@
 <script setup>
-import { useMap } from "@/composables/clerk/useMap";
+import { useMap } from "@/composables/useMap";
 import { ref, onMounted, onBeforeMount, onBeforeUnmount } from "vue";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
