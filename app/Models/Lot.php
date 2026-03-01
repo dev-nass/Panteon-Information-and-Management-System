@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Plot extends Model
+class Lot extends Model
 {
-    /** @use HasFactory<\Database\Factories\PlotFactory> */
+    /** @use HasFactory<\Database\Factories\LotFactory> */
     use HasFactory;
 
     public function section(): BelongsTo

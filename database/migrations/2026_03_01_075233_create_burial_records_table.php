@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\DeceasedRecord;
-use App\Models\Plot;
+use App\Models\Lot;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->id();
 
             // added nullable to ensure nullOnDelete works
-            $table->foreignIdFor(Plot::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(Lot::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(DeceasedRecord::class, 'deceased_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
 

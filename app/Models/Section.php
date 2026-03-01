@@ -11,8 +11,8 @@ class Section extends Model
     /** @use HasFactory<\Database\Factories\SectionFactory> */
     use HasFactory;
 
-    public function plots(): HasMany
+    public function lots(): HasMany
     {
-        return $this->hasMany(Plot::class);
+        return $this->hasMany(Lot::class);
     }
 }

@@ -16,8 +16,8 @@ class BurialRecord extends Model
         return $this->belongsTo(DeceasedRecord::class);
     }
 
-    public function plot(): BelongsTo
+    public function lot(): BelongsTo
     {
-        return $this->belongsTo(Plot::class);
+        return $this->belongsTo(Lot::class);
     }
 }

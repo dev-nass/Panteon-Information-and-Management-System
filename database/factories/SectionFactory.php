@@ -17,7 +17,11 @@ class SectionFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'section_code' => $this->faker->unique()->numberBetween(100, 999),
+            'section_name' => $this->faker->word(),
+            'description' => $this->faker->sentence(),
+            'total_capacity' => $this->faker->numberBetween(50, 200),
+            // 'status' => 'active',
         ];
     }
 }

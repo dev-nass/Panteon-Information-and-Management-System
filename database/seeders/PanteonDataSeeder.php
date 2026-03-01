@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Section;
-use App\Models\Plot;
+use App\Models\Lot;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -41,7 +41,7 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Sections imported: " . count($geoJsonPath['features']));
     }
 
-    private function seedPlots(): void
+    private function seedLots(): void
     {
         $geoJsonPath_Underground = public_path('data/lots_underground.geojson');
         $geoJsonPath_Appartment = public_path('data/lots_appartment.geojson');
@@ -92,7 +92,7 @@ class PanteonDataSeeder extends Seeder
                 'coordinates' => $feature['geometry'],
             ];
 
-            Plot::factory()->create($lot);
+            Lot::factory()->create($lot);
         }
 
         $this->command->info("Underground lots imported: " . count($geoJsonData_underground['features']));

@@ -38,7 +38,7 @@ class DeceasedRecord extends Model
         'precinct_num',
     ];
 
-    public function burial_records(): HasMany
+    public function burialRecords(): HasMany
     {
         return $this->hasMany(BurialRecord::class);
     }

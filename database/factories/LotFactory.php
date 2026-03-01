@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Plot>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Lot>
  */
-class PlotFactory extends Factory
+class LotFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +17,7 @@ class PlotFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'lot_number' => $this->faker->unique()->numerify('LOT-###'),
         ];
     }
 }
