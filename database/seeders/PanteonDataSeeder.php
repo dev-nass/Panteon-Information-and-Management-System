@@ -113,4 +113,10 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Appartment lots imported: " . count($geoJsonData_appartment['features']));
         $this->command->info("Total lots imported: " . count($allFeatures));
     }
+
+    /**
+    * Description: Only use this function for testing (without the actual data from Panteon);
+    *   Mainly responsible for assigining each deceased record to teir own lot
+    */
+    private function deceasedRecords() {}
 }

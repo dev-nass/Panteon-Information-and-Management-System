@@ -21,4 +21,7 @@ class Lot extends Model
     {
         return $this->hasMany(BurialRecord::class);
     }
+
+    // TODO: create function that counts how many types each plot
+    // appeared on burial_records
 }
