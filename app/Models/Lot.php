@@ -12,6 +12,13 @@ class Lot extends Model
     /** @use HasFactory<\Database\Factories\LotFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'section_id',
+        'lot_type',
+        'total_capacity',
+        'coordinates',
+    ];
+
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
@@ -22,6 +29,6 @@ class Lot extends Model
         return $this->hasMany(BurialRecord::class);
     }
 
-    // TODO: create function that counts how many types each plot
+    // TODO: create function that counts how many times each plot
     // appeared on burial_records
 }

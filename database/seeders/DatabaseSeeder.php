@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        $this->call(PanteonDataSeeder::class);
 
         DeceasedRecord::factory()
             ->count(21000)
@@ -32,5 +31,8 @@ class DatabaseSeeder extends Seeder
             ->each(function ($chunk) {
                 DeceasedRecord::insert($chunk->toArray());
             });
+
+
+        $this->call(PanteonDataSeeder::class);
     }
 }

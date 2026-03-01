@@ -18,7 +18,7 @@ return new class extends Migration {
 
             // added nullable to ensure nullOnDelete works
             $table->foreignIdFor(Lot::class)->nullable()->constrained()->nullOnDelete();
-            $table->foreignIdFor(DeceasedRecord::class, 'deceased_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(DeceasedRecord::class, 'deceased_record_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
 
             $table->timestamps();
