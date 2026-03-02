@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Clerk\DeceasedRecordController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -11,7 +12,9 @@ Route::get('/sample', function () {
     return Inertia::render('SampleView');
 });
 
-Route::get('/dashboard-sample', fn() => Inertia::render('DashboardSampleView'));
+Route::controller(MapDataController::class)->group(function () {
+    Route::get('/data/burials')->name('api.map.burials');
+});
 
 Route::prefix('clerk')
     ->name('clerk.')

@@ -20,4 +20,9 @@ class BurialRecord extends Model
     {
         return $this->belongsTo(Lot::class);
     }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }
