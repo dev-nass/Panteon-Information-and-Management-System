@@ -1,57 +1,46 @@
 import { useMapStates } from "@/stores/useMapStates";
 
-const { lotLayers, uniqueTypes } = useMapStates();
+const { lotLayers, lotVisibility, uniqueTypes } = useMapStates();
 
 export function useFeatureProcessing() {
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
-    const processFeatures = (data) => {
-        if (!data || !Array.isArray(data.features)) {
-            console.warn("Invalid GeoJSON data structure");
-            return [];
-        }
+    const processFeatures = (lots) => {
+        if (!Array.isArray(lots)) return [];
 
-        return (
-            data.features
-                // keep only valid geometries
-                .filter((feature) => {
-                    const isValid =
-                        feature && feature.geometry && feature.geometry.type;
-
-                    if (!isValid) {
-                        console.warn(
-                            "Skipping feature with null/missing geometry",
-                            feature,
-                        );
-                    }
-
-                    return isValid; // ✅ KEEP valid ones
-                })
-                // normalize MultiPolygon → Polygon
-                .map((feature) => {
-                    if (feature.geometry.type === "MultiPolygon") {
-                        const coords = feature.geometry.coordinates?.[0];
-                        if (coords) {
-                            feature.geometry = {
-                                type: "Polygon",
-                                coordinates: coords,
-                            };
-                        }
-                    }
-                    return feature;
-                })
-                .filter(validateFeature)
-        );
+        return lots
+            .filter((feature) => {
+                const hasGeom =
+                    feature?.geometry?.type &&
+                    Array.isArray(feature.geometry.coordinates);
+                if (!hasGeom) console.warn("Skipping invalid lot:", feature);
+                return hasGeom;
+            })
+            .map((feature) => {
+                const { geometry } = feature;
+                if (geometry.type === "MultiPolygon") {
+                    const coords = geometry.coordinates?.[0];
+                    if (coords)
+                        feature.geometry = {
+                            type: "Polygon",
+                            coordinates: coords,
+                        };
+                }
+                return feature;
+            })
+            .filter(validateFeature);
     };
 
-    // validate if the coordinates is valid
+    // Validates if the geometry coordinates are proper numbers
     const validateFeature = (feature) => {
-        if (!feature.geometry?.coordinates) return false;
+        const coords = feature?.geometry?.coordinates;
+        const type = feature?.geometry?.type;
 
-        const coords = feature.geometry.coordinates;
+        if (!coords || !type) return false;
 
-        if (feature.geometry.type === "Polygon") {
-            if (!Array.isArray(coords) || !coords[0]) return false;
+        if (type === "Polygon") {
+            if (!Array.isArray(coords) || !Array.isArray(coords[0]))
+                return false;
 
             return coords[0].every((coord) => {
                 if (!Array.isArray(coord) || coord.length < 2) return false;
@@ -67,6 +56,7 @@ export function useFeatureProcessing() {
             });
         }
 
+        // Add more geometry types here if needed (MultiLineString, etc.)
         return true;
     };
 
@@ -78,7 +68,7 @@ export function useFeatureProcessing() {
         uniqueTypes.value.forEach((type) => {
             // console.log(type);
             lotLayers.value.set(type, L.layerGroup());
-            lotVisibility.value.set(type, false);
+            lotVisibility.value.set(type, true);
         });
 
         features.forEach((feature) => {
@@ -91,7 +81,7 @@ export function useFeatureProcessing() {
 
             const lot = L.geoJSON(feature, {
                 style: getLotStyle,
-                onEachFeature: onEachFeatureCustom,
+                // onEachFeature: onEachFeatureCustom,
             });
 
             // add the lot to its respective type group on the hash map
@@ -117,6 +107,6 @@ export function useFeatureProcessing() {
 
     return {
         processFeatures,
-        validateFeature,
+        separateLotsByType,
     };
 }

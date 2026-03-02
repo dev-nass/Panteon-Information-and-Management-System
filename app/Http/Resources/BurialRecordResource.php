@@ -18,22 +18,30 @@ class BurialRecordResource extends JsonResource
             'id' => $this->id,
             'burial_date' => $this->burial_date,
 
-            'lot' => [
-                'id' => $this->lot->id,
-                'lot_number' => $this->lot->lot_number,
-                'coordinates' => $this->lot->coordinates,
-            ],
+            'lot' => $this->lot ? [
+                'type' => 'Feature',
+                'geometry' => $this->lot->coordinates ?? [
+                    'type' => 'Polygon',
+                    'coordinates' => [],
+                ],
+                'properties' => [
+                    'lot_id' => $this->lot->id,
+                    'lot_number' => $this->lot->lot_number,
+                    'lot_type' => $this->lot->lot_type,
+                    'status' => $this->lot->status,
+                ],
+            ] : null,
 
-            'deceased' => [
+            'deceased' => $this->deceasedRecord ? [
                 'id' => $this->deceasedRecord->id,
                 'full_name' => $this->deceasedRecord->first_name . ' ' . $this->deceasedRecord->last_name,
                 'deceased_date' => $this->deceasedRecord->deceased_date,
-            ],
+            ] : null,
 
-            'imported_by' => [
+            'imported_by' => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
-            ],
+            ] : null,
         ];
     }
 }

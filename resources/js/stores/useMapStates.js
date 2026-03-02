@@ -6,6 +6,7 @@ const googleLayer = ref(null);
 
 const dbGeoJsonLots = ref([]); // holds the processes features data (before lotLayers hashmap)
 const lotLayers = ref(new Map());
+const lotVisibility = ref(new Map());
 const uniqueTypes = ref([]);
 
 export function useMapStates() {
@@ -13,7 +14,9 @@ export function useMapStates() {
         map,
         googleLayer,
 
+        dbGeoJsonLots,
         lotLayers,
+        lotVisibility,
         uniqueTypes,
     };
 }

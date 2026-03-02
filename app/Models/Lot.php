@@ -12,6 +12,10 @@ class Lot extends Model
     /** @use HasFactory<\Database\Factories\LotFactory> */
     use HasFactory;
 
+    protected $casts = [
+        'coordinates' => 'array', // or 'json'
+    ];
+
     protected $fillable = [
         'section_id',
         'lot_type',

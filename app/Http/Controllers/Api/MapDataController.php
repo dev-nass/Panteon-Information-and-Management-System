@@ -9,13 +9,9 @@ use Illuminate\Http\Request;
 
 class MapDataController extends Controller
 {
-    public function burialRrecords()
+    public function burialRecords()
     {
-        $burials = BurialRecord::with([
-            'lot',
-            'deceased',
-            'user',
-        ])->get();
+        $burials = BurialRecord::with(['lot', 'deceasedRecord', 'user'])->get();
 
         return BurialRecordResource::collection($burials);
     }

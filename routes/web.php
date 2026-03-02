@@ -13,7 +13,7 @@ Route::get('/sample', function () {
 });
 
 Route::controller(MapDataController::class)->group(function () {
-    Route::get('/data/burials')->name('api.map.burials');
+    Route::get('/data/burials', 'burialRecords')->name('api.map.burials');
 });
 
 Route::prefix('clerk')

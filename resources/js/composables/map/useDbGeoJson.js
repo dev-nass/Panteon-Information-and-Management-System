@@ -3,7 +3,7 @@ import { useFeatureProcessing } from "./useFeatureProcessing";
 import { useMapStates } from "@/stores/useMapStates";
 
 const { dbGeoJsonLots } = useMapStates();
-const { processesFeatures } = useFeatureProcessing();
+const { processFeatures, separateLotsByType } = useFeatureProcessing();
 
 export function useDbGeoJson() {
     const fetchGeoJson = async (route_name) => {
@@ -20,13 +20,20 @@ export function useDbGeoJson() {
         }
     };
 
-    const fetchLot = () => {
-        const data = fetchGeoJson("api.map.burial");
-        const processedFeatures = useFeatureProcessing(data);
+    const fetchLot = async () => {
+        const data = await fetchGeoJson("api.map.burials");
+        // extract all 'lot' objects from the burial records
+        const lots = data.data.map((record) => record.lot).filter(Boolean);
+
+        const processedFeatures = processFeatures(lots);
         dbGeoJsonLots.value = processedFeatures;
 
         console.log("Total features:", dbGeoJsonLots.value.length);
 
         separateLotsByType(dbGeoJsonLots.value);
+    };
+
+    return {
+        fetchLot,
     };
 }
