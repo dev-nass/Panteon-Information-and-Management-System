@@ -2,18 +2,18 @@ import L from "leaflet";
 import { useMapStates } from "@/stores/useMapStates";
 import { useDbGeoJson } from "./map/useDbGeoJson";
 
-const { map, googleLayer, lotLayers, lotVisibility, uniqueTypes } =
-    useMapStates();
-const { fetchLot } = useDbGeoJson();
-
 // Panteon Long and Lat
 const LAT = 14.3052681;
 const LONG = 120.9758;
 const ZOOM_LVL = 18;
-const MIN_RENDER_ZOOM = 20;
+const MIN_RENDER_ZOOM = 21;
 const RENDER_DEBOUNCE_MS = 2000;
 
 export function useMap() {
+    const { map, googleLayer, lotLayers, lotVisibility, uniqueTypes } =
+        useMapStates();
+    const { loadVisibleLots } = useDbGeoJson();
+
     const initializeMap = async (mapContainerElem) => {
         map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
@@ -25,9 +25,19 @@ export function useMap() {
 
         initializeLayers();
 
+        // ✅ attach events AFTER map is initialized
         map.value.on("zoomend", updateVisibility);
+        map.value.on("moveend", () => {
+            loadVisibleLots(map.value);
+        });
+        map.value.on("zoomend", () => {
+            loadVisibleLots(map.value);
+            updateVisibility();
+        });
 
-        await fetchLot();
+        // initial load
+        loadVisibleLots(map.value);
+        updateVisibility();
     };
 
     const initializeLayers = () => {

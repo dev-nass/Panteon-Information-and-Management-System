@@ -1,8 +1,8 @@
 import { useMapStates } from "@/stores/useMapStates";
 
-const { lotLayers, lotVisibility, uniqueTypes } = useMapStates();
-
 export function useFeatureProcessing() {
+    const { map, lotLayers, lotVisibility, uniqueTypes } = useMapStates();
+
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
     const processFeatures = (lots) => {
@@ -71,22 +71,34 @@ export function useFeatureProcessing() {
             lotVisibility.value.set(type, true);
         });
 
-        features.forEach((feature) => {
-            if (!feature.properties?.lot_type) {
-                console.warn("Feature missing lot type:", feature);
-                return;
-            }
+        // ✅ Batch all features of a type into ONE L.geoJSON call
+        uniqueTypes.value.forEach((type) => {
+            const typeFeatures = features.filter(
+                (f) => f.properties.lot_type === type,
+            );
 
-            const type = feature.properties.lot_type;
+            const layer = L.geoJSON(
+                { type: "FeatureCollection", features: typeFeatures },
+                {
+                    style: getLotStyle,
+                    // onEachFeature: onEachFeatureCustom,
+                },
+            );
 
-            const lot = L.geoJSON(feature, {
-                style: getLotStyle,
-                // onEachFeature: onEachFeatureCustom,
-            });
-
-            // add the lot to its respective type group on the hash map
-            lot.addTo(lotLayers.value.get(type));
+            layer.addTo(lotLayers.value.get(type));
         });
+    };
+
+    const clearLayers = () => {
+        uniqueTypes.value.forEach((type) => {
+            const layer = lotLayers.value.get(type);
+            if (layer) {
+                map.value.removeLayer(layer);
+                layer.clearLayers();
+            }
+        });
+        lotLayers.value.clear();
+        uniqueTypes.value = [];
     };
 
     // lot styling
@@ -108,5 +120,6 @@ export function useFeatureProcessing() {
     return {
         processFeatures,
         separateLotsByType,
+        clearLayers,
     };
 }

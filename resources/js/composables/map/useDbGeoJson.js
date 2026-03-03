@@ -1,39 +1,40 @@
-import { route } from "ziggy-js";
+// useMapLoader.js
+import { useDebounceFn } from "@vueuse/core";
 import { useFeatureProcessing } from "./useFeatureProcessing";
 import { useMapStates } from "@/stores/useMapStates";
 
-const { dbGeoJsonLots } = useMapStates();
-const { processFeatures, separateLotsByType } = useFeatureProcessing();
-
 export function useDbGeoJson() {
-    const fetchGeoJson = async (route_name) => {
-        try {
-            const response = await fetch(route(route_name));
+    const { processFeatures, separateLotsByType, clearLayers } =
+        useFeatureProcessing();
+    const { map } = useMapStates();
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status ${response.status}`);
-            }
+    const loadVisibleLots = useDebounceFn(async () => {
+        if (!map.value) return;
+        const zoom = map.value.getZoom();
+        if (zoom < 21) return;
 
-            return await response.json();
-        } catch (error) {
-            console.error("Error loading GeoJSON:", error);
-        }
-    };
+        const bounds = map.value.getBounds();
+        const response = await fetch(
+            route("api.map.partial.burials", {
+                minLat: bounds.getSouth(),
+                maxLat: bounds.getNorth(),
+                minLng: bounds.getWest(),
+                maxLng: bounds.getEast(),
+                zoom: map.value.getZoom(),
+            }),
+        );
 
-    const fetchLot = async () => {
-        const data = await fetchGeoJson("api.map.burials");
-        // extract all 'lot' objects from the burial records
-        const lots = data.data.map((record) => record.lot).filter(Boolean);
+        const json = await response.json();
+        const features = json.data.map((record) => record.lot).filter(Boolean);
 
-        const processedFeatures = processFeatures(lots);
-        dbGeoJsonLots.value = processedFeatures;
+        if (features.length === 0) return;
 
-        console.log("Total features:", dbGeoJsonLots.value.length);
+        // ✅ clear old layers before re-rendering
+        clearLayers();
 
-        separateLotsByType(dbGeoJsonLots.value);
-    };
+        const processed = processFeatures(features);
+        separateLotsByType(processed);
+    }, 300);
 
-    return {
-        fetchLot,
-    };
+    return { loadVisibleLots };
 }
