@@ -6,8 +6,9 @@ import { useDbGeoJson } from "./map/useDbGeoJson";
 const LAT = 14.3052681;
 const LONG = 120.9758;
 const ZOOM_LVL = 18;
-const MIN_RENDER_ZOOM = 21;
+const MIN_RENDER_ZOOM = 20;
 const RENDER_DEBOUNCE_MS = 2000;
+let moveTimeout = null;
 
 export function useMap() {
     const { map, googleLayer, lotLayers, lotVisibility, uniqueTypes } =
@@ -26,10 +27,14 @@ export function useMap() {
         initializeLayers();
 
         // ✅ attach events AFTER map is initialized
-        map.value.on("zoomend", updateVisibility);
         map.value.on("moveend", () => {
-            loadVisibleLots(map.value);
+            if (moveTimeout) clearTimeout(moveTimeout);
+
+            moveTimeout = setTimeout(() => {
+                loadVisibleLots(map.value);
+            }, 300);
         });
+
         map.value.on("zoomend", () => {
             loadVisibleLots(map.value);
             updateVisibility();
@@ -68,9 +73,13 @@ export function useMap() {
 
     // used if the zoom is too far
     const cleanupLayers = () => {
-        // map.value.removeLayer(sectionLayer.value);
+        if (!map.value) return;
+
         uniqueTypes.value.forEach((type) => {
-            map.value.removeLayer(lotLayers.value.get(type));
+            const layer = lotLayers.value.get(type);
+            if (layer && map.value.hasLayer(layer)) {
+                map.value.removeLayer(layer);
+            }
         });
     };
 
@@ -79,31 +88,31 @@ export function useMap() {
 
         const zoom = map.value.getZoom();
 
-        // too far
-        if (zoom < MIN_RENDER_ZOOM) {
-            // map.value.removeLayer(lotsUndergroundLayer.value);
-            // map.value.removeLayer(lotsApartmentLayer.value);
-            cleanupLayers();
+        uniqueTypes.value.forEach((type) => {
+            const layer = lotLayers.value.get(type);
+            if (!layer) return;
 
-            console.log("Lots hidden (zoom too far)");
-        }
-        // right zoom
-        else {
-            uniqueTypes.value.forEach((type) => {
-                if (lotVisibility.value.get(type) === true) {
-                    lotLayers.value.get(type).addTo(map.value);
-                } else {
-                    map.value.removeLayer(lotLayers.value.get(type));
-                }
-            });
-        }
+            const shouldShow =
+                zoom >= MIN_RENDER_ZOOM &&
+                lotVisibility.value.get(type) === true;
+
+            const isAdded = map.value.hasLayer(layer);
+
+            if (shouldShow && !isAdded) {
+                layer.addTo(map.value);
+            }
+
+            if (!shouldShow && isAdded) {
+                map.value.removeLayer(layer);
+            }
+        });
     };
 
     // continuously calls the updateVisibility
-    setInterval(() => {
-        console.log("updating...");
-        updateVisibility();
-    }, RENDER_DEBOUNCE_MS);
+    // setInterval(() => {
+    //     console.log("updating...");
+    //     updateVisibility();
+    // }, RENDER_DEBOUNCE_MS);
 
     return {
         initializeMap,

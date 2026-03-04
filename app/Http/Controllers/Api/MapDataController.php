@@ -28,20 +28,19 @@ class MapDataController extends Controller
         ]);
 
         $records = BurialRecord::whereHas('lot', function ($query) use ($request) {
-            $query->whereRaw("
-            ST_Within(
-                ST_GeomFromGeoJSON(coordinates),
-                ST_GeomFromText(CONCAT(
-                    'POLYGON((',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?,
-                    '))'
-                ), 4326)
-            )
-        ", [
+            $query->whereRaw(" MBRIntersects(
+                                coordinates,
+                                ST_GeomFromText(CONCAT(
+                                'POLYGON((',
+                                ?, ' ', ?, ',',
+                                ?, ' ', ?, ',',
+                                ?, ' ', ?, ',',
+                                ?, ' ', ?, ',',
+                                ?, ' ', ?,
+                                 '))'
+                                ), 4326)
+                                    )
+            ", [
                 $request->minLng, $request->minLat,
                 $request->maxLng, $request->minLat,
                 $request->maxLng, $request->maxLat,
