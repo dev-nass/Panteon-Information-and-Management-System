@@ -6,18 +6,25 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MapDataController extends Controller
 {
-    // throws 21k data instantly
+    // Fetch all burial records (may be heavy with 21k+ rows)
     public function burialRecords()
     {
-        $burials = BurialRecord::with(['lot', 'deceasedRecord', 'user'])->get();
+        $burials = BurialRecord::with([
+            'lot' => function ($q) {
+                $q->select('id', 'lot_type', 'section_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
+            },
+            'deceasedRecord:id,first_name,last_name',
+            'user:id,name,email',
+        ])->get();
 
         return BurialRecordResource::collection($burials);
     }
 
-
+    // Fetch burial records within a bounding box
     public function partialBurialRecords(Request $request)
     {
         $request->validate([
@@ -27,29 +34,43 @@ class MapDataController extends Controller
             'maxLng' => 'required|numeric',
         ]);
 
-        $records = BurialRecord::whereHas('lot', function ($query) use ($request) {
-            $query->whereRaw(" MBRIntersects(
-                                coordinates,
-                                ST_GeomFromText(CONCAT(
-                                'POLYGON((',
-                                ?, ' ', ?, ',',
-                                ?, ' ', ?, ',',
-                                ?, ' ', ?, ',',
-                                ?, ' ', ?, ',',
-                                ?, ' ', ?,
-                                 '))'
-                                ), 4326)
-                                    )
-            ", [
-                $request->minLng, $request->minLat,
-                $request->maxLng, $request->minLat,
-                $request->maxLng, $request->maxLat,
-                $request->minLng, $request->maxLat,
-                $request->minLng, $request->minLat,
-            ]);
+        $minLng = $request->minLng;
+        $minLat = $request->minLat;
+        $maxLng = $request->maxLng;
+        $maxLat = $request->maxLat;
+
+        $records = BurialRecord::whereHas('lot', function ($query) use ($minLng, $minLat, $maxLng, $maxLat) {
+            $query->whereRaw(
+                "MBRContains(
+                    ST_GeomFromText(CONCAT(
+                        'POLYGON((',
+                        ?, ' ', ?, ',',
+                        ?, ' ', ?, ',',
+                        ?, ' ', ?, ',',
+                        ?, ' ', ?, ',',
+                        ?, ' ', ?,
+                        '))'
+                    )),
+                    coordinates
+                )",
+                [
+                    $minLng, $minLat,
+                    $maxLng, $minLat,
+                    $maxLng, $maxLat,
+                    $minLng, $maxLat,
+                    $minLng, $minLat,
+                ]
+            );
         })
-            ->with(['lot', 'deceasedRecord', 'user'])
-            ->get();
+        ->with([
+            // Select only needed columns and convert coordinates to GeoJSON
+            'lot' => function ($q) {
+                $q->select('id', 'lot_type', 'section_id', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+            },
+            'deceasedRecord:id,first_name,last_name',
+        ])
+        ->limit(500) // limit to avoid fetching too much data
+        ->get();
 
         return BurialRecordResource::collection($records);
     }

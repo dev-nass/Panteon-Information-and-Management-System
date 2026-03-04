@@ -8,6 +8,7 @@ use App\Models\Section;
 use App\Models\Lot;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 use function GuzzleHttp\json_encode;
 
@@ -67,55 +68,50 @@ class PanteonDataSeeder extends Seeder
         }
 
         $geoJsonData_underground = json_decode(file_get_contents($geoJsonPath_Underground), true);
-        $geoJsonData_appartment = json_decode(file_get_contents($geoJsonPath_Appartment), true); // FIX: Was using Underground path
+        $geoJsonData_appartment = json_decode(file_get_contents($geoJsonPath_Appartment), true);
 
-        if (!isset($geoJsonData_underground['features']) || !isset($geoJsonData_appartment['features'])) {
-            $this->command->error("Invalid GeoJSON format: 'features' key not found.");
-            return;
+        $allFeatures = [];
+
+        foreach ($geoJsonData_underground['features'] as $feature) {
+            $feature['properties']['lot_type'] = 'underground';
+            $feature['properties']['total_capacity'] = 1;
+            $allFeatures[] = $feature;
+        }
+
+        foreach ($geoJsonData_appartment['features'] as $feature) {
+            $feature['properties']['lot_type'] = 'apartment';
+            $feature['properties']['total_capacity'] = 371;
+            $allFeatures[] = $feature;
         }
 
         $this->command->info("Seeding lots from GeoJSON...");
 
-        /**
-        * If I remember correctly, foreach create a shallow coppy of the array,
-        * meaning that if I states $features['properties']['lot_type'] = 'underground'
-        * It won't change the actual value just the shallow copy
-        * */
-        // Add lot_type to each feature's properties
-        // REFERENCE OPERATOR
-        foreach ($geoJsonData_underground['features'] as &$feature) {
-            $feature['properties']['lot_type'] = 'underground';
-            $feature['properties']['total_capacity'] = 1;
-            unset($feature); // Break reference
-        }
+        $counter = 1;
 
-        foreach ($geoJsonData_appartment['features'] as &$feature) {
-            $feature['properties']['lot_type'] = 'apartment';
-            $feature['properties']['total_capacity'] = 371;
-            unset($feature); // Break reference
-        }
+        foreach ($allFeatures as $index => $feature) {
+            // skip if geometry is missing or coordinates are empty
+            if (
+                !isset($feature['geometry'])
+                || !isset($feature['geometry']['coordinates'])
+                || empty($feature['geometry']['coordinates'])
+            ) {
+                $this->command->warn("Skipping LOT-{$index}: empty geometry");
+                continue;
+            }
 
-        $allFeatures = array_merge(
-            $geoJsonData_underground['features'],
-            $geoJsonData_appartment['features']
-        );
-
-        foreach ($allFeatures as $feature) {
             $attributes  = $feature['properties'];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES);
 
-            $lot = [
-                'section_id' => $attributes['section_id'],
-                'lot_type' => $attributes['lot_type'],
+            Lot::create([
+                'lot_number'    => $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
+                'section_id'    => $attributes['section_id'],
+                'lot_type'      => $attributes['lot_type'],
                 'total_capacity' => $attributes['total_capacity'],
-                'coordinates' => json_encode($feature['geometry']),
-            ];
-
-            Lot::factory()->create($lot);
+                'coordinates'   => DB::raw("ST_GeomFromGeoJSON('{$geometryJson}')"),
+            ]);
         }
 
-        $this->command->info("Underground lots imported: " . count($geoJsonData_underground['features']));
-        $this->command->info("Appartment lots imported: " . count($geoJsonData_appartment['features']));
-        $this->command->info("Total lots imported: " . count($allFeatures));
+        $this->command->info("Total lots imported: " . ($counter - 1));
     }
 
     /**

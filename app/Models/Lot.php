@@ -12,8 +12,9 @@ class Lot extends Model
     /** @use HasFactory<\Database\Factories\LotFactory> */
     use HasFactory;
 
+    // Add this:
     protected $casts = [
-        'coordinates' => 'array', // or 'json'
+        'coordinates' => 'array', // automatically decodes JSON strings
     ];
 
     protected $fillable = [

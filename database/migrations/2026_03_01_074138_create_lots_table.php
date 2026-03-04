@@ -19,7 +19,12 @@ return new class extends Migration {
             $table->enum('lot_type', ['underground', 'apartment', 'columbarium']);
             $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
             $table->bigInteger('total_capacity')->nullable();
-            $table->json('coordinates');
+
+            // ✅ Geometry column
+            $table->geometry('coordinates', 4326);
+
+            // ✅ Spatial index
+            $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });
