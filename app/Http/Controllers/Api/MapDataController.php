@@ -54,25 +54,30 @@ class MapDataController extends Controller
                 coordinates
             )",
                 [
-                    $minLng, $minLat,
-                    $maxLng, $minLat,
-                    $maxLng, $maxLat,
-                    $minLng, $maxLat,
-                    $minLng, $minLat,
+                    $minLng,
+                    $minLat,
+                    $maxLng,
+                    $minLat,
+                    $maxLng,
+                    $maxLat,
+                    $minLng,
+                    $maxLat,
+                    $minLng,
+                    $minLat,
                 ]
             );
         })
-        ->with([
-            'lot' => function ($q) {
-                $q->select('id', 'lot_number', 'lot_type', 'section_id', 'status', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-            },
-            'deceasedRecord:id,first_name,last_name',
-        ])
-        ->limit(500)
-        ->get()
-        // ✅ Deduplicate: keep only one burial record per lot
-        ->unique('lot_id')
-        ->values();
+            ->with([
+                'lot' => function ($q) {
+                    $q->select('id', 'lot_number', 'lot_type', 'section_id', 'status', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                },
+                'deceasedRecord:id,first_name,last_name',
+            ])
+            ->limit(2000)
+            ->get()
+            // ✅ Deduplicate: keep only one burial record per lot
+            ->unique('lot_id')
+            ->values();
 
         return BurialRecordResource::collection($records);
     }

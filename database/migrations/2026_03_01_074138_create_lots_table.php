@@ -14,7 +14,7 @@ return new class extends Migration {
         Schema::create('lots', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(Section::class)->constrained()->onDelete('cascade');
+            $table->foreignIdFor(Section::class)->constrained()->cascadeOnDelete();
             $table->string('lot_number')->unique();
             $table->enum('lot_type', ['underground', 'apartment', 'columbarium']);
             $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
