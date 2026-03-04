@@ -77,10 +77,12 @@ export function useFeatureProcessing() {
         });
 
         types.forEach((type) => {
+            // holds bunch of same type lots
             const typeFeatures = features.filter(
                 (f) => f.properties.lot_type === type,
             );
 
+            // apply style to those same type lots
             const geoJsonLayer = L.geoJSON(
                 { type: "FeatureCollection", features: typeFeatures },
                 {
@@ -88,7 +90,11 @@ export function useFeatureProcessing() {
                 },
             );
 
+            // since we set lotLayers hash map values to L.layerGroup() above, we are just accessing
+            // that L.layerGroup here
             const layerGroup = lotLayers.value.get(type);
+            // console.log(`layer group`, layerGroup);
+            // console.log(`geoJson layer`, geoJsonLayer);
             geoJsonLayer.addTo(layerGroup);
 
             // ✅ Add directly to map if visible
