@@ -42,17 +42,17 @@ class MapDataController extends Controller
         $records = BurialRecord::whereHas('lot', function ($query) use ($minLng, $minLat, $maxLng, $maxLat) {
             $query->whereRaw(
                 "MBRContains(
-                    ST_GeomFromText(CONCAT(
-                        'POLYGON((',
-                        ?, ' ', ?, ',',
-                        ?, ' ', ?, ',',
-                        ?, ' ', ?, ',',
-                        ?, ' ', ?, ',',
-                        ?, ' ', ?,
-                        '))'
-                    )),
-                    coordinates
-                )",
+                ST_GeomFromText(CONCAT(
+                    'POLYGON((',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?,
+                    '))'
+                )),
+                coordinates
+            )",
                 [
                     $minLng, $minLat,
                     $maxLng, $minLat,
@@ -63,14 +63,16 @@ class MapDataController extends Controller
             );
         })
         ->with([
-            // Select only needed columns and convert coordinates to GeoJSON
             'lot' => function ($q) {
-                $q->select('id', 'lot_type', 'section_id', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                $q->select('id', 'lot_number', 'lot_type', 'section_id', 'status', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
             },
             'deceasedRecord:id,first_name,last_name',
         ])
-        ->limit(500) // limit to avoid fetching too much data
-        ->get();
+        ->limit(500)
+        ->get()
+        // ✅ Deduplicate: keep only one burial record per lot
+        ->unique('lot_id')
+        ->values();
 
         return BurialRecordResource::collection($records);
     }

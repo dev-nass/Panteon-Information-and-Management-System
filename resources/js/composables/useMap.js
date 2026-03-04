@@ -26,23 +26,20 @@ export function useMap() {
 
         initializeLayers();
 
-        // ✅ attach events AFTER map is initialized
+        // ✅ Remove the map argument — useDbGeoJson reads from store directly
         map.value.on("moveend", () => {
             if (moveTimeout) clearTimeout(moveTimeout);
-
             moveTimeout = setTimeout(() => {
-                loadVisibleLots(map.value);
+                loadVisibleLots(); // ← no argument needed
             }, 300);
         });
 
         map.value.on("zoomend", () => {
-            loadVisibleLots(map.value);
+            loadVisibleLots(); // ← no argument needed
             updateVisibility();
         });
 
-        // initial load
-        loadVisibleLots(map.value);
-        updateVisibility();
+        loadVisibleLots(); // initial load
     };
 
     const initializeLayers = () => {

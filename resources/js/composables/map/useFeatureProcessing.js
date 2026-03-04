@@ -61,44 +61,62 @@ export function useFeatureProcessing() {
     };
 
     const separateLotsByType = (features) => {
-        uniqueTypes.value = [
+        const types = [
             ...new Set(features.map((feature) => feature.properties.lot_type)),
         ];
 
-        uniqueTypes.value.forEach((type) => {
-            // console.log(type);
-            lotLayers.value.set(type, L.layerGroup());
-            lotVisibility.value.set(type, true);
+        types.forEach((type) => {
+            // Reuse existing layerGroup or create new one
+            if (!lotLayers.value.has(type)) {
+                lotLayers.value.set(type, L.layerGroup());
+                lotVisibility.value.set(type, true);
+            } else {
+                // Clear old features but keep the layerGroup reference
+                lotLayers.value.get(type).clearLayers();
+            }
         });
 
-        // ✅ Batch all features of a type into ONE L.geoJSON call
-        uniqueTypes.value.forEach((type) => {
+        types.forEach((type) => {
             const typeFeatures = features.filter(
                 (f) => f.properties.lot_type === type,
             );
 
-            const layer = L.geoJSON(
+            const geoJsonLayer = L.geoJSON(
                 { type: "FeatureCollection", features: typeFeatures },
                 {
                     style: getLotStyle,
-                    // onEachFeature: onEachFeatureCustom,
                 },
             );
 
-            layer.addTo(lotLayers.value.get(type));
+            const layerGroup = lotLayers.value.get(type);
+            geoJsonLayer.addTo(layerGroup);
+
+            // ✅ Add directly to map if visible
+            if (
+                lotVisibility.value.get(type) &&
+                !map.value.hasLayer(layerGroup)
+            ) {
+                layerGroup.addTo(map.value);
+            }
         });
+
+        // ✅ Update uniqueTypes AFTER layers are built
+        uniqueTypes.value = types;
     };
 
     const clearLayers = () => {
         uniqueTypes.value.forEach((type) => {
             const layer = lotLayers.value.get(type);
             if (layer) {
-                map.value.removeLayer(layer);
+                if (map.value?.hasLayer(layer)) {
+                    map.value.removeLayer(layer);
+                }
                 layer.clearLayers();
             }
         });
+
         lotLayers.value.clear();
-        uniqueTypes.value = [];
+        uniqueTypes.value = []; // ✅ Only cleared here, not mid-rebuild
     };
 
     // lot styling

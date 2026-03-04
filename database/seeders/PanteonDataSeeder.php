@@ -86,10 +86,9 @@ class PanteonDataSeeder extends Seeder
 
         $this->command->info("Seeding lots from GeoJSON...");
 
-        $counter = 1;
+        $counter = 0;
 
         foreach ($allFeatures as $index => $feature) {
-            // skip if geometry is missing or coordinates are empty
             if (
                 !isset($feature['geometry'])
                 || !isset($feature['geometry']['coordinates'])
@@ -99,19 +98,25 @@ class PanteonDataSeeder extends Seeder
                 continue;
             }
 
-            $attributes  = $feature['properties'];
-            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES);
+            $attributes   = $feature['properties'];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            Lot::create([
-                'lot_number'    => $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
-                'section_id'    => $attributes['section_id'],
-                'lot_type'      => $attributes['lot_type'],
-                'total_capacity' => $attributes['total_capacity'],
-                'coordinates'   => DB::raw("ST_GeomFromGeoJSON('{$geometryJson}')"),
+            // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
+            DB::statement("
+            INSERT INTO lots (lot_number, section_id, lot_type, total_capacity, coordinates, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+        ", [
+                $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
+                $attributes['section_id'],
+                $attributes['lot_type'],
+                $attributes['total_capacity'],
+                $geometryJson,
             ]);
+
+            $counter++;
         }
 
-        $this->command->info("Total lots imported: " . ($counter - 1));
+        $this->command->info("Total lots imported: {$counter}");
     }
 
     /**

@@ -3,9 +3,9 @@ import { useDebounceFn } from "@vueuse/core";
 import { useFeatureProcessing } from "./useFeatureProcessing";
 import { useMapStates } from "@/stores/useMapStates";
 
-const MIN_RENDER_ZOOM = 20;
-
+const MIN_RENDER_ZOOM = 19;
 let lastBounds = null;
+let lastZoom = null;
 let lastFeatureIds = new Set();
 
 export function useDbGeoJson() {
@@ -15,16 +15,34 @@ export function useDbGeoJson() {
 
     const loadVisibleLots = useDebounceFn(async () => {
         if (!map.value) return;
-        if (map.value.getZoom() >= MIN_RENDER_ZOOM) return;
+
+        const currentZoom = map.value.getZoom();
+
+        if (currentZoom < MIN_RENDER_ZOOM) {
+            // Only clear if we were previously rendering layers
+            if (lastZoom !== null && lastZoom >= MIN_RENDER_ZOOM) {
+                // clearLayers();
+                lastBounds = null;
+                lastFeatureIds = new Set();
+            }
+            lastZoom = currentZoom;
+            return;
+        }
 
         const bounds = map.value.getBounds();
 
+        // Zoom changed within valid range — invalidate bounds cache only
+        if (lastZoom !== currentZoom) {
+            lastBounds = null;
+            lastZoom = currentZoom;
+        }
+
+        // Skip if current view is already covered by last fetched bounds
         if (lastBounds && lastBounds.contains(bounds)) {
             return;
         }
 
         lastBounds = bounds;
-
         NProgress.start();
 
         try {
@@ -34,7 +52,7 @@ export function useDbGeoJson() {
                     maxLat: bounds.getNorth(),
                     minLng: bounds.getWest(),
                     maxLng: bounds.getEast(),
-                    zoom: map.value.getZoom(),
+                    zoom: currentZoom,
                 }),
             );
 
@@ -43,21 +61,22 @@ export function useDbGeoJson() {
 
             if (features.length === 0) {
                 clearLayers();
+                lastFeatureIds = new Set();
                 return;
             }
 
             const currentIds = new Set(json.data.map((r) => r.id));
-
             const isSame =
                 currentIds.size === lastFeatureIds.size &&
                 [...currentIds].every((id) => lastFeatureIds.has(id));
 
+            // ✅ Only clear + re-render if data actually changed
             if (isSame) return;
 
             lastFeatureIds = currentIds;
 
-            clearLayers();
-
+            // ✅ Clear AFTER confirming new data exists, not before
+            clearLayers(); // this part still causes issue its automticaly removing the features on the map
             const processed = processFeatures(features);
             separateLotsByType(processed);
         } finally {
