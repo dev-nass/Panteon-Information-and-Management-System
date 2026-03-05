@@ -1,4 +1,5 @@
 import { useMapStates } from "@/stores/useMapStates";
+import { join } from "lodash";
 
 export function useFeatureProcessing() {
     const { map, lotLayers, lotVisibility, uniqueTypes } = useMapStates();
@@ -87,6 +88,7 @@ export function useFeatureProcessing() {
                 { type: "FeatureCollection", features: typeFeatures },
                 {
                     style: getLotStyle,
+                    onEachFeature: onEachFeatureCustom,
                 },
             );
 
@@ -125,6 +127,10 @@ export function useFeatureProcessing() {
         uniqueTypes.value = []; // ✅ Only cleared here, not mid-rebuild
     };
 
+    const onEachFeatureCustom = (feature, layer) => {
+        attachLotPopup(feature, layer);
+    };
+
     // lot styling
     const getLotStyle = (feature) => {
         const colors = {
@@ -139,6 +145,12 @@ export function useFeatureProcessing() {
             color: "black",
             fillOpacity: 0.7,
         };
+    };
+
+    const attachLotPopup = (feature, layer) => {
+        layer.on("click", function () {
+            window.openLotModal(feature, layer._leaflet_id);
+        });
     };
 
     return {
