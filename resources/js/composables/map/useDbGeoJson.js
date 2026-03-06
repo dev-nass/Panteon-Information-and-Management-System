@@ -3,7 +3,7 @@ import { useDebounceFn } from "@vueuse/core";
 import { useFeatureProcessing } from "./useFeatureProcessing";
 import { useMapStates } from "@/stores/useMapStates";
 
-const MIN_RENDER_ZOOM = 19;
+const MIN_RENDER_ZOOM = 20;
 let lastBounds = null;
 let lastZoom = null;
 let lastFeatureIds = new Set();
@@ -57,7 +57,21 @@ export function useDbGeoJson() {
             );
 
             const json = await response.json();
-            const features = json.data.map((r) => r.lot).filter(Boolean);
+            // TODO: understand this before and after
+            //const features = json.data.map((r) => r.lot).filter(Boolean);
+            const features = json.data
+                .map((r) => {
+                    if (!r.lot) return null;
+
+                    return {
+                        ...r.lot,
+                        properties: {
+                            ...r.lot.properties,
+                            burials: r.burials ?? [],
+                        },
+                    };
+                })
+                .filter(Boolean);
 
             if (features.length === 0) {
                 clearLayers();

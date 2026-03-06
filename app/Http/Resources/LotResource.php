@@ -42,7 +42,7 @@ class LotResource extends JsonResource
                         'full_name'
                             => $burial->deceasedRecord->first_name . ' '
                             . $burial->deceasedRecord->last_name,
-                        'deceased_date' => $burial->deceasedRecord->deceased_date,
+                        'date_of_depository' => $burial->deceasedRecord->date_of_depository,
                     ] : null,
 
                     'imported_by' => $burial->user ? [

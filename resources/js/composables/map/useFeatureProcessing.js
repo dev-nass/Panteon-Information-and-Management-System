@@ -1,4 +1,5 @@
 import { useMapStates } from "@/stores/useMapStates";
+import { geoJson } from "leaflet";
 import { join } from "lodash";
 
 export function useFeatureProcessing() {
@@ -61,6 +62,9 @@ export function useFeatureProcessing() {
         return true;
     };
 
+    /**
+     * @param features receives the processed features
+     */
     const separateLotsByType = (features) => {
         const types = [
             ...new Set(features.map((feature) => feature.properties.lot_type)),
@@ -147,10 +151,22 @@ export function useFeatureProcessing() {
         };
     };
 
+    /**
+     * @param feature is the actual lot rendered as polygon hence referred to as 'feature'
+     * @param layer
+     * Description: attach modal as popUp
+     */
     const attachLotPopup = (feature, layer) => {
-        layer.on("click", function () {
-            window.openLotModal(feature, layer._leaflet_id);
-        });
+        console.log(feature);
+        if (feature.properties.lot_type === "underground") {
+            layer.on("click", function () {
+                window.openUndergroundModal(feature, layer._leaflet_id);
+            });
+        } else {
+            layer.on("click", function () {
+                window.openApartmentModal(feature, layer._leaflet_id);
+            });
+        }
     };
 
     return {

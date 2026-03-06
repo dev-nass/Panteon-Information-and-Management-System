@@ -6,6 +6,7 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 import DeceasedRecordTable from "@/Pages/Clerk/DeceasedRecords/IndexView.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
+import { forEach } from "lodash";
 
 const { initializeMap, cleanupMap } = useMap();
 
@@ -28,7 +29,8 @@ const toggleMap = ref(true);
 //     }
 // };
 
-window.openLotModal = function (feature, layerId) {
+// Definition of global function using 'window' API
+window.openUndergroundModal = function (feature, layerId) {
     const modalBody = document.querySelector(
         "#hs-scroll-inside-body-modal .p-4",
     );
@@ -39,6 +41,46 @@ window.openLotModal = function (feature, layerId) {
         Type: ${feature.properties.lot_type}<br>
         Status: ${feature.properties.status}<br>
         Fullname: ${feature.properties.deceased_record?.full_name ?? "N/A"}
+    `;
+
+    HSOverlay.open("#hs-scroll-inside-body-modal");
+};
+
+// Definition of global function for apartment and comlubarium lot using 'window' API
+window.openApartmentModal = function (feature, layerId) {
+    const modalBody = document.querySelector(
+        "#hs-scroll-inside-body-modal .p-4",
+    );
+
+    const burialCards = (feature.properties.burials || [])
+        .map(
+            (burial) => `
+            <div class="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+                <div class="font-semibold text-green-600 dark:text-green-400">
+                    ${burial.deceased?.full_name ?? "Unknown"}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                    Burial Date: ${burial.burial_date ?? "N/A"}
+                </div>
+            </div>
+        `,
+        )
+        .join("");
+
+    modalBody.innerHTML = `
+        <div class="space-y-4">
+
+            <div class="text-sm text-gray-700 dark:text-gray-300">
+                <strong>Lot:</strong> ${feature.properties.lot_id} <br>
+                <strong>Type:</strong> ${feature.properties.lot_type} <br>
+                <strong>Status:</strong> ${feature.properties.status}
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                ${burialCards || `<div class="text-gray-400">No burial records</div>`}
+            </div>
+
+        </div>
     `;
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
