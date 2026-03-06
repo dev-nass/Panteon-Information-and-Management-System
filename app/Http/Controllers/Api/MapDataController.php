@@ -63,7 +63,7 @@ class MapDataController extends Controller
             ]
         )
          ->with([
-             'burialRecords.deceasedRecord:id,first_name,last_name',
+             'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository',
          ])
          ->select(
              'id',
@@ -71,6 +71,7 @@ class MapDataController extends Controller
              'lot_type',
              'section_id',
              'status',
+             'total_capacity',
              DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
          )
          ->limit(2000)

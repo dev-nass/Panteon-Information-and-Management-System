@@ -28,6 +28,7 @@ class LotResource extends JsonResource
                     'lot_number' => $this->lot_number,
                     'lot_type' => $this->lot_type,
                     'status' => $this->status,
+                    'total_capacity' => $this->total_capacity,
                 ],
 
             ],
@@ -35,14 +36,14 @@ class LotResource extends JsonResource
             'burials' => $this->burialRecords->map(function ($burial) {
                 return [
                     'id' => $burial->id,
-                    'burial_date' => $burial->burial_date,
+                    'burial_date' => $burial->deceasedRecord?->date_of_depository,
 
                     'deceased' => $burial->deceasedRecord ? [
                         'id' => $burial->deceasedRecord->id,
                         'full_name'
                             => $burial->deceasedRecord->first_name . ' '
                             . $burial->deceasedRecord->last_name,
-                        'date_of_depository' => $burial->deceasedRecord->date_of_depository,
+                        'deceased_date' => $burial->deceasedRecord->deceased_date,
                     ] : null,
 
                     'imported_by' => $burial->user ? [
