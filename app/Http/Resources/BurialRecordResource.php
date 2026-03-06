@@ -11,6 +11,7 @@ class BurialRecordResource extends JsonResource
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
+     * NOTE: Previously used, but chatGPT changed the approach to Lot -> burialRecord -> deecasedRecord
      */
     public function toArray(Request $request): array
     {
