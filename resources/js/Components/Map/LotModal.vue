@@ -7,6 +7,9 @@ const props = defineProps({
 
 const searchTerm = ref("");
 const selectedBurial = ref(null);
+// Pagination state
+const ITEMS_PER_PAGE = 25;
+const currentPage = ref(1);
 
 // Reset state whenever feature changes (new lot clicked)
 watch(
@@ -29,6 +32,21 @@ const filteredBurials = computed(() => {
         );
     });
 });
+
+// Pagination
+// Reset page when search term or feature changes
+watch([searchTerm, () => props.feature], () => {
+    currentPage.value = 1;
+});
+
+const totalPages = computed(() =>
+    Math.ceil(filteredBurials.value.length / ITEMS_PER_PAGE),
+);
+
+const paginatedBurials = computed(() => {
+    const start = (currentPage.value - 1) * ITEMS_PER_PAGE;
+    return filteredBurials.value.slice(start, start + ITEMS_PER_PAGE);
+});
 </script>
 
 <template>
@@ -40,7 +58,7 @@ const filteredBurials = computed(() => {
         aria-labelledby="hs-scroll-inside-body-modal-label"
     >
         <div
-            class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center"
+            class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-2xl sm:w-full m-3 sm:mx-auto h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center"
         >
             <div
                 class="max-h-full overflow-hidden flex flex-col bg-white border shadow-sm rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 w-full"
@@ -86,7 +104,7 @@ const filteredBurials = computed(() => {
                             v-model="searchTerm"
                             type="search"
                             placeholder="Search by name or burial date..."
-                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                         <div class="text-sm space-y-1">
                             <p>
@@ -110,7 +128,7 @@ const filteredBurials = computed(() => {
                         <!-- BURIAL GRID -->
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
                             <button
-                                v-for="burial in filteredBurials"
+                                v-for="burial in paginatedBurials"
                                 :key="burial.id"
                                 @click.stop="selectedBurial = burial"
                                 class="flex items-center gap-3 text-left p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800 shadow-sm hover:border-green-500 hover:shadow-md transition w-full cursor-pointer"
@@ -153,6 +171,34 @@ const filteredBurials = computed(() => {
                                     </div>
                                 </div>
                             </button>
+                        </div>
+
+                        <!-- PAGINATION -->
+                        <div
+                            v-if="totalPages > 1"
+                            class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-neutral-700"
+                        >
+                            <span
+                                class="text-xs text-gray-500 dark:text-gray-400"
+                            >
+                                Page {{ currentPage }} of {{ totalPages }}
+                            </span>
+                            <div class="flex gap-2">
+                                <button
+                                    @click="currentPage--"
+                                    :disabled="currentPage === 1"
+                                    class="px-3 py-1 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed hover:border-green-500 transition"
+                                >
+                                    Prev
+                                </button>
+                                <button
+                                    @click="currentPage++"
+                                    :disabled="currentPage === totalPages"
+                                    class="px-3 py-1 text-sm rounded-lg border border-gray-200 dark:border-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed hover:border-green-500 transition"
+                                >
+                                    Next
+                                </button>
+                            </div>
                         </div>
 
                         <!-- No results message -->

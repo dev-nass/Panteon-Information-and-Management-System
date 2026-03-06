@@ -31,27 +31,11 @@ const toggleMap = ref(true);
 // };
 
 const modalFeature = ref(null);
-const searchTerm = ref("");
 
 // Definition of global function using 'window' API
-window.openUndergroundModal = function (feature, layerId) {
-    const modalBody = document.querySelector(
-        "#hs-scroll-inside-body-modal .p-4",
-    );
-
-    modalBody.innerHTML = `
-        <strong>Lot: ${feature.properties.lot_id}</strong><br>
-        Section: ${feature.properties.section}<br>
-        Type: ${feature.properties.lot_type}<br>
-        Status: ${feature.properties.status}<br>
-        Fullname: ${feature.properties.deceased_record?.full_name ?? "N/A"}
-    `;
-
-    HSOverlay.open("#hs-scroll-inside-body-modal");
-};
 
 // Definition of global function for apartment and comlubarium lot using 'window' API
-window.openApartmentModal = function (feature) {
+window.openLotModal = function (feature) {
     modalFeature.value = feature;
 
     HSOverlay.open("#hs-scroll-inside-body-modal");

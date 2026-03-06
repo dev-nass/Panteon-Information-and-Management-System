@@ -158,15 +158,10 @@ export function useFeatureProcessing() {
      */
     const attachLotPopup = (feature, layer) => {
         console.log(feature);
-        if (feature.properties.lot_type === "underground") {
-            layer.on("click", function () {
-                window.openUndergroundModal(feature, layer._leaflet_id);
-            });
-        } else {
-            layer.on("click", function () {
-                window.openApartmentModal(feature, layer._leaflet_id);
-            });
-        }
+
+        layer.on("click", function () {
+            window.openLotModal(feature, layer._leaflet_id);
+        });
     };
 
     return {
