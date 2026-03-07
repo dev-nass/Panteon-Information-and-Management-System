@@ -1,9 +1,9 @@
 <script setup>
 import { ref } from "vue";
+import { usePage, router } from "@inertiajs/vue3";
 
 import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
-import { usePage } from "@inertiajs/vue3";
 
 const props = defineProps({
     deceased: { type: Object, required: true },
@@ -18,6 +18,10 @@ const tabs = [
     { key: "family", label: "Family & Company" },
 ];
 
+const back = () => {
+    window.history.back();
+};
+
 defineOptions({
     layout: Dashboard,
 });
@@ -26,14 +30,44 @@ defineOptions({
 <template>
     <div class="max-w-6xl mx-auto p-6">
         <!-- Header -->
-        <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
-                {{ deceased.first_name }} {{ deceased.middle_name }}
-                {{ deceased.last_name }}
-            </h1>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                Deceased Record Details
-            </p>
+
+        <button
+            @click="back"
+            class="flex items-center gap-1 mb-6 text-sm text-green-600 dark:text-green-400 hover:underline"
+        >
+            ← Back
+        </button>
+        <div class="mb-6 flex gap-x-3">
+            <div
+                class="flex items-center justify-center size-13 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-user-round-icon lucide-user-round"
+                >
+                    <circle cx="12" cy="8" r="5" />
+                    <path d="M20 21a8 8 0 0 0-16 0" />
+                </svg>
+            </div>
+            <article>
+                <h1
+                    class="text-2xl font-bold text-green-600 dark:text-green-400"
+                >
+                    {{ deceased.first_name }} {{ deceased.middle_name }}
+                    {{ deceased.last_name }}
+                </h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Deceased Record Details
+                </p>
+            </article>
         </div>
 
         <!-- Tabs -->
