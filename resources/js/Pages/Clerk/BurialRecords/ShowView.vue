@@ -1,10 +1,10 @@
 <script setup>
 import { ref, watch } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
+import { has, isEqual } from "lodash";
 
 import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
-import { has } from "lodash";
 
 const props = defineProps({
     burial_record: { type: Object, required: true },
@@ -28,28 +28,24 @@ const editing = ref(false);
 const hasChanges = ref(false);
 
 // deep copy original data
-const originalData = JSON.parse(
-    JSON.stringify(props.burial_record.data.deceased),
-);
-const localData = ref(JSON.parse(JSON.stringify(originalData)));
-
-const modelValueChange = () => {
-    hasChanges.value = true;
-};
+const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
+const localData = ref(JSON.parse(JSON.stringify(originalData.value)));
+console.log(localData.value);
 
 watch(
     localData,
     (newVal) => {
-        hasChanges.value =
-            JSON.stringify(newVal) !== JSON.stringify(originalData);
+        hasChanges.value = !isEqual(newVal, originalData.value);
     },
     { deep: true },
 );
 
 const discardChanges = () => {
     if (hasChanges.value) {
+        // TODO: Change this into a proper modal or styled alert
+        // TODO: The logic of save changes is not working properly yet
         if (confirm("Discard changes?")) {
-            localData.value = JSON.parse(JSON.stringify(originalData));
+            localData.value = JSON.parse(JSON.stringify(originalData.value));
             hasChanges.value = false;
             editing.value = false;
         }
@@ -101,7 +97,7 @@ defineOptions({
                     <h1
                         class="text-2xl font-bold text-green-600 dark:text-green-400"
                     >
-                        {{ burial_record.data.deceased.full_name }}
+                        {{ localData.deceased.full_name }}
                     </h1>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         Deceased Record Details
@@ -137,7 +133,10 @@ defineOptions({
 
                 <div class="flex gap-x-3">
                     <button
-                        v-if="hasChanges"
+                        v-if="editing"
+                        :class="{
+                            'opacity-50 cursor-not-allowed': !hasChanges,
+                        }"
                         @click="saveChanges"
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
                     >
@@ -182,67 +181,98 @@ defineOptions({
             >
                 <Display
                     label="First Name"
-                    :modelValue="burial_record.data.deceased?.first_name"
+                    :modelValue="localData.deceased?.first_name"
                     :editing="editing"
-                    @update:modelValue="modelValueChange"
+                    @update:modelValue="
+                        (val) => (localData.deceased.first_name = val)
+                    "
                 />
 
                 <Display
                     label="Middle Name"
-                    :modelValue="burial_record.data.deceased?.middle_name"
+                    :modelValue="localData.deceased?.middle_name"
                     :editing="editing"
-                    @update:modelValue="modelValueChange"
+                    @update:modelValue="
+                        (val) => (localData.deceased.middle_name = val)
+                    "
                 />
                 <Display
                     label="Last Name"
-                    :modelValue="burial_record.data.deceased?.last_name"
+                    :modelValue="localData.deceased?.last_name"
                     :editing="editing"
-                    @update:modelValue="modelValueChange"
+                    @update:modelValue="
+                        (val) => (localData.deceased.last_name = val)
+                    "
                 />
                 <Display
                     label="Age"
-                    :modelValue="burial_record.data.deceased?.age"
+                    :modelValue="localData.deceased?.age"
                     :editing="editing"
+                    @update:modelValue="(val) => (localData.deceased.age = val)"
                 />
                 <Display
                     label="Date of Birth"
-                    :modelValue="burial_record.data.deceased?.birth?.date"
+                    :modelValue="localData.deceased?.birth?.date"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.birth.date = val)
+                    "
                 />
                 <Display
                     label="Civil Status"
-                    :modelValue="burial_record.data.deceased?.civil_status"
+                    :modelValue="localData.deceased?.civil_status"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.civil_status = val)
+                    "
                 />
                 <Display
                     label="Religion"
-                    :modelValue="burial_record.data.deceased?.religion"
+                    :modelValue="localData.deceased?.religion"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.religion = val)
+                    "
                 />
                 <Display
                     label="Nationality"
-                    :modelValue="burial_record.data.deceased?.nationality"
+                    :modelValue="localData.deceased?.nationality"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.nationality = val)
+                    "
                 />
                 <Display
                     label="Occupation"
-                    :modelValue="burial_record.data.deceased?.occupation?.name"
+                    :modelValue="localData.deceased?.occupation?.name"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.occupation.name = val)
+                    "
                 />
                 <Display
                     label="Address"
-                    :modelValue="burial_record.data.deceased?.address"
+                    :modelValue="localData.deceased?.address"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.address = val)
+                    "
                 />
                 <Display
                     label="Part of LGBTQ"
-                    :modelValue="burial_record.data.deceased?.lgbtq"
+                    :modelValue="localData.deceased?.lgbtq"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.lgbtq = val)
+                    "
                 />
                 <Display
                     label="Precinct Number"
-                    :modelValue="burial_record.data.deceased?.precinct_num"
+                    :modelValue="localData.deceased?.precinct_num"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.precinct_num = val)
+                    "
                 />
             </div>
 
@@ -253,18 +283,27 @@ defineOptions({
             >
                 <Display
                     label="Date of Death"
-                    :modelValue="burial_record.data.deceased?.death?.date"
+                    :modelValue="localData.deceased?.death?.date"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.death.date = val)
+                    "
                 />
                 <Display
                     label="Cause of Death"
-                    :modelValue="burial_record.data.deceased?.death?.cause"
+                    :modelValue="localData.deceased?.death?.cause"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.death.cause = val)
+                    "
                 />
                 <Display
                     label="Place of Death"
-                    :modelValue="burial_record.data.deceased?.death?.place"
+                    :modelValue="localData.deceased?.death?.place"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.death.place = val)
+                    "
                 />
             </div>
 
@@ -275,28 +314,43 @@ defineOptions({
             >
                 <Display
                     label="Corpse Disposal"
-                    :modelValue="burial_record.data.deceased?.corpse_disposal"
+                    :modelValue="localData.deceased?.corpse_disposal"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.corpse_disposal = val)
+                    "
                 />
                 <Display
                     label="Cremation Place"
-                    :modelValue="burial_record.data.deceased?.cremation?.place"
+                    :modelValue="localData.deceased?.cremation?.place"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.cremation.place = val)
+                    "
                 />
                 <Display
                     label="Cremation Date"
-                    :modelValue="burial_record.data.deceased?.cremation?.date"
+                    :modelValue="localData.deceased?.cremation?.date"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.cremation.date = val)
+                    "
                 />
                 <Display
                     label="Burial Place"
-                    :modelValue="burial_record.data.deceased?.burial_place"
+                    :modelValue="localData.deceased?.burial_place"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.burial_place = val)
+                    "
                 />
                 <Display
                     label="Date of Depository"
-                    :modelValue="burial_record.data.deceased?.burial?.date"
+                    :modelValue="localData.deceased?.burial?.date"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.burial.date = val)
+                    "
                 />
             </div>
 
@@ -307,29 +361,36 @@ defineOptions({
             >
                 <Display
                     label="Father's Name"
-                    :modelValue="burial_record.data.deceased?.family?.father"
+                    :modelValue="localData.deceased?.family?.father"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.family.father = val)
+                    "
                 />
                 <Display
                     label="Mother's Maiden Name"
-                    :modelValue="
-                        burial_record.data.deceased?.family?.mother_maiden
-                    "
+                    :modelValue="localData.deceased?.family?.mother_maiden"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.family.mother_maiden = val)
+                    "
                 />
                 <Display
                     label="Company Address"
-                    :modelValue="
-                        burial_record.data.deceased?.occupation?.address
-                    "
+                    :modelValue="localData.deceased?.occupation?.address"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.deceased.occupation.address = val)
+                    "
                 />
                 <Display
                     label="Company Supervisor Name"
-                    :modelValue="
-                        burial_record.data.deceased?.occupation?.supervisor
-                    "
+                    :modelValue="localData.deceased?.occupation?.supervisor"
                     :editing="editing"
+                    @update:modelValue="
+                        (val) =>
+                            (localData.deceased.occupation.supervisor = val)
+                    "
                 />
             </div>
         </div>
