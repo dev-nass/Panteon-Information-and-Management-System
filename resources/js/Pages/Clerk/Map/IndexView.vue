@@ -7,6 +7,7 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
 import LotModal from "@/Components/Map/LotModal.vue";
+import Modal from "@/Components/Modal.vue";
 
 const { initializeMap, cleanupMap } = useMap();
 
@@ -50,6 +51,14 @@ onMounted(() => {
     initializeMap(mapContainer.value);
 });
 
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        document
+            .querySelectorAll("#hs-cookies")
+            .forEach((el) => HSOverlay.open(el));
+    });
+});
+
 onBeforeUnmount(() => {
     cleanupMap();
     document
@@ -62,6 +71,48 @@ onBeforeUnmount(() => {
     <Teleport to="body">
         <!-- FULL PRELINE MODAL SHELL -->
         <LotModal :feature="modalFeature" />
+        <Modal>
+            <template v-slot:header>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-info-icon lucide-info"
+                >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                </svg>
+            </template>
+
+            <template v-slot:main>
+                <h3
+                    id="hs-cookies-label"
+                    class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+                >
+                    Notice
+                </h3>
+
+                <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                    Slowly zoom in the map to see the markings and polygon
+                </p>
+            </template>
+            <template v-slot:footer>
+                <button
+                    type="button"
+                    class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
+                    data-hs-overlay="#hs-cookies"
+                >
+                    Got it
+                </button>
+            </template>
+        </Modal>
     </Teleport>
 
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
