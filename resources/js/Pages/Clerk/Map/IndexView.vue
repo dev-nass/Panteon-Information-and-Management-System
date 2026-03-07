@@ -52,6 +52,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     cleanupMap();
+    document
+        .querySelectorAll("#hs-scroll-inside-body-modal")
+        .forEach((el) => HSOverlay.close(el));
 });
 </script>
 

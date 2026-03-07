@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { usePage, router } from "@inertiajs/vue3";
 import { has, isEqual } from "lodash";
 
@@ -63,6 +63,13 @@ const saveChanges = () => {
 
 defineOptions({
     layout: Dashboard,
+});
+
+// added to close the modal from Clerk/Map/IndexView
+onMounted(() => {
+    document
+        .querySelectorAll("#hs-scroll-inside-body-modal")
+        .forEach((el) => HSOverlay.close(el));
 });
 </script>
 
