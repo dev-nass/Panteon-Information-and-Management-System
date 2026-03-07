@@ -9,7 +9,7 @@ class LotResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
-     *
+     * Description: used for Interactive Map and Api/MapDataController
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array

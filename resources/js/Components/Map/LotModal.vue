@@ -1,5 +1,7 @@
 <script setup>
+import { Link } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
+import { route } from "ziggy-js";
 
 const props = defineProps({
     feature: { type: Object, default: null },
@@ -240,43 +242,61 @@ const paginatedBurials = computed(() => {
                         <div
                             class="p-5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-800"
                         >
-                            <div class="flex items-center gap-4">
-                                <!-- LARGE AVATAR -->
-                                <div
-                                    class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        class="size-7"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        stroke-width="2"
+                            <div class="flex items-center justify-between">
+                                <!--- Avatar Icon and name container -->
+                                <div class="flex items-center gap-4">
+                                    <!-- LARGE AVATAR -->
+                                    <div
+                                        class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
                                     >
-                                        <path
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="22"
+                                            height="22"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
-                                            d="M16 14a4 4 0 10-8 0m8 0v1a4 4 0 01-8 0v-1m8 0H8"
-                                        />
-                                    </svg>
+                                            class="lucide lucide-user-round-icon lucide-user-round"
+                                        >
+                                            <circle cx="12" cy="8" r="5" />
+                                            <path d="M20 21a8 8 0 0 0-16 0" />
+                                        </svg>
+                                    </div>
+
+                                    <div>
+                                        <h3
+                                            class="text-lg font-semibold text-green-600 dark:text-green-400"
+                                        >
+                                            {{
+                                                selectedBurial.deceased
+                                                    ?.full_name ?? "Unknown"
+                                            }}
+                                        </h3>
+
+                                        <p
+                                            class="text-xs text-gray-500 dark:text-gray-400"
+                                        >
+                                            Burial Record #{{
+                                                selectedBurial.id
+                                            }}
+                                        </p>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <h3
-                                        class="text-lg font-semibold text-green-600 dark:text-green-400"
-                                    >
-                                        {{
-                                            selectedBurial.deceased
-                                                ?.full_name ?? "Unknown"
-                                        }}
-                                    </h3>
-
-                                    <p
-                                        class="text-xs text-gray-500 dark:text-gray-400"
-                                    >
-                                        Burial Record #{{ selectedBurial.id }}
-                                    </p>
-                                </div>
+                                <Link
+                                    :href="
+                                        route(
+                                            'clerk.burial_records.show',
+                                            selectedBurial.id,
+                                        )
+                                    "
+                                    class="mr-2 flex items-center gap-1 text-sm text-green-600 dark:text-green-400 hover:underline"
+                                >
+                                    View More
+                                </Link>
                             </div>
 
                             <!-- DETAILS -->

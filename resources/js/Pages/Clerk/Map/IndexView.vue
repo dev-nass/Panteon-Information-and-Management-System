@@ -31,6 +31,8 @@ const toggleMap = ref(true);
 
 const modalFeature = ref(null);
 
+console.log(modalFeature.value);
+
 // Definition of global function using 'window' API
 
 // Definition of global function for apartment and comlubarium lot using 'window' API
