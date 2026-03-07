@@ -1,5 +1,5 @@
 <script setup>
-import { useSearchDeceasedRecords } from "@/composables/useSearchDeceasedRecords";
+import { useSearchBurialRecords } from "@/composables/useSearchBurialRecords";
 
 import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
@@ -14,13 +14,15 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 // };
 
 const props = defineProps({
-    deceased_records: {
+    burial_records: {
         type: Object,
     },
     filters: Object,
 });
 
-const { search } = useSearchDeceasedRecords("clerk.deceased_records.index");
+console.log(props.burial_records);
+
+const { search } = useSearchBurialRecords("clerk.burial_records.index");
 
 const sort = (field) => {
     let direction = "asc";
@@ -33,7 +35,7 @@ const sort = (field) => {
     }
 
     router.get(
-        route("clerk.deceased_records.index"),
+        route("clerk.burial_records.index"),
         {
             search: props.filters.search,
             sort_field: field,
@@ -401,24 +403,37 @@ defineOptions({
                                     >
                                         ID
                                     </th>
+
                                     <th
-                                        @click="sort('first_name')"
+                                        @click="sort('deceased_first_name')"
                                         class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Full Name
                                     </th>
+
                                     <th
-                                        @click="sort('date_of_birth')"
+                                        @click="sort('deceased_date_of_birth')"
                                         class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Birth Date
                                     </th>
+
                                     <th
-                                        @click="sort('date_of_death')"
+                                        @click="sort('deceased_date_of_death')"
                                         class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Death Date
                                     </th>
+
+                                    <th
+                                        @click="
+                                            sort('deceased_date_of_depository')
+                                        "
+                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
+                                    >
+                                        Burial Date
+                                    </th>
+
                                     <th
                                         class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
@@ -431,14 +446,14 @@ defineOptions({
                                 class="divide-y divide-gray-200 dark:divide-neutral-700"
                             >
                                 <tr
-                                    v-for="record in deceased_records.data"
+                                    v-for="record in burial_records.data"
                                     :key="record.id"
                                     class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
                                     @click="
                                         () =>
                                             $inertia.visit(
                                                 route(
-                                                    'clerk.deceased_records.show',
+                                                    'clerk.burial_records.show',
                                                     record.id,
                                                 ),
                                             )
@@ -453,27 +468,35 @@ defineOptions({
                                     <td
                                         class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200"
                                     >
-                                        {{ record.first_name }}
-                                        {{ record.last_name }}
+                                        {{ record.deceased.first_name }}
+                                        {{ record.deceased.last_name }}
                                     </td>
 
                                     <td
                                         class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
                                     >
-                                        {{ record.birth.date }}
+                                        {{ record.deceased.birth.date }}
                                     </td>
 
                                     <td
                                         class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
                                     >
-                                        {{ record.death.date }}
+                                        {{ record.deceased.death.date }}
+                                    </td>
+
+                                    <td
+                                        class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
+                                    >
+                                        {{
+                                            record.deceased.burial.date ?? "N/A"
+                                        }}
                                     </td>
 
                                     <td class="px-6 py-4">
                                         <span
                                             class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400"
                                         >
-                                            {{ record.precinct_num }}
+                                            {{ record.deceased.precinct_num }}
                                         </span>
                                     </td>
                                 </tr>
@@ -487,9 +510,9 @@ defineOptions({
                         class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
                     >
                         <div class="max-w-md space-y-3 space-x-1.5">
-                            <template v-if="deceased_records?.meta?.links">
+                            <template v-if="burial_records?.meta?.links">
                                 <component
-                                    v-for="link in deceased_records.meta.links"
+                                    v-for="link in burial_records.meta.links"
                                     :key="link.url ?? link.label"
                                     :is="link.url ? Link : 'span'"
                                     :href="link.url"

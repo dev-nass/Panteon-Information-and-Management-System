@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\MapDataController;
-use App\Http\Controllers\Clerk\DeceasedRecordController;
+use App\Http\Controllers\Clerk\BurialRecordController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -29,8 +29,8 @@ Route::prefix('clerk')
             return Inertia::render('Clerk/Map/IndexView');
         })->name('map.index');
 
-        Route::controller(DeceasedRecordController::class)->group(function () {
-            Route::get('/deceased-records', 'index')->name('deceased_records.index');
-            Route::get('/deceased-records/{deceased_record}', 'show')->name('deceased_records.show');
+        Route::controller(BurialRecordController::class)->group(function () {
+            Route::get('/burial-records', 'index')->name('burial_records.index');
+            Route::get('/burial-records/{burial_record}', 'show')->name('burial_records.show');
         });
     });

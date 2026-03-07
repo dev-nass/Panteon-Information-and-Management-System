@@ -1,12 +1,11 @@
 <script setup>
 import { useMap } from "@/composables/useMap";
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, computed } from "vue";
+import { forEach } from "lodash";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
-import DeceasedRecordTable from "@/Pages/Clerk/DeceasedRecords/IndexView.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
-import { forEach } from "lodash";
 import LotModal from "@/Components/Map/LotModal.vue";
 
 const { initializeMap, cleanupMap } = useMap();
@@ -102,7 +101,7 @@ onBeforeUnmount(() => {
                 <!--- NOTE: Toggle table view button --->
 
                 <Link
-                    :href="route('clerk.deceased_records.index')"
+                    :href="route('clerk.burial_records.index')"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
                     <svg

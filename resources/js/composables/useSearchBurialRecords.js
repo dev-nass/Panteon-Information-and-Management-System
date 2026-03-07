@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { ref, watch } from "vue";
 import { route } from "ziggy-js";
 
-export function useSearchDeceasedRecords(route_name) {
+export function useSearchBurialRecords(route_name) {
     const page = usePage();
     const search = ref(page.props.filters.search || "");
 

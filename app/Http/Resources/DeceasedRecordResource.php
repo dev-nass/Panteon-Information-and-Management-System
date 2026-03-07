@@ -35,12 +35,26 @@ class DeceasedRecordResource extends JsonResource
                 'place' => $this->place_of_death,
             ],
 
+            'burial' => [
+                'date' => $this->date_of_depository,
+            ],
+            // these two are not combined bcz some are cremated
+            'burial_place' => $this->when(
+                $this->corpse_disposal === 'burial',
+                $this->burial_place
+            ),
+
             'civil_status' => $this->civil_status,
             'religion' => $this->religion,
             'nationality' => $this->nationality,
 
             'address' => $this->address,
-            'occupation' => $this->occupation,
+            'occupation' => [
+                'name' => $this->occupation,
+                'address' => $this->company_address,
+                'supervisor' => $this->company_supervisor_name,
+            ],
+
 
             'corpse_disposal' => $this->corpse_disposal,
 
@@ -50,11 +64,6 @@ class DeceasedRecordResource extends JsonResource
                     'place' => $this->cremation_place,
                     'date' => $this->cremation_date,
                 ]
-            ),
-
-            'burial_place' => $this->when(
-                $this->corpse_disposal === 'burial',
-                $this->burial_place
             ),
 
             'family' => [

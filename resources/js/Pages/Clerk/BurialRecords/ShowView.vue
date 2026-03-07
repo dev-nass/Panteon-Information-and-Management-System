@@ -6,8 +6,10 @@ import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 const props = defineProps({
-    deceased: { type: Object, required: true },
+    burial_record: { type: Object, required: true },
 });
+
+console.log(props.burial_record);
 
 const activeTab = ref("personal");
 
@@ -61,8 +63,7 @@ defineOptions({
                 <h1
                     class="text-2xl font-bold text-green-600 dark:text-green-400"
                 >
-                    {{ deceased.first_name }} {{ deceased.middle_name }}
-                    {{ deceased.last_name }}
+                    {{ burial_record.data.deceased.full_name }}
                 </h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400">
                     Deceased Record Details
@@ -96,23 +97,38 @@ defineOptions({
                 v-if="activeTab === 'personal'"
                 class="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                <Display label="Age" :value="deceased.age" />
+                <Display label="Age" :value="burial_record.data.deceased.age" />
                 <Display
                     label="Date of Birth"
-                    :value="deceased.date_of_birth"
+                    :value="burial_record.data.deceased.birth.date"
                 />
-                <Display label="Civil Status" :value="deceased.civil_status" />
-                <Display label="Religion" :value="deceased.religion" />
-                <Display label="Nationality" :value="deceased.nationality" />
-                <Display label="Occupation" :value="deceased.occupation" />
-                <Display label="Address" :value="deceased.address" />
+                <Display
+                    label="Civil Status"
+                    :value="burial_record.data.deceased.civil_status"
+                />
+                <Display
+                    label="Religion"
+                    :value="burial_record.data.deceased.religion"
+                />
+                <Display
+                    label="Nationality"
+                    :value="burial_record.data.deceased.nationality"
+                />
+                <Display
+                    label="Occupation"
+                    :value="burial_record.data.deceased.occupation.name"
+                />
+                <Display
+                    label="Address"
+                    :value="burial_record.data.deceased.address"
+                />
                 <Display
                     label="Part of LGBTQ"
-                    :value="deceased.part_of_LGBTQ"
+                    :value="burial_record.data.deceased.lgbtq"
                 />
                 <Display
                     label="Precinct Number"
-                    :value="deceased.precinct_num"
+                    :value="burial_record.data.deceased.precinct_num"
                 />
             </div>
 
@@ -123,15 +139,15 @@ defineOptions({
             >
                 <Display
                     label="Date of Death"
-                    :value="deceased.date_of_death"
+                    :value="burial_record.data.deceased.death.date"
                 />
                 <Display
                     label="Cause of Death"
-                    :value="deceased.cause_of_death"
+                    :value="burial_record.data.deceased.death.cause"
                 />
                 <Display
                     label="Place of Death"
-                    :value="deceased.place_of_death"
+                    :value="burial_record.data.deceased.death.place"
                 />
             </div>
 
@@ -142,20 +158,23 @@ defineOptions({
             >
                 <Display
                     label="Corpse Disposal"
-                    :value="deceased.corpse_disposal"
+                    :value="burial_record.data.deceased.corpse_disposal"
                 />
                 <Display
                     label="Cremation Place"
-                    :value="deceased.cremation_place"
+                    :value="burial_record.data.deceased?.cremation?.place"
                 />
                 <Display
                     label="Cremation Date"
-                    :value="deceased.cremation_date"
+                    :value="burial_record.data.deceased?.cremation?.date"
                 />
-                <Display label="Burial Place" :value="deceased.burial_place" />
+                <Display
+                    label="Burial Place"
+                    :value="burial_record.data.deceased.burial_place"
+                />
                 <Display
                     label="Date of Depository"
-                    :value="deceased.date_of_depository"
+                    :value="burial_record.data.deceased.burial.date"
                 />
             </div>
 
@@ -164,18 +183,21 @@ defineOptions({
                 v-if="activeTab === 'family'"
                 class="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                <Display label="Father's Name" :value="deceased.father_name" />
+                <Display
+                    label="Father's Name"
+                    :value="burial_record.data.deceased.family.father"
+                />
                 <Display
                     label="Mother's Maiden Name"
-                    :value="deceased.mother_maiden_name"
+                    :value="burial_record.data.deceased.family.mother_maiden"
                 />
                 <Display
                     label="Company Address"
-                    :value="deceased.company_address"
+                    :value="burial_record.data.deceased.occupation.address"
                 />
                 <Display
                     label="Company Supervisor Name"
-                    :value="deceased.company_supervisor_name"
+                    :value="burial_record.data.deceased.occupation.supervisor"
                 />
             </div>
         </div>

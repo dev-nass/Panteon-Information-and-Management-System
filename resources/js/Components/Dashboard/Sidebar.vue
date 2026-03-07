@@ -480,9 +480,9 @@ const page = usePage();
 
                 <li>
                     <SidebarLink
-                        :href="route('clerk.deceased_records.index')"
+                        :href="route('clerk.burial_records.index')"
                         :isActive="
-                            page.component === 'Clerk/DeceasedRecords/IndexView'
+                            page.component === 'Clerk/BurialRecords/IndexView'
                         "
                     >
                         <template v-slot:icon>
@@ -510,7 +510,7 @@ const page = usePage();
                                 <path d="M3 15h18" />
                             </svg>
                         </template>
-                        <template v-slot:text> Deceased Record </template>
+                        <template v-slot:text> Burial Records </template>
                     </SidebarLink>
                 </li>
             </ul>
