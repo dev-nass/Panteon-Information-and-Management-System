@@ -117,7 +117,8 @@ const paginatedBurials = computed(() => {
                             </p>
                             <p>
                                 <strong>Occupants:</strong>
-                                {{ feature.properties.burials?.length ?? 0 }}
+                                {{ feature.properties.burials?.length ?? 0 }} /
+                                {{ feature.properties.total_capacity }}
                             </p>
                             <p>
                                 <strong>Status:</strong>
