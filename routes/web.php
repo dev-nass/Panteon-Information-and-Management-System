@@ -29,6 +29,10 @@ Route::prefix('clerk')
             return Inertia::render('Clerk/GenerateReport/IndexView');
         })->name('generate_report.index');
 
+        Route::get('/import', function () {
+            return Inertia::render('Clerk/ImportRecord/IndexView');
+        })->name('import.index');
+
         Route::get('/map', function () {
             return Inertia::render('Clerk/Map/IndexView');
         })->name('map.index');
