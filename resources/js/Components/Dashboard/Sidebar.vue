@@ -417,7 +417,10 @@ const page = usePage();
                     >Main</span
                 >
                 <li>
-                    <SidebarLink>
+                    <SidebarLink
+                        :href="route('clerk.dashboard')"
+                        :isActive="page.component === 'Clerk/DashboardView'"
+                    >
                         <template v-slot:icon>
                             <span
                                 class="-ms-[5px] flex shrink-0 justify-center items-center size-6"

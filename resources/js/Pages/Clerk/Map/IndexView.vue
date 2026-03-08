@@ -1,6 +1,13 @@
 <script setup>
 import { useMap } from "@/composables/useMap";
-import { ref, onMounted, onBeforeMount, onBeforeUnmount, computed } from "vue";
+import {
+    ref,
+    onMounted,
+    onBeforeMount,
+    onBeforeUnmount,
+    computed,
+    nextTick,
+} from "vue";
 import { forEach } from "lodash";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -49,9 +56,7 @@ defineOptions({
 
 onMounted(() => {
     initializeMap(mapContainer.value);
-});
 
-window.addEventListener("load", () => {
     setTimeout(() => {
         document
             .querySelectorAll("#hs-cookies")
