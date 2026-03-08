@@ -25,6 +25,10 @@ Route::prefix('clerk')
             return Inertia::render('Clerk/DashboardView');
         })->name('dashboard');
 
+        Route::get('/generate-report', function () {
+            return Inertia::render('Clerk/GenerateReport/IndexView');
+        })->name('generate_report.index');
+
         Route::get('/map', function () {
             return Inertia::render('Clerk/Map/IndexView');
         })->name('map.index');

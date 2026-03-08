@@ -20,6 +20,7 @@ const props = defineProps({
     filters: Object,
 });
 
+// TODO: Remove this
 console.log(props.burial_records);
 
 const { search } = useSearchBurialRecords("clerk.burial_records.index");
