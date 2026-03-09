@@ -39,6 +39,7 @@ const toggleMap = ref(true);
 
 const modalFeature = ref(null);
 
+// TODO: remove this
 console.log(modalFeature.value);
 
 // Definition of global function using 'window' API
