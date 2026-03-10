@@ -8,9 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class LotResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     * Description: used for Interactive Map and Api/MapDataController
-     * @return array<string, mixed>
+     * Description: used for Interactive Map and Api/MapDataController or the actual Map
      */
     public function toArray(Request $request): array
     {

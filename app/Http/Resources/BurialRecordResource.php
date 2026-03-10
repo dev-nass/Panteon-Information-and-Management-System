@@ -8,11 +8,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class BurialRecordResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     * NOTE: Previously used, but chatGPT changed the approach to Lot -> burialRecord -> deecasedRecord and
-     * now using LotResource, BUT this is now used for Burial Records Table
+     * Description: Used for the Burial Record table index and show
+     * NOTE: v1 Previously used, but chatGPT changed the approach to Lot -> burialRecord -> deecasedRecord and;
+     * Note: v2 now using LotResource, BUT this is now used for Burial Records Table
      */
     public function toArray(Request $request): array
     {
