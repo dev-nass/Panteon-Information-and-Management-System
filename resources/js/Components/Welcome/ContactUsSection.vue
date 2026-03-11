@@ -1,9 +1,9 @@
 <template>
     <!-- Contact Us -->
     <div
-        class="bg-gray-100 dark:bg-neutral-900 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto"
+        class="bg-gray-100 dark:bg-neutral-900 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-25 mx-auto"
     >
-        <div class="max-w-2xl lg:max-w-5xl mx-auto">
+        <div class="max-w-2xl md:max-w-5xl lg:max-w-6xl mx-auto">
             <div class="text-left">
                 <h1
                     class="text-lg font-bold text-green-600 dark:text-green-500 sm:text-3xl"
@@ -35,7 +35,7 @@
                     </h2>
 
                     <form>
-                        <div class="grid gap-7">
+                        <div class="grid gap-8">
                             <!-- Grid -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>

@@ -1,6 +1,6 @@
 <template>
     <!-- Use Map -->
-    <div class="px-4 py-[4rem] sm:px-6 lg:px-4">
+    <div class="px-4 sm:px-6 lg:px-4">
         <div
             class="relative h-150 max-h-250 md:h-[100dvh] flex flex-col bg-[url('/images/use-map.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >
