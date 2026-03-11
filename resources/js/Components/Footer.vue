@@ -1,10 +1,20 @@
 <template>
     <!-- ========== FOOTER ========== -->
     <footer
-        class="mt-auto dasma-green text-white w-full pt-10 pb-2 px-4 sm:px-6 lg:px-8 mx-auto"
+        class="mt-auto bg-green-800 text-white w-full pt-25 pb-15 px-4 sm:px-6 lg:px-8 mx-auto"
     >
         <!-- Grid -->
         <div class="text-center">
+            <div class="mt-10 hidden lg:block">
+                <h2
+                    class="bona-nova-heading dasma-yellow-text leading-none flex-none text-[8rem] font-thin text-gray-800 dark:text-neutral-200"
+                    aria-label="Brand"
+                >
+                    Panteon De <br />
+                    Dasmariñas
+                </h2>
+            </div>
+
             <div class="mt-3">
                 <p class="text-gray-500 dark:text-white">
                     We're part of the
@@ -92,14 +102,6 @@
                 </a>
             </div>
             <!-- End Social Brands -->
-            <div class="mt-10 hidden lg:block">
-                <h2
-                    class="bona-nova-heading dasma-yellow-text leading-none flex-none text-9xl font-thin text-gray-800 dark:text-neutral-200"
-                    aria-label="Brand"
-                >
-                    Panteon De Dasmariñas
-                </h2>
-            </div>
             <!-- End Col -->
         </div>
         <!-- End Grid -->
