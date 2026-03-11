@@ -16,7 +16,7 @@
         <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
             <!-- Grid -->
             <div
-                class="grid grid-cols-2 justify-items-center gap-6 items-around sm:gap-12 lg:grid-cols-3 lg:gap-8"
+                class="text-center grid grid-cols-2 justify-items-center gap-6 items-around sm:gap-12 lg:grid-cols-3 lg:gap-8"
             >
                 <!-- Stats -->
                 <div>
@@ -28,10 +28,10 @@
                     <p
                         class="mt-2 text-4xl font-bold text-green-600 sm:mt-3 sm:text-6xl dark:text-green-500"
                     >
-                        20K+
+                        21,000+
                     </p>
                     <p class="mt-1 text-gray-500 dark:text-neutral-400">
-                        in fulfilling orders
+                        Mapped burial data preserved digitally
                     </p>
                 </div>
                 <!-- End Stats -->
@@ -46,10 +46,10 @@
                     <p
                         class="mt-2 text-4xl font-bold text-green-600 sm:mt-3 sm:text-6xl dark:text-green-500"
                     >
-                        6-18
+                        6AM – 6PM
                     </p>
                     <p class="mt-1 text-gray-500 dark:text-neutral-400">
-                        GMT +8
+                        Visiting hours for families and visitors
                     </p>
                 </div>
                 <!-- End Stats -->
@@ -59,15 +59,15 @@
                     <h4
                         class="text-lg font-semibold text-gray-800 sm:text-xl dark:text-neutral-200"
                     >
-                        Happy customer
+                        Burial Plots
                     </h4>
                     <p
                         class="mt-2 text-4xl font-bold text-green-600 sm:mt-3 sm:text-6xl dark:text-green-500"
                     >
-                        85%
+                        3,500+
                     </p>
                     <p class="mt-1 text-gray-500 dark:text-neutral-400">
-                        this year alone
+                        Mapped across the cemetery grounds
                     </p>
                 </div>
                 <!-- End Stats -->
