@@ -1,6 +1,8 @@
 <template>
     <!-- Contact Us -->
-    <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
+    <div
+        class="bg-gray-100 dark:bg-neutral-900 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto"
+    >
         <div class="max-w-2xl lg:max-w-5xl mx-auto">
             <div class="text-left">
                 <h1
