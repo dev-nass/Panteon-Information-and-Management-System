@@ -6,6 +6,8 @@ const props = defineProps({
         type: String,
         default: "base",
     },
+    // highlighted is used on 'Clerk/BurialRecords/Show' Edit button
+    // Not highlihted is used on 'Clerk/Burial/Index' table buttons
     highlighted: {
         type: Boolean,
         default: false,
