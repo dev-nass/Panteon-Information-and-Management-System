@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 defineOptions({
@@ -7,6 +8,8 @@ defineOptions({
 </script>
 <template>
     This is the dashboard map page
+
+    <Button>Pogi</Button>
 
     <button
         type="button"

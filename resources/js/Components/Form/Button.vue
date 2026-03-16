@@ -6,6 +6,10 @@ const props = defineProps({
         type: String,
         default: "base",
     },
+    highlighted: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const sizeClasses = computed(() => {
@@ -18,13 +22,35 @@ const sizeClasses = computed(() => {
             return "px-3 py-2.5 text-base";
     }
 });
+
+const variantClasses = computed(() => {
+    if (props.highlighted) {
+        return `
+        bg-green-500/10 text-green-400
+        border-transparent
+        hover:bg-green-500/20
+        hover:border-green-500/40
+        hover:text-green-600
+        dark:hover:text-green-300
+        `;
+    }
+
+    return `
+    bg-white dark:bg-neutral-900
+    border-gray-300 dark:border-neutral-700
+    focus-within:border-green-500
+    focus-within:ring-2
+    focus-within:ring-green-500
+    focus:text-green-400
+    `;
+});
 </script>
 
 <template>
     <button
         type="button"
-        class="flex items-center gap-2 w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
-        :class="[sizeClasses]"
+        class="flex items-center gap-2 w-full max-w-md rounded-lg border transition duration-200"
+        :class="[sizeClasses, variantClasses]"
     >
         <slot />
     </button>
