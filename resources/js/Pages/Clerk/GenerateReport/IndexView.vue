@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
+import Button from "@/Components/Form/Button.vue";
 
 defineOptions({
     layout: Dashboard,
@@ -129,18 +130,10 @@ const generateReport = () => {
 
                         <!-- Buttons -->
                         <div class="flex justify-end gap-3 pt-2">
-                            <button
-                                class="px-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 transition"
-                            >
-                                Reset
-                            </button>
-
-                            <button
-                                @click="generateReport"
-                                class="px-5 py-2 text-sm rounded-lg bg-green-600 hover:bg-green-700 text-white transition shadow-sm"
-                            >
+                            <Button> Reset </Button>
+                            <Button @click="generateReport" :highlighted="true">
                                 Generate Report
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

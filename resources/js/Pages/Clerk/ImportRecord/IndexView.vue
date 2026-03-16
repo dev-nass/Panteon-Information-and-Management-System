@@ -1,4 +1,5 @@
 <script setup>
+import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 defineOptions({
@@ -122,18 +123,11 @@ defineOptions({
 
                         <!-- Actions -->
                         <div class="flex justify-between items-center pt-2">
-                            <button
-                                data-hs-overlay="#import-logs-modal"
-                                class="text-sm px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-700 transition"
-                            >
+                            <Button data-hs-overlay="#import-logs-modal">
                                 View Import Logs
-                            </button>
+                            </Button>
 
-                            <button
-                                class="px-5 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm shadow-sm transition"
-                            >
-                                Start Import
-                            </button>
+                            <Button :highlighted="true"> Start Import </Button>
                         </div>
                     </div>
                 </div>
