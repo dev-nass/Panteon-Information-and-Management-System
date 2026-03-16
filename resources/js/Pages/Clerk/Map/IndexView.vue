@@ -15,11 +15,17 @@ import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
 import LotModal from "@/Components/Map/LotModal.vue";
 import Modal from "@/Components/Modal.vue";
+import Button from "@/Components/Form/Button.vue";
 
 const { initializeMap, cleanupMap } = useMap();
 
 const mapContainer = ref(null);
+// previously use bcz im swaping from map to table
 const toggleMap = ref(true);
+// testing purposes for the SVG of eye to turn on and off polygon (delete later)
+const toggleMapPolygon = () => {
+    toggleMap.value = !toggleMap.value;
+};
 
 // NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
 // const toggleMapEvent = () => {
@@ -122,7 +128,7 @@ onBeforeUnmount(() => {
     </Teleport>
 
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
-        <div v-if="toggleMap" key="map" class="h-full w-full">
+        <div class="h-full w-full">
             <!-- Map container -->
             <div
                 ref="mapContainer"
@@ -191,10 +197,9 @@ onBeforeUnmount(() => {
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
                 <!--- NOTE: Toggle polygon button --->
-                <div
-                    class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
-                >
+                <Button @click="toggleMapPolygon">
                     <svg
+                        v-if="toggleMap"
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
                         height="24"
@@ -211,7 +216,30 @@ onBeforeUnmount(() => {
                         />
                         <circle cx="12" cy="12" r="3" />
                     </svg>
-                </div>
+
+                    <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-eye-off-icon lucide-eye-off text-green-500 dark:text-green-600"
+                    >
+                        <path
+                            d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                        />
+                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                        <path
+                            d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                        />
+                        <path d="m2 2 20 20" />
+                    </svg>
+                </Button>
             </div>
         </div>
     </section>
