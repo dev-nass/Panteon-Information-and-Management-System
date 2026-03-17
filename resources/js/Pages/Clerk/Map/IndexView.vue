@@ -1,0 +1,246 @@
+<script setup>
+import { useMap } from "@/composables/useMap";
+import {
+    ref,
+    onMounted,
+    onBeforeMount,
+    onBeforeUnmount,
+    computed,
+    nextTick,
+} from "vue";
+import { forEach } from "lodash";
+
+import Dashboard from "@/Layouts/Dashboard.vue";
+import Input from "@/Components/Form/Input.vue";
+import { Link } from "@inertiajs/vue3";
+import LotModal from "@/Components/Map/LotModal.vue";
+import Modal from "@/Components/Modal.vue";
+import Button from "@/Components/Form/Button.vue";
+
+const { initializeMap, cleanupMap } = useMap();
+
+const mapContainer = ref(null);
+// previously use bcz im swaping from map to table
+const toggleMap = ref(true);
+// testing purposes for the SVG of eye to turn on and off polygon (delete later)
+const toggleMapPolygon = () => {
+    toggleMap.value = !toggleMap.value;
+};
+
+// NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
+// const toggleMapEvent = () => {
+//     toggleMap.value = !toggleMap.value;
+//     if (toggleMap.value) {
+//         cleanupMap();
+//         setTimeout(() => initializeMap(mapContainer.value), 0);
+//     } else {
+//         // Switched to table view - need to reinitialize Preline
+//         setTimeout(() => {
+//             if (window.HSStaticMethods) {
+//                 window.HSStaticMethods.autoInit();
+//             }
+//         }, 0);
+//     }
+// };
+
+const modalFeature = ref(null);
+
+// TODO: remove this
+console.log(modalFeature.value);
+
+// Definition of global function using 'window' API
+
+// Definition of global function for apartment and comlubarium lot using 'window' API
+window.openLotModal = function (feature) {
+    modalFeature.value = feature;
+
+    HSOverlay.open("#hs-scroll-inside-body-modal");
+};
+
+defineOptions({
+    layout: Dashboard,
+});
+
+onMounted(() => {
+    initializeMap(mapContainer.value);
+
+    setTimeout(() => {
+        document
+            .querySelectorAll("#hs-cookies")
+            .forEach((el) => HSOverlay.open(el));
+    });
+});
+
+onBeforeUnmount(() => {
+    cleanupMap();
+    document
+        .querySelectorAll("#hs-scroll-inside-body-modal")
+        .forEach((el) => HSOverlay.close(el));
+});
+</script>
+
+<template>
+    <Teleport to="body">
+        <!-- FULL PRELINE MODAL SHELL -->
+        <LotModal :feature="modalFeature" />
+        <Modal>
+            <template v-slot:header>
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-info-icon lucide-info"
+                >
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4" />
+                    <path d="M12 8h.01" />
+                </svg>
+            </template>
+
+            <template v-slot:main>
+                <h3
+                    id="hs-cookies-label"
+                    class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+                >
+                    Notice
+                </h3>
+
+                <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                    Slowly zoom in the map to see the markings and polygon
+                </p>
+            </template>
+            <template v-slot:footer>
+                <button
+                    type="button"
+                    class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
+                    data-hs-overlay="#hs-cookies"
+                >
+                    Got it
+                </button>
+            </template>
+        </Modal>
+    </Teleport>
+
+    <section id="map-wrapper" class="relative w-full" style="height: 98vh">
+        <div class="h-full w-full">
+            <!-- Map container -->
+            <div
+                ref="mapContainer"
+                id="map"
+                class="h-full w-full focus:outline-none"
+            ></div>
+        </div>
+
+        <div class="absolute top-2 inset-x-0 flex justify-between z-888 px-4">
+            <Input placeholder="Full name" type="search" />
+
+            <div class="flex gap-x-2">
+                <!--- ISSUE: Change this into offcanvas or modal button --->
+                <!--- NOTE: Filter button  --->
+                <div
+                    class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-funnel-plus-icon lucide-funnel-plus text-green-500 dark:text-green-600"
+                    >
+                        <path
+                            d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"
+                        />
+                        <path d="M16 6h6" />
+                        <path d="M19 3v6" />
+                    </svg>
+                </div>
+
+                <!--- NOTE: Toggle table view button --->
+
+                <Link
+                    :href="route('clerk.burial_records.index')"
+                    class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-arrow-right-left-icon lucide-arrow-right-left text-green-500 dark:text-green-600"
+                    >
+                        <path d="m16 3 4 4-4 4" />
+                        <path d="M20 7H4" />
+                        <path d="m8 21-4-4 4-4" />
+                        <path d="M4 17h16" />
+                    </svg>
+                </Link>
+            </div>
+        </div>
+
+        <div class="absolute bottom-5 inset-x-0 flex justify-end z-999 px-4">
+            <div class="flex gap-x-2">
+                <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
+                <!--- NOTE: Toggle polygon button --->
+                <Button @click="toggleMapPolygon">
+                    <svg
+                        v-if="toggleMap"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-eye-icon lucide-eye text-green-500 dark:text-green-600"
+                    >
+                        <path
+                            d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"
+                        />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
+
+                    <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-eye-off-icon lucide-eye-off text-green-500 dark:text-green-600"
+                    >
+                        <path
+                            d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49"
+                        />
+                        <path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" />
+                        <path
+                            d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143"
+                        />
+                        <path d="m2 2 20 20" />
+                    </svg>
+                </Button>
+            </div>
+        </div>
+    </section>
+</template>

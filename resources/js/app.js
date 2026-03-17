@@ -4,10 +4,28 @@ import "preline";
 
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
+
 import AOS from "aos";
-import "aos/dist/aos.css";
+import "aos/dist/aos.css"; // AOS (scroll animation library)
+
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+import { ZiggyVue } from "ziggy-js"; // laravel routes
+
+import NProgress from "nprogress"; // progress indicator
 
 createInertiaApp({
+    progress: {
+        // The delay after which the progress bar will appear, in milliseconds...
+        delay: 250,
+        // The color of the progress bar...
+        color: "#00FF00",
+        // Whether to include the default NProgress styles...
+        includeCSS: true,
+        // Whether the NProgress spinner will be shown...
+        showSpinner: false,
+    },
     resolve: (name) => {
         const pages = import.meta.glob("./Pages/**/*.vue", { eager: true });
         return pages[`./Pages/${name}.vue`];
@@ -15,6 +33,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(ZiggyVue)
             .mount(el);
 
         // Initialize AOS
@@ -27,6 +46,8 @@ createInertiaApp({
     },
 });
 
+router.on("start", () => NProgress.start());
+
 // ✅ Re-init plugins after Inertia navigation
 router.on("finish", () => {
     if (window.HSStaticMethods) {
@@ -34,7 +55,17 @@ router.on("finish", () => {
     }
 
     AOS.refresh();
+    NProgress.done();
 });
+
+// --------- AI SUGGESTION for leaflet, BUT ITS CAUSING ERROR
+// delete L.Icon.Default.prototype._getIconUrl;
+//
+// L.Icon.Default.mergeOptions({
+//     iconUrl: icon,
+//     shadowUrl: iconShadow,
+// });
+// ---------
 
 /**
  * The following event listener are used for listening to

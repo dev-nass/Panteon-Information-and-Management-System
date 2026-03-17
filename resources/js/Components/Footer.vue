@@ -1,12 +1,22 @@
 <template>
     <!-- ========== FOOTER ========== -->
     <footer
-        class="mt-auto dasma-green text-white w-full pt-10 pb-2 px-4 sm:px-6 lg:px-8 mx-auto"
+        class="mt-auto bg-green-800 text-white w-full pt-25 pb-15 px-4 sm:px-6 lg:px-8 mx-auto"
     >
         <!-- Grid -->
         <div class="text-center">
+            <div class="mt-10 hidden lg:block">
+                <h2
+                    class="bona-nova-heading dasma-yellow-text leading-none flex-none text-[8rem] font-thin text-gray-800 dark:text-neutral-200"
+                    aria-label="Brand"
+                >
+                    Panteon De <br />
+                    Dasmariñas
+                </h2>
+            </div>
+
             <div class="mt-3">
-                <p class="text-gray-500 dark:text-neutral-400">
+                <p class="text-gray-500 dark:text-white">
                     We're part of the
                     <a
                         class="text-blue-600 dark:text-blue-500 decoration-2 hover:underline focus:outline-hidden focus:underline font-medium"
@@ -15,7 +25,7 @@
                     >
                     family.
                 </p>
-                <p class="text-gray-500 dark:text-neutral-400">
+                <p class="text-gray-500 dark:text-white">
                     © 2026 Preline Labs.
                 </p>
             </div>
@@ -23,7 +33,7 @@
             <!-- Social Brands -->
             <div class="mt-3 space-x-2">
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -40,7 +50,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -57,7 +67,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -74,7 +84,7 @@
                     </svg>
                 </a>
                 <a
-                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
+                    class="size-8 inline-flex justify-center items-center gap-x-2 text-sm font-semibold rounded-full text-gray-500 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-700 focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-700 disabled:opacity-50 disabled:pointer-events-none"
                     href="#"
                 >
                     <svg
@@ -92,14 +102,6 @@
                 </a>
             </div>
             <!-- End Social Brands -->
-            <div class="mt-10 hidden lg:block">
-                <h2
-                    class="bona-nova-heading dasma-yellow-text leading-none flex-none text-9xl font-thin text-gray-800 dark:text-neutral-200"
-                    aria-label="Brand"
-                >
-                    Panteon De Dasmariñas
-                </h2>
-            </div>
             <!-- End Col -->
         </div>
         <!-- End Grid -->
