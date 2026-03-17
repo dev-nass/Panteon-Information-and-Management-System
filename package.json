@@ -21,10 +21,12 @@
         "@vitejs/plugin-vue": "^6.0.4",
         "@vueuse/core": "^14.2.1",
         "aos": "^2.3.4",
+        "chart.js": "^4.5.1",
         "leaflet": "^1.9.4",
         "lodash": "^4.17.23",
         "nprogress": "^0.2.0",
         "preline": "^4.0.1",
+        "vue-chartjs": "^5.3.3",
         "ziggy-js": "^2.6.1"
     }
 }
