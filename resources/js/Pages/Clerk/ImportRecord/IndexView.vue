@@ -64,7 +64,7 @@ defineOptions({
                         >
                             <!-- Drop Area -->
                             <div
-                                class="cursor-pointer p-10 flex justify-center bg-white/50 dark:bg-neutral-900/40 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl hover:border-green-500 transition"
+                                class="cursor-pointer p-[4rem] flex justify-center bg-white/50 dark:bg-neutral-900/40 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl hover:border-green-500 transition"
                                 data-hs-file-upload-trigger
                             >
                                 <div
