@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import Button from "../Form/Button.vue";
+</script>
+
 <template>
     <!-- Contact Us -->
     <div
@@ -112,10 +116,10 @@
                         </div>
                         <!-- End Grid -->
 
-                        <div class="mt-4 grid">
+                        <div class="mt-5 grid">
                             <button
                                 type="submit"
-                                class="inline-flex items-center justify-center px-5 py-3 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-green-500 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-green-600 hover:border-white/40 hover:shadow-xl focus:shadow-xs focus:no-underline shadow-lg"
+                                class="inline-flex items-center justify-center px-5 py-2.5 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-green-500 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-green-600 hover:border-white/40 hover:shadow-xl focus:shadow-xs focus:no-underline shadow-lg"
                             >
                                 Button Text
                             </button>

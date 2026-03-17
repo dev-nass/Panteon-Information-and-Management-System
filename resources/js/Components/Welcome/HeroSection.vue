@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import Button from "../Form/Button.vue";
+</script>
+
 <template>
     <!-- Hero -->
     <div class="px-4 sm:px-6 lg:px-4">

@@ -18,7 +18,7 @@
                 <div class="col-span-12 lg:col-span-12" data-aos="fade-right">
                     <!-- Card -->
                     <a
-                        class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
+                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
                         href="#"
                         full
                     >
@@ -106,7 +106,7 @@
                 <div class="sm:col-span-12 md:col-span-6" data-aos="fade-left">
                     <!-- Card -->
                     <a
-                        class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
+                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
                         href="#"
                     >
                         <div
@@ -137,7 +137,7 @@
                 <div class="sm:col-span-12 md:col-span-6" data-aos="fade-up">
                     <!-- Card -->
                     <a
-                        class="group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full"
+                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
                         href="#"
                     >
                         <div
