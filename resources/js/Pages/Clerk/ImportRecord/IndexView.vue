@@ -67,30 +67,27 @@ defineOptions({
                                 class="cursor-pointer p-10 flex justify-center bg-white/50 dark:bg-neutral-900/40 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl hover:border-green-500 transition"
                                 data-hs-file-upload-trigger
                             >
-                                <div class="text-center">
-                                    <span
-                                        class="inline-flex justify-center items-center size-16 text-green-500"
+                                <div
+                                    class="text-center flex flex-col items-center"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="24"
+                                        height="24"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="lucide lucide-import-icon lucide-import text-green-500"
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="64"
-                                            height="64"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                        >
-                                            <path
-                                                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                                            />
-                                            <polyline points="17 8 12 3 7 8" />
-                                            <line
-                                                x1="12"
-                                                x2="12"
-                                                y1="3"
-                                                y2="15"
-                                            />
-                                        </svg>
-                                    </span>
+                                        <path d="M12 3v12" />
+                                        <path d="m8 11 4 4 4-4" />
+                                        <path
+                                            d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4"
+                                        />
+                                    </svg>
 
                                     <div
                                         class="mt-4 text-sm text-gray-600 dark:text-gray-300"

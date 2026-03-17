@@ -28,7 +28,7 @@ defineProps({
 
 <template>
     <div
-        class="h-90 p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
+        class="h-100 p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
     >
         <Bar :data="chartData" :options="chartOptions" />
     </div>
