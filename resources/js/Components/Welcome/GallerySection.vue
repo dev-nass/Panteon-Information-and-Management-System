@@ -119,9 +119,8 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                         data-aos="fade-up"
                     >
                         <!-- Card -->
-                        <a
+                        <article
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
-                            href="#"
                         >
                             <div
                                 class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
@@ -136,7 +135,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                                     nulla ultrices, scelerisque urna.
                                 </div>
                             </div>
-                        </a>
+                        </article>
                     </div>
 
                     <!-- Cols 3 / 5 -->
@@ -145,9 +144,8 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                         data-aos="fade-up"
                     >
                         <!-- Card -->
-                        <a
+                        <article
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
-                            href="#"
                         >
                             <div
                                 class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
@@ -162,7 +160,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                                     ut ultricies.
                                 </div>
                             </div>
-                        </a>
+                        </article>
                     </div>
                 </div>
             </div>
