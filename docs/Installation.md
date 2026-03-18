@@ -31,6 +31,8 @@ List of all the packages used and their installation
 
 - <https://www.npmjs.com/package/lodash>
 
+### ChartJS and ChartJS Vue
+
 ### Embla Carousel
 
 - <https://www.embla-carousel.com/docs/v8/examples/predefined>
