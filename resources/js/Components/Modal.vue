@@ -1,5 +1,12 @@
+```vue
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
+    id: {
+        type: String,
+        default: "hs-cookies",
+    },
     size: {
         type: String,
         default: "md",
@@ -11,6 +18,9 @@ defineProps({
         default: false,
     },
 });
+
+// 👉 auto-create selector for HS
+const overlaySelector = computed(() => `#${props.id}`);
 
 const sizeClasses = {
     sm: { modal: "sm:max-w-sm", padding: "p-6" },
@@ -29,11 +39,11 @@ const sizeClasses = {
 
 <template>
     <div
-        id="hs-cookies"
+        :id="props.id"
         class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
         role="dialog"
         tabindex="-1"
-        aria-labelledby="hs-cookies-label"
+        :aria-labelledby="`${props.id}-label`"
     >
         <div
             :class="[
@@ -45,8 +55,6 @@ const sizeClasses = {
             <div
                 :class="[
                     'relative w-full max-h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50',
-
-                    // Remove rounding for fullscreen
                     size === 'screen' ? 'h-full rounded-none' : 'rounded-2xl',
                 ]"
             >
@@ -55,7 +63,7 @@ const sizeClasses = {
                     <button
                         type="button"
                         class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
-                        data-hs-overlay="#hs-cookies"
+                        :data-hs-overlay="overlaySelector"
                     >
                         <svg
                             class="size-4"
@@ -90,7 +98,7 @@ const sizeClasses = {
 
                     <!-- SAMPLE  -->
                     <!-- <h3 -->
-                    <!--     id="hs-cookies-label" -->
+                    <!--     :id="`${props.id}-label`" -->
                     <!--     class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
                     <!-- > -->
                     <!--     Unsaved Changes -->
@@ -114,7 +122,7 @@ const sizeClasses = {
                     <!-- <button -->
                     <!--     type="button" -->
                     <!--     class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
-                    <!--     data-hs-overlay="#hs-cookies" -->
+                    <!--     :data-hs-overlay="overlaySelector" -->
                     <!-- > -->
                     <!--     Cancel -->
                     <!-- </button> -->
@@ -130,3 +138,4 @@ const sizeClasses = {
         </div>
     </div>
 </template>
+```

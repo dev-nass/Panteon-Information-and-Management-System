@@ -2,13 +2,20 @@
 import Modal from "../Modal.vue";
 import emblaCarouselVue from "embla-carousel-vue";
 
-const [emblaRef, emblaApi] = emblaCarouselVue({
-    loop: true,
-    speed: 8, // lower = smoother drag
-    dragFree: false,
-});
-const scrollPrev = () => emblaApi.value?.scrollPrev();
-const scrollNext = () => emblaApi.value?.scrollNext();
+// Carousel 1
+const [emblaRef1, emblaApi1] = emblaCarouselVue();
+const scrollPrev1 = () => emblaApi1.value?.scrollPrev();
+const scrollNext1 = () => emblaApi1.value?.scrollNext();
+
+// Carousel 2
+const [emblaRef2, emblaApi2] = emblaCarouselVue();
+const scrollPrev2 = () => emblaApi2.value?.scrollPrev();
+const scrollNext2 = () => emblaApi2.value?.scrollNext();
+
+// Carousel 3
+const [emblaRef3, emblaApi3] = emblaCarouselVue();
+const scrollPrev3 = () => emblaApi3.value?.scrollPrev();
+const scrollNext3 = () => emblaApi3.value?.scrollNext();
 </script>
 
 <template>
@@ -17,57 +24,6 @@ const scrollNext = () => emblaApi.value?.scrollNext();
     <div
         class="bg-gray-100 dark:bg-neutral-800 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto"
     >
-        <button
-            type="button"
-            class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            aria-controls="hs-cookies"
-            data-hs-overlay="#hs-cookies"
-        >
-            Open modal
-        </button>
-
-        <Teleport to="body">
-            <Modal size="xl" :no-padding="true">
-                <template v-slot:main>
-                    <div class="relative">
-                        <!-- Carousel -->
-                        <div class="overflow-hidden" ref="emblaRef">
-                            <div class="flex">
-                                <div class="flex-[0_0_100%]">
-                                    <img
-                                        src="/public/images/columbarium.png"
-                                        class="w-full h-[90vh] object-cover"
-                                    />
-                                </div>
-                                <div class="flex-[0_0_100%]">
-                                    <img
-                                        src="/public/images/columbarium.png"
-                                        class="w-full h-[90vh] object-cover"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Prev -->
-                        <button
-                            @click="scrollPrev"
-                            class="absolute top-1/2 left-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
-                        >
-                            ←
-                        </button>
-                        <!-- Next -->
-                        <button
-                            @click="scrollNext"
-                            class="absolute top-1/2 right-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
-                        >
-                            →
-                        </button>
-                    </div>
-                </template>
-            </Modal>
-        </Teleport>
-
         <!-- <h1 -->
         <!--     class="mt-2 text-xl text-center mb-6 md:text-2xl lg:text-6xl font-bold text-green-600 sm:mt-3 sm:text-6xl dark:text-green-500" -->
         <!-- > -->
@@ -82,20 +38,24 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                 <!-- Cols 1 / 5 -->
                 <div class="col-span-12 lg:col-span-12" data-aos="fade-right">
                     <!-- Card -->
-                    <a
-                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
-                        href="#"
-                        full
+                    <button
+                        type="button"
+                        class="group relative block w-full text-left border-3 border-transparent rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="hs-columbarium"
+                        data-hs-overlay="#hs-columbarium"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
                         >
                             <img
-                                class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full object-cover"
+                                class="w-full h-full object-cover rounded-xl transition-transform duration-500 ease-in-out group-hover:scale-105 group-active:scale-95"
                                 src="/public/images/columbarium.png"
                                 alt="Masonry Cards Image"
                             />
                         </div>
+
                         <div class="absolute top-0 start-0 end-0 p-2 sm:p-4">
                             <div
                                 class="text-3xl text-left font-semibold bg-transparent text-white rounded-lg p-4 md:text-5xl lg:text-6xl"
@@ -104,8 +64,51 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                                 Type
                             </div>
                         </div>
-                    </a>
+                    </button>
                     <!-- End Card -->
+
+                    <Teleport to="body">
+                        <Modal id="hs-columbarium" size="xl" :no-padding="true">
+                            <template v-slot:main>
+                                <div class="relative">
+                                    <!-- Carousel -->
+                                    <div
+                                        class="overflow-hidden"
+                                        ref="emblaRef1"
+                                    >
+                                        <div class="flex">
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/columbarium.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/columbarium.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Prev -->
+                                    <button
+                                        @click="scrollPrev1"
+                                        class="absolute top-1/2 left-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        ←
+                                    </button>
+                                    <!-- Next -->
+                                    <button
+                                        @click="scrollNext1"
+                                        class="absolute top-1/2 right-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        →
+                                    </button>
+                                </div>
+                            </template>
+                        </Modal>
+                    </Teleport>
                 </div>
                 <!-- End Col -->
 
@@ -170,19 +173,24 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                 <!-- Cols 4 / 5 -->
                 <div class="sm:col-span-12 md:col-span-6" data-aos="fade-left">
                     <!-- Card -->
-                    <a
-                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
-                        href="#"
+                    <button
+                        type="button"
+                        class="group relative block w-full text-center border-3 border-transparent rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="hs-underground"
+                        data-hs-overlay="#hs-underground"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
                         >
                             <img
-                                class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full object-cover"
+                                class="w-full h-full object-cover rounded-xl transition-transform duration-500 ease-in-out group-hover:scale-105 group-active:scale-95"
                                 src="/public/images/underground.png"
                                 alt="Masonry Cards Image"
                             />
                         </div>
+
                         <div
                             class="absolute top-1/2 start-0 end-0 -translate-y-1/2 p-2 sm:p-4"
                         >
@@ -193,17 +201,63 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                                 Type
                             </div>
                         </div>
-                    </a>
+                    </button>
                     <!-- End Card -->
+
+                    <Teleport to="body">
+                        <Modal id="hs-underground" size="xl" :no-padding="true">
+                            <template v-slot:main>
+                                <div class="relative">
+                                    <!-- Carousel -->
+                                    <div
+                                        class="overflow-hidden"
+                                        ref="emblaRef2"
+                                    >
+                                        <div class="flex">
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/underground.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/underground.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Prev -->
+                                    <button
+                                        @click="scrollPrev2"
+                                        class="absolute top-1/2 left-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        ←
+                                    </button>
+                                    <!-- Next -->
+                                    <button
+                                        @click="scrollNext2"
+                                        class="absolute top-1/2 right-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        →
+                                    </button>
+                                </div>
+                            </template>
+                        </Modal>
+                    </Teleport>
                 </div>
                 <!-- End Col -->
 
                 <!-- Cols 5 / 5 -->
                 <div class="sm:col-span-12 md:col-span-6" data-aos="fade-up">
                     <!-- Card -->
-                    <a
-                        class="border-3 border-transparent group relative block rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
-                        href="#"
+                    <button
+                        class="border-3 border-transparent group relative block w-full rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="hs-apartment"
+                        data-hs-overlay="#hs-apartment"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
@@ -211,7 +265,7 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                             <img
                                 class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full object-cover"
                                 src="/public/images/apartment.png"
-                                alt="Masonry Cards Image"
+                                alt="Apartment Card Image"
                             />
                         </div>
                         <div class="absolute top-0 start-0 end-0 p-2 sm:p-4">
@@ -222,8 +276,51 @@ const scrollNext = () => emblaApi.value?.scrollNext();
                                 Type
                             </div>
                         </div>
-                    </a>
+                    </button>
                     <!-- End Card -->
+
+                    <Teleport to="body">
+                        <Modal id="hs-apartment" size="xl" :no-padding="true">
+                            <template v-slot:main>
+                                <div class="relative">
+                                    <!-- Carousel -->
+                                    <div
+                                        class="overflow-hidden"
+                                        ref="emblaRef3"
+                                    >
+                                        <div class="flex">
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/apartment.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                            <div class="flex-[0_0_100%]">
+                                                <img
+                                                    src="/public/images/apartment.png"
+                                                    class="w-full h-[90vh] object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Prev -->
+                                    <button
+                                        @click="scrollPrev3"
+                                        class="absolute top-1/2 left-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        ←
+                                    </button>
+                                    <!-- Next -->
+                                    <button
+                                        @click="scrollNext3"
+                                        class="absolute top-1/2 right-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                                    >
+                                        →
+                                    </button>
+                                </div>
+                            </template>
+                        </Modal>
+                    </Teleport>
                 </div>
                 <!-- End Col -->
             </div>
