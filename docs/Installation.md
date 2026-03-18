@@ -29,4 +29,8 @@ List of all the packages used and their installation
 
 ### Lodash
 
-<https://www.npmjs.com/package/lodash>
+- <https://www.npmjs.com/package/lodash>
+
+### Embla Carousel
+
+- <https://www.embla-carousel.com/docs/v8/examples/predefined>
