@@ -4,7 +4,7 @@ import Button from "../Form/Button.vue";
 
 <template>
     <!-- Hero -->
-    <div class="px-4 sm:px-6 lg:px-4">
+    <div id="home" class="px-4 sm:px-6 lg:px-4">
         <div
             class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/hero-background.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >

@@ -22,6 +22,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
     <!-- Masonry Cards -->
 
     <div
+        id="gallery"
         class="bg-gray-100 dark:bg-neutral-800 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto"
     >
         <!-- <h1 -->

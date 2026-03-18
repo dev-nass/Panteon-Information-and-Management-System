@@ -1,5 +1,6 @@
 <template>
     <div
+        id="about"
         class="container mx-auto flex flex-col items-center px-4 py-5 lg:px-4 lg:py-15"
     >
         <article
