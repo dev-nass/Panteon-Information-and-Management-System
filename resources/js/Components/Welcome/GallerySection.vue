@@ -1,8 +1,73 @@
+<script setup lang="ts">
+import Modal from "../Modal.vue";
+import emblaCarouselVue from "embla-carousel-vue";
+
+const [emblaRef, emblaApi] = emblaCarouselVue({
+    loop: true,
+    speed: 8, // lower = smoother drag
+    dragFree: false,
+});
+const scrollPrev = () => emblaApi.value?.scrollPrev();
+const scrollNext = () => emblaApi.value?.scrollNext();
+</script>
+
 <template>
     <!-- Masonry Cards -->
+
     <div
         class="bg-gray-100 dark:bg-neutral-800 max-w-8xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto"
     >
+        <button
+            type="button"
+            class="py-3 px-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
+            aria-haspopup="dialog"
+            aria-expanded="false"
+            aria-controls="hs-cookies"
+            data-hs-overlay="#hs-cookies"
+        >
+            Open modal
+        </button>
+
+        <Teleport to="body">
+            <Modal size="xl" :no-padding="true">
+                <template v-slot:main>
+                    <div class="relative">
+                        <!-- Carousel -->
+                        <div class="overflow-hidden" ref="emblaRef">
+                            <div class="flex">
+                                <div class="flex-[0_0_100%]">
+                                    <img
+                                        src="/public/images/columbarium.png"
+                                        class="w-full h-[90vh] object-cover"
+                                    />
+                                </div>
+                                <div class="flex-[0_0_100%]">
+                                    <img
+                                        src="/public/images/columbarium.png"
+                                        class="w-full h-[90vh] object-cover"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Prev -->
+                        <button
+                            @click="scrollPrev"
+                            class="absolute top-1/2 left-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                        >
+                            ←
+                        </button>
+                        <!-- Next -->
+                        <button
+                            @click="scrollNext"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 z-10 bg-black/60 text-white size-10 rounded-full"
+                        >
+                            →
+                        </button>
+                    </div>
+                </template>
+            </Modal>
+        </Teleport>
+
         <!-- <h1 -->
         <!--     class="mt-2 text-xl text-center mb-6 md:text-2xl lg:text-6xl font-bold text-green-600 sm:mt-3 sm:text-6xl dark:text-green-500" -->
         <!-- > -->
@@ -59,7 +124,7 @@
                                 class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
                             >
                                 <div
-                                    class="text-white bg-gradient-to-b from-green-800/95 via-green-700/90 to-green-500/85 dark:from-green-900/95 dark:via-green-800/90 dark:to-green-600/85 text-base md:text-xl py-6 px-4 group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full"
+                                    class="text-white bg-gradient-to-br from-green-800/95 via-green-700/90 to-green-500/85 dark:from-green-900/95 dark:via-green-800/90 dark:to-green-600/85 text-base md:text-xl py-6 px-4 rounded-xl w-full h-full"
                                 >
                                     Lorem ipsum dolor sit amet, consectetur
                                     adipiscing elit. Morbi pretium rutrum erat
@@ -85,7 +150,7 @@
                                 class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
                             >
                                 <div
-                                    class="text-white bg-gradient-to-b from-yellow-600/95 via-yellow-500/90 to-yellow-400/85 dark:from-yellow-700/95 dark:via-yellow-600/90 dark:to-yellow-500/85 text-base md:text-xl py-6 px-4 group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full"
+                                    class="text-white bg-gradient-to-br from-yellow-600/95 via-yellow-500/90 to-yellow-400/85 dark:from-yellow-700/95 dark:via-yellow-600/90 dark:to-yellow-500/85 text-base md:text-xl py-6 px-4 rounded-xl w-full h-full"
                                 >
                                     Nam elementum orci ut pulvinar lobortis.
                                     Proin consequat imperdiet nisl, id facilisis
