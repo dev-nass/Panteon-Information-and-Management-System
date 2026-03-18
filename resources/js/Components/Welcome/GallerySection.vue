@@ -128,11 +128,12 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                                 <div
                                     class="text-white bg-gradient-to-br from-green-800/95 via-green-700/90 to-green-500/85 dark:from-green-900/95 dark:via-green-800/90 dark:to-green-600/85 text-base md:text-xl py-6 px-4 rounded-xl w-full h-full"
                                 >
-                                    Lorem ipsum dolor sit amet, consectetur
-                                    adipiscing elit. Morbi pretium rutrum erat
-                                    ut molestie. Cras lectus odio, tempor a
-                                    rutrum non, posuere eu enim. Aliquam ac
-                                    nulla ultrices, scelerisque urna.
+                                    The cemetery office and surrounding
+                                    facilities are designed to provide both
+                                    comfort and functionality. Modern structures
+                                    blend with serene landscapes, creating
+                                    spaces that are peaceful, accessible, and
+                                    welcoming for all visitors.
                                 </div>
                             </div>
                         </article>
@@ -153,11 +154,11 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                                 <div
                                     class="text-white bg-gradient-to-br from-yellow-600/95 via-yellow-500/90 to-yellow-400/85 dark:from-yellow-700/95 dark:via-yellow-600/90 dark:to-yellow-500/85 text-base md:text-xl py-6 px-4 rounded-xl w-full h-full"
                                 >
-                                    Nam elementum orci ut pulvinar lobortis.
-                                    Proin consequat imperdiet nisl, id facilisis
-                                    ligula faucibus sit amet. Aliquam finibus
-                                    porttitor condimentum. Aenean gravida ut mi
-                                    ut ultricies.
+                                    Various burial options are available to meet
+                                    the needs of families. These include
+                                    underground plots, columbarium niches, and
+                                    apartment-style resting spaces. Each type is
+                                    maintained with care.
                                 </div>
                             </div>
                         </article>
