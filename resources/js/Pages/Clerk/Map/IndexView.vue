@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
 <template>
     <!--- NOTE: Uncomment this later -->
     <!-- <Teleport to="body"> -->
-    <!--     <LotModal :feature="modalFeature" /> -->
+    <LotModal :feature="modalFeature" />
     <!--     <Modal> -->
     <!--         <template v-slot:header> -->
     <!--             <svg -->

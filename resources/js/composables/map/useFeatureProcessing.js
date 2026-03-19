@@ -135,7 +135,10 @@ export function useFeatureProcessing() {
         attachLotPopup(feature, layer);
     };
 
-    // lot styling
+    /**
+     * @param feature the actual renderd polygon
+     * Description: responsible for lot styling
+     */
     const getLotStyle = (feature) => {
         const colors = {
             available: "#90EE90",
@@ -157,7 +160,7 @@ export function useFeatureProcessing() {
      * Description: attach modal as popUp
      */
     const attachLotPopup = (feature, layer) => {
-        console.log(feature);
+        // console.log(feature);
 
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);

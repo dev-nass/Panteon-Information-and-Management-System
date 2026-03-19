@@ -36,7 +36,7 @@ export function useSearch() {
 
             const data = await response.json();
             suggestions.value = data.results;
-            console.log(suggestions.value);
+            // console.log(suggestions.value);
         } catch (err) {
             console.error(err);
             suggestions.value = [];
