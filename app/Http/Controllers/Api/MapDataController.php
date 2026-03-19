@@ -74,7 +74,7 @@ class MapDataController extends Controller
              'total_capacity',
              DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
          )
-         ->limit(2000)
+         ->limit(100)
          ->get();
 
         return LotResource::collection($lots);

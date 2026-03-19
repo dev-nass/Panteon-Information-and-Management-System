@@ -83,7 +83,9 @@ const sizeClasses = {
                 <div
                     :class="[
                         noPadding ? 'p-0' : sizeClasses[size].padding,
-                        size === 'screen' ? 'h-full' : '',
+                        size === 'screen'
+                            ? 'h-full'
+                            : 'flex flex-col items-center',
                         'gap-y-4 text-center',
                     ]"
                 >

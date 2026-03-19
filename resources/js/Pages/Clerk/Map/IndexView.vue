@@ -17,7 +17,12 @@ import LotModal from "@/Components/Map/LotModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
+import { useSearch } from "@/composables/map/useSearch";
+
 const { initializeMap, cleanupMap } = useMap();
+const { fetchSuggestions } = useSearch();
+const { search, suggestions } = useMapSearchStates();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
@@ -80,8 +85,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+    <!--- NOTE: Uncomment this later -->
     <Teleport to="body">
-        <!-- FULL PRELINE MODAL SHELL -->
+        <!-- <!-- FULL PRELINE MODAL SHELL -->
         <LotModal :feature="modalFeature" />
         <Modal>
             <template v-slot:header>
@@ -138,7 +144,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="absolute top-2 inset-x-0 flex justify-between z-888 px-4">
-            <Input placeholder="Full name" type="search" />
+            <Input v-model="search" placeholder="Full name" type="search" />
 
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this into offcanvas or modal button --->
