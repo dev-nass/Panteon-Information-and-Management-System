@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\MapDataController;
+use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,6 +16,10 @@ Route::get('/sample', function () {
 Route::controller(MapDataController::class)->group(function () {
     Route::get('/data/burials', 'burialRecords')->name('api.map.burials');
     Route::get('/data/partial-burials', 'partialBurialRecords')->name('api.map.partial.burials');
+});
+
+Route::controller(MapSearchDataController::class)->group(function () {
+    Route::get('/data-search/burials', 'search')->name('api.map.search');
 });
 
 Route::prefix('clerk')

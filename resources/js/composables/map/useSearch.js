@@ -19,7 +19,7 @@ export function useSearch() {
 
         try {
             const response = await fetch(
-                `${route("lots.search")}?search=${encodeURIComponent(
+                `${route("api.map.search")}?search=${encodeURIComponent(
                     search.value,
                 )}`,
                 {
