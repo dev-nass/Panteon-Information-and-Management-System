@@ -144,6 +144,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="absolute top-2 inset-x-0 flex justify-between z-888 px-4">
+            <!--- TODO: Fix the show search result still missing its implementation --->
             <Search
                 v-model="search"
                 :suggestions="suggestions"
