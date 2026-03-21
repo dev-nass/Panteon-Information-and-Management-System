@@ -50,7 +50,7 @@ export function useSearch() {
 
         console.log("Picked Result: ", burial);
 
-        const lot = burial.lot;
+        const lot = burial.lot.geometry;
 
         if (!lot || !lot.geometry) {
             console.error("No lot data available for this record");

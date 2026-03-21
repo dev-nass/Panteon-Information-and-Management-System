@@ -5,9 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
-use App\Models\DeceasedRecord;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use DB;
 
 class MapSearchDataController extends Controller
 {
@@ -16,9 +14,18 @@ class MapSearchDataController extends Controller
         $search = request('search');
 
         $burial = BurialRecord::with([
-            'lot:id,lot_number,lot_type,status,section_id',
-            'lot.section:id,section_name',
-            'deceasedRecord:id,first_name,last_name',
+            'lot' => function ($q) {
+                $q->select(
+                    'id',
+                    'lot_number',
+                    'lot_type',
+                    'status',
+                    'section_id',
+                    // This is how we should always retriee the coordinates from the DB
+                    DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+                );
+            },
+            'deceasedRecord',
         ])
             ->when($search, function ($query) use ($search) {
 
