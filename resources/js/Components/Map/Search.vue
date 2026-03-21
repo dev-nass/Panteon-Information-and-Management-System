@@ -88,7 +88,7 @@ const onBlur = () => {
                     @mousedown.prevent="emit('select-suggestion', suggestion)"
                     class="px-3 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer transition"
                 >
-                    {{ suggestion.first_name + " " + suggestion.last_name }}
+                    {{ suggestion.deceased.full_name }}
                 </p>
             </template>
 

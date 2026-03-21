@@ -35,8 +35,8 @@ export function useSearch() {
             }
 
             const data = await response.json();
-            suggestions.value = data.results;
-            // console.log(suggestions.value);
+            suggestions.value = data.data;
+            console.log(suggestions.value);
         } catch (err) {
             console.error(err);
             suggestions.value = [];
@@ -45,14 +45,14 @@ export function useSearch() {
         }
     }, 300);
 
-    const showSearchResult = (feature) => {
+    const showSearchResult = (burial) => {
         searchResultLayer.value.clearLayers();
 
-        console.log("Picked Result: ", feature);
+        console.log("Picked Result: ", burial);
 
-        const lot = feature.burial_records?.lot;
+        const lot = burial.lot;
 
-        if (!lot || !lot.coordinates) {
+        if (!lot || !lot.geometry) {
             console.error("No lot data available for this record");
             return;
         }
