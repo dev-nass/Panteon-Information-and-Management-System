@@ -89,6 +89,10 @@ export function useMap() {
         isOnSearchMode.value = false;
     };
 
+    /**
+     * Description: Update the visibility of the map based on lotVisibility (true/false)
+     * and zoom level
+     */
     const updateVisibility = () => {
         if (!map.value) return;
 
