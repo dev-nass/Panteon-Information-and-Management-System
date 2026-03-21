@@ -2,6 +2,7 @@ import NProgress from "nprogress";
 import { useDebounceFn } from "@vueuse/core";
 import { useFeatureProcessing } from "./useFeatureProcessing";
 import { useMapStates } from "@/stores/useMapStates";
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
 
 const MIN_RENDER_ZOOM = 20;
 let lastBounds = null;
@@ -12,9 +13,10 @@ export function useDbGeoJson() {
     const { processFeatures, separateLotsByType, clearLayers } =
         useFeatureProcessing();
     const { map } = useMapStates();
+    const { isOnSearchMode } = useMapSearchStates();
 
     const loadVisibleLots = useDebounceFn(async () => {
-        if (!map.value) return;
+        if (!map.value || isOnSearchMode.value) return;
 
         const currentZoom = map.value.getZoom();
 
@@ -53,7 +55,7 @@ export function useDbGeoJson() {
                     minLng: bounds.getWest(),
                     maxLng: bounds.getEast(),
                     zoom: currentZoom,
-                }),
+                })
             );
 
             const json = await response.json();

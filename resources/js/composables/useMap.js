@@ -1,5 +1,6 @@
 import L from "leaflet";
 import { useMapStates } from "@/stores/useMapStates";
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useDbGeoJson } from "./map/useDbGeoJson";
 
 // Panteon Long and Lat
@@ -13,6 +14,7 @@ let moveTimeout = null;
 export function useMap() {
     const { map, googleLayer, lotLayers, lotVisibility, uniqueTypes } =
         useMapStates();
+    const { isOnSearchMode } = useMapSearchStates();
     const { loadVisibleLots } = useDbGeoJson();
 
     const initializeMap = async (mapContainerElem) => {
@@ -49,7 +51,7 @@ export function useMap() {
                 {
                     maxZoom: 30,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
-                },
+                }
             );
 
             googleLayer.value.addTo(map.value);
@@ -80,8 +82,20 @@ export function useMap() {
         });
     };
 
+    const clearSearch = () => {
+        search.value = "";
+        suggestions.value = [];
+        searchResultLayer.value.clearLayers();
+        isOnSearchMode.value = false;
+    };
+
     const updateVisibility = () => {
         if (!map.value) return;
+
+        // Hide all layers when in search mode
+        if (isOnSearchMode.value) {
+            cleanupLayers();
+        }
 
         const zoom = map.value.getZoom();
 
