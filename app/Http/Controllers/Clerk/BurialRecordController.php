@@ -30,6 +30,7 @@ class BurialRecordController extends Controller
 
         $sortDirection = request('sort_direction', 'desc');
 
+        // FIXME: Asdasd
         // TODO: understand this again
         $query = BurialRecord::query()
             ->with(['deceasedRecord', 'lot', 'user'])
@@ -38,14 +39,14 @@ class BurialRecordController extends Controller
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->where('deceased_records.first_name', 'like', "%{$search}%")
-                       ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
-                       ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
+                        ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
+                        ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
                 });
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
-                    ? "deceased_records." . str_replace('deceased_', '', $sortField)
-                    : "burial_records.$sortField",
+                ? "deceased_records." . str_replace('deceased_', '', $sortField)
+                : "burial_records.$sortField",
                 $sortDirection
             );
 

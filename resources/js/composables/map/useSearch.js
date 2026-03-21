@@ -20,14 +20,14 @@ export function useSearch() {
         try {
             const response = await fetch(
                 `${route("api.map.search")}?search=${encodeURIComponent(
-                    search.value,
+                    search.value
                 )}`,
                 {
                     headers: {
                         Accept: "application/json",
                     },
                     credentials: "same-origin",
-                },
+                }
             );
 
             if (!response.ok) {
@@ -45,7 +45,21 @@ export function useSearch() {
         }
     }, 300);
 
+    const showSearchResult = (feature) => {
+        searchResultLayer.value.clearLayers();
+
+        console.log("Picked Result: ", feature);
+
+        const lot = feature.burial_records?.lot;
+
+        if (!lot || !lot.coordinates) {
+            console.error("No lot data available for this record");
+            return;
+        }
+    };
+
     return {
         fetchSuggestions,
+        showSearchResult,
     };
 }

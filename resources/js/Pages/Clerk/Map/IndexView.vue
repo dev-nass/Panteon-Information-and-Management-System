@@ -22,7 +22,7 @@ import { useSearch } from "@/composables/map/useSearch";
 import Search from "@/Components/Map/Search.vue";
 
 const { initializeMap, cleanupMap } = useMap();
-const { fetchSuggestions } = useSearch();
+const { fetchSuggestions, showSearchResult } = useSearch();
 const { search, suggestions } = useMapSearchStates();
 
 const mapContainer = ref(null);
@@ -144,7 +144,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="absolute top-2 inset-x-0 flex justify-between z-888 px-4">
-            <!--- TODO: Fix the show search result still missing its implementation --->
+            <!-- TODO: Fix the show search result still missing its implementation -->
             <Search
                 v-model="search"
                 :suggestions="suggestions"

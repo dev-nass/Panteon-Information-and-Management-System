@@ -18,7 +18,10 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(["update:modelValue", "select-suggestion"]);
+const emit = defineEmits([
+    "update:modelValue", // for v-model
+    "select-suggestion", // for custom event
+]);
 
 const onInput = (e) => {
     emit("update:modelValue", e.target.value);
