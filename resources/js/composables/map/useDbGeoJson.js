@@ -12,12 +12,13 @@ let lastFeatureIds = new Set();
 export function useDbGeoJson() {
     const { processFeatures, separateLotsByType, clearLayers } =
         useFeatureProcessing();
-    const { map } = useMapStates();
+    const { map, toggleMapFeaturesState } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
 
     const loadVisibleLots = useDebounceFn(async () => {
         // prevents if the map doesn't exist or is on search mode
-        if (!map.value || isOnSearchMode.value) return;
+        if (!map.value || isOnSearchMode.value || !toggleMapFeaturesState.value)
+            return;
 
         const currentZoom = map.value.getZoom();
 

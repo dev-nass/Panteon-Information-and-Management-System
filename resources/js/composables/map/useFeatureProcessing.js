@@ -3,7 +3,13 @@ import { geoJson } from "leaflet";
 import { join } from "lodash";
 
 export function useFeatureProcessing() {
-    const { map, lotLayers, lotVisibility, uniqueTypes } = useMapStates();
+    const {
+        map,
+        lotLayers,
+        lotVisibility,
+        uniqueTypes,
+        toggleMapFeaturesState,
+    } = useMapStates();
 
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
@@ -84,7 +90,7 @@ export function useFeatureProcessing() {
         types.forEach((type) => {
             // holds bunch of same type lots
             const typeFeatures = features.filter(
-                (f) => f.properties.lot_type === type,
+                (f) => f.properties.lot_type === type
             );
 
             // apply style to those same type lots
@@ -93,7 +99,7 @@ export function useFeatureProcessing() {
                 {
                     style: getLotStyle,
                     onEachFeature: onEachFeatureCustom,
-                },
+                }
             );
 
             // since we set lotLayers hash map values to L.layerGroup() above, we are just accessing
@@ -114,6 +120,11 @@ export function useFeatureProcessing() {
 
         // ✅ Update uniqueTypes AFTER layers are built
         uniqueTypes.value = types;
+
+        // Updates the visibility
+        toggleMapFeaturesState.value = Array.from(
+            lotVisibility.value.values()
+        ).some((v) => v);
     };
 
     const clearLayers = () => {

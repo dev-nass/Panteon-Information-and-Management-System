@@ -16,22 +16,26 @@ import { Link } from "@inertiajs/vue3";
 import LotModal from "@/Components/Map/LotModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
-
-import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useSearch } from "@/composables/map/useSearch";
 import Search from "@/Components/Map/Search.vue";
 
-const { initializeMap, cleanupMap } = useMap();
-const { fetchSuggestions, showSearchResult, clearSearch } = useSearch();
+import { useMapStates } from "@/stores/useMapStates";
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
+
+import { useSearch } from "@/composables/map/useSearch";
+
+// states
+
+const { toggleMapFeaturesState } = useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
+
+// compsable
+const { initializeMap, cleanupMap, toggleMapFeatures } = useMap();
+const { fetchSuggestions, showSearchResult, clearSearch } = useSearch();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
-const toggleMap = ref(true);
-// testing purposes for the SVG of eye to turn on and off polygon (delete later)
-const toggleMapPolygon = () => {
-    toggleMap.value = !toggleMap.value;
-};
+
+// local state for changing the EYE SVG
 
 // NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
 // const toggleMapEvent = () => {
@@ -49,6 +53,7 @@ const toggleMapPolygon = () => {
 //     }
 // };
 
+console.log(toggleMapFeaturesState);
 const modalFeature = ref(null);
 
 // TODO: remove this
@@ -211,9 +216,9 @@ onBeforeUnmount(() => {
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
                 <!--- NOTE: Toggle polygon button --->
-                <Button @click="toggleMapPolygon">
+                <Button @click="toggleMapFeatures()">
                     <svg
-                        v-if="toggleMap"
+                        v-if="toggleMapFeaturesState"
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
                         height="24"
@@ -223,7 +228,7 @@ onBeforeUnmount(() => {
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        class="lucide lucide-eye-icon lucide-eye text-green-500 dark:text-green-600"
+                        class="lucide lucide-eye-icon lucide-eye text-green-500 dark:text-green-400"
                     >
                         <path
                             d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"

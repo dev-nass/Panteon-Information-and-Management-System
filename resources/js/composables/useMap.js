@@ -12,8 +12,14 @@ const RENDER_DEBOUNCE_MS = 2000;
 let moveTimeout = null;
 
 export function useMap() {
-    const { map, googleLayer, lotLayers, lotVisibility, uniqueTypes } =
-        useMapStates();
+    const {
+        map,
+        googleLayer,
+        lotLayers,
+        lotVisibility,
+        uniqueTypes,
+        toggleMapFeaturesState,
+    } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
     const { loadVisibleLots } = useDbGeoJson();
 
@@ -82,6 +88,34 @@ export function useMap() {
         });
     };
 
+    const toggleMapFeatures = (type = "all") => {
+        console.log("Toggling feature type of: ", type.value);
+        if (type === "all") {
+            // Toggle all types
+            const allVisible = Array.from(lotVisibility.value.values()).every(
+                (v) => v
+            );
+            const newState = !allVisible;
+
+            uniqueTypes.value.forEach((t) => {
+                lotVisibility.value.set(t, newState);
+            });
+        } else {
+            // Toggle specific type
+            if (!lotVisibility.value.has(type)) return;
+
+            const isVisible = lotVisibility.value.get(type);
+            lotVisibility.value.set(type, !isVisible);
+        }
+
+        updateVisibility();
+
+        // Update the state
+        toggleMapFeaturesState.value = Array.from(
+            lotVisibility.value.values()
+        ).some((v) => v);
+    };
+
     /**
      * Description: Update the visibility of the map based on lotVisibility (true/false)
      * and zoom level
@@ -125,5 +159,6 @@ export function useMap() {
     return {
         initializeMap,
         cleanupMap,
+        toggleMapFeatures,
     };
 }
