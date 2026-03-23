@@ -53,11 +53,10 @@ const mapContainer = ref(null);
 //     }
 // };
 
-console.log(toggleMapFeaturesState);
 const modalFeature = ref(null);
 
 // TODO: remove this
-console.log(modalFeature.value);
+// console.log(modalFeature.value);
 
 // Definition of global function using 'window' API
 
@@ -91,54 +90,55 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!--- NOTE: Uncomment this later -->
-    <!-- <Teleport to="body"> -->
-    <LotModal :feature="modalFeature" />
-    <!--     <Modal> -->
-    <!--         <template v-slot:header> -->
-    <!--             <svg -->
-    <!--                 xmlns="http://www.w3.org/2000/svg" -->
-    <!--                 width="24" -->
-    <!--                 height="24" -->
-    <!--                 viewBox="0 0 24 24" -->
-    <!--                 fill="none" -->
-    <!--                 stroke="currentColor" -->
-    <!--                 stroke-width="2" -->
-    <!--                 stroke-linecap="round" -->
-    <!--                 stroke-linejoin="round" -->
-    <!--                 class="lucide lucide-info-icon lucide-info" -->
-    <!--             > -->
-    <!--                 <circle cx="12" cy="12" r="10" /> -->
-    <!--                 <path d="M12 16v-4" /> -->
-    <!--                 <path d="M12 8h.01" /> -->
-    <!--             </svg> -->
-    <!--         </template> -->
-    <!---->
-    <!--         <template v-slot:main> -->
-    <!--             <h3 -->
-    <!--                 id="hs-cookies-label" -->
-    <!--                 class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
-    <!--             > -->
-    <!--                 Notice -->
-    <!--             </h3> -->
-    <!---->
-    <!--             <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
-    <!--                 Slowly zoom in the map to see the markings and polygon -->
-    <!--             </p> -->
-    <!--         </template> -->
-    <!--         <template v-slot:footer> -->
-    <!--             <button -->
-    <!--                 type="button" -->
-    <!--                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
-    <!--                 data-hs-overlay="#hs-cookies" -->
-    <!--             > -->
-    <!--                 Got it -->
-    <!--             </button> -->
-    <!--         </template> -->
-    <!--     </Modal> -->
-    <!-- </Teleport> -->
-
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
+        <!--- NOTE: Uncomment this later -->
+        <!-- <Teleport to="body"> -->
+        <LotModal :feature="modalFeature" />
+        <!--     <Modal> -->
+        <!--         <template v-slot:header> -->
+        <!--             <svg -->
+        <!--                 xmlns="http://www.w3.org/2000/svg" -->
+        <!--                 width="24" -->
+        <!--                 height="24" -->
+        <!--                 viewBox="0 0 24 24" -->
+        <!--                 fill="none" -->
+        <!--                 stroke="currentColor" -->
+        <!--                 stroke-width="2" -->
+        <!--                 stroke-linecap="round" -->
+        <!--                 stroke-linejoin="round" -->
+        <!--                 class="lucide lucide-info-icon lucide-info" -->
+        <!--             > -->
+        <!--                 <circle cx="12" cy="12" r="10" /> -->
+        <!--                 <path d="M12 16v-4" /> -->
+        <!--                 <path d="M12 8h.01" /> -->
+        <!--             </svg> -->
+        <!--         </template> -->
+        <!---->
+        <!--         <template v-slot:main> -->
+        <!--             <h3 -->
+        <!--                 id="hs-cookies-label" -->
+        <!--                 class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
+        <!--             > -->
+        <!--                 Notice -->
+        <!--             </h3> -->
+        <!---->
+        <!--             <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
+        <!--                 Slowly zoom in the map to see the markings and polygon -->
+        <!--             </p> -->
+        <!--         </template> -->
+        <!--         <template v-slot:footer> -->
+        <!--             <button -->
+        <!--                 type="button" -->
+        <!--                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
+        <!--                 data-hs-overlay="#hs-cookies" -->
+        <!--             > -->
+        <!--                 Got it -->
+        <!--             </button> -->
+        <!--         </template> -->
+        <!--     </Modal> -->
+        <!-- </Teleport> -->
+
+        <!-- Main Content Start -->
         <div class="h-full w-full">
             <!-- Map container -->
             <div
@@ -268,7 +268,10 @@ onBeforeUnmount(() => {
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
                 <!--- NOTE: Toggle polygon button --->
-                <Button @click="toggleMapFeatures()">
+                <Button
+                    v-if="uniqueTypes.length > 0"
+                    @click="toggleMapFeatures()"
+                >
                     <svg
                         v-if="toggleMapFeaturesState"
                         xmlns="http://www.w3.org/2000/svg"

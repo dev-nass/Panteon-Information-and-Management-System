@@ -89,7 +89,7 @@ export function useMap() {
     };
 
     const toggleMapFeatures = (type = "all") => {
-        console.log("Toggling feature type of: ", type.value);
+        console.log("Toggling feature type of: ", type);
         if (type === "all") {
             // Toggle all types
             const allVisible = Array.from(lotVisibility.value.values()).every(
