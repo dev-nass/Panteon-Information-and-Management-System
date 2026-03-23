@@ -17,6 +17,7 @@ import LotModal from "@/Components/Map/LotModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
+import Switch from "@/Components/Switch.vue";
 
 import { useMapStates } from "@/stores/useMapStates";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
@@ -162,8 +163,11 @@ onBeforeUnmount(() => {
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this into offcanvas or modal button --->
                 <!--- NOTE: Filter button  --->
-                <div
-                    class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
+                <Button
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="hs-filter"
+                    data-hs-overlay="#hs-filter"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -183,10 +187,47 @@ onBeforeUnmount(() => {
                         <path d="M16 6h6" />
                         <path d="M19 3v6" />
                     </svg>
-                </div>
+                </Button>
+
+                <Teleport to="body">
+                    <Modal id="hs-filter">
+                        <template v-slot:header>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"
+                            >
+                                <path d="M10 5H3" />
+                                <path d="M12 19H3" />
+                                <path d="M14 3v4" />
+                                <path d="M16 17v4" />
+                                <path d="M21 12h-9" />
+                                <path d="M21 19h-5" />
+                                <path d="M21 5h-7" />
+                                <path d="M8 10v4" />
+                                <path d="M8 12H3" />
+                            </svg>
+                        </template>
+                        <template v-slot:main>
+                            <div class="relative">
+                                <Switch
+                                    v-model="isEnabled"
+                                    label="Medium"
+                                    size="sm"
+                                />
+                            </div>
+                        </template>
+                    </Modal>
+                </Teleport>
 
                 <!--- NOTE: Toggle table view button --->
-
                 <Link
                     :href="route('clerk.burial_records.index')"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
@@ -209,6 +250,7 @@ onBeforeUnmount(() => {
                         <path d="M4 17h16" />
                     </svg>
                 </Link>
+                <!-- END: Toggle table view -->
             </div>
         </div>
 
