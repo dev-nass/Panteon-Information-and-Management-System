@@ -76,11 +76,15 @@ export function useFeatureProcessing() {
             ...new Set(features.map((feature) => feature.properties.lot_type)),
         ];
 
+        // separate the types into their own L.layerGroup() and store it in the lotLayers hashMap
         types.forEach((type) => {
             // Reuse existing layerGroup or create new one
             if (!lotLayers.value.has(type)) {
                 lotLayers.value.set(type, L.layerGroup());
-                lotVisibility.value.set(type, true);
+                // only set the visibility to true again if it doesn't exist yet
+                if (!lotVisibility.value.has(type)) {
+                    lotVisibility.value.set(type, true);
+                }
             } else {
                 // Clear old features but keep the layerGroup reference
                 lotLayers.value.get(type).clearLayers();

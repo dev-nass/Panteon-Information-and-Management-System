@@ -25,8 +25,7 @@ import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useSearch } from "@/composables/map/useSearch";
 
 // states
-
-const { toggleMapFeaturesState } = useMapStates();
+const { lotVisibility, uniqueTypes, toggleMapFeaturesState } = useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 // compsable
@@ -216,12 +215,23 @@ onBeforeUnmount(() => {
                             </svg>
                         </template>
                         <template v-slot:main>
-                            <div class="relative">
+                            <div
+                                class="flex flex-col gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3"
+                            >
                                 <Switch
-                                    v-model="isEnabled"
-                                    label="Medium"
+                                    v-if="uniqueTypes.length > 0"
+                                    v-for="type in uniqueTypes"
+                                    :key="type"
+                                    :model-value="lotVisibility.get(type)"
+                                    @update:model-value="
+                                        toggleMapFeatures(type)
+                                    "
+                                    :label="type"
                                     size="sm"
                                 />
+                                <p v-else class="italic w-50">
+                                    Zoom-in first to load the map and filters
+                                </p>
                             </div>
                         </template>
                     </Modal>
