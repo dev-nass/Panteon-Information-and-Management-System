@@ -82,13 +82,6 @@ export function useMap() {
         });
     };
 
-    const clearSearch = () => {
-        search.value = "";
-        suggestions.value = [];
-        searchResultLayer.value.clearLayers();
-        isOnSearchMode.value = false;
-    };
-
     /**
      * Description: Update the visibility of the map based on lotVisibility (true/false)
      * and zoom level

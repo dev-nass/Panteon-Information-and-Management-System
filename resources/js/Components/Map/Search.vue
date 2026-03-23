@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from "vue";
+import Button from "@/Components/Form/Button.vue";
 
 const showSuggestions = ref(false);
 
@@ -16,11 +17,16 @@ const props = defineProps({
         type: String,
         default: "Search...",
     },
+    isOnSearch: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits([
-    "update:modelValue", // for v-model
-    "select-suggestion", // for custom event
+    "update:modelValue",
+    "select-suggestion",
+    "clear-search",
 ]);
 
 const onInput = (e) => {
@@ -32,16 +38,20 @@ const onFocus = () => {
 };
 
 const onBlur = () => {
-    // delay so click still works
     setTimeout(() => {
         showSuggestions.value = false;
     }, 100);
+};
+
+const clearSearch = () => {
+    emit("clear-search");
+    emit("update:modelValue", "");
 };
 </script>
 
 <template>
     <div class="relative w-full max-w-md">
-        <!-- Input Container (MATCHED DESIGN) -->
+        <!-- Input Container -->
         <div
             class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
         >
@@ -73,6 +83,30 @@ const onBlur = () => {
                 @blur="onBlur"
                 class="flex-1 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             />
+
+            <!-- 🔥 Search Mode Button -->
+            <Button
+                v-if="isOnSearch && modelValue"
+                size="sm"
+                highlighted
+                @mousedown.prevent="clearSearch"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-x-icon lucide-x"
+                >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                </svg>
+            </Button>
         </div>
 
         <!-- Suggestions Dropdown -->

@@ -16,6 +16,7 @@ export function useDbGeoJson() {
     const { isOnSearchMode } = useMapSearchStates();
 
     const loadVisibleLots = useDebounceFn(async () => {
+        // prevents if the map doesn't exist or is on search mode
         if (!map.value || isOnSearchMode.value) return;
 
         const currentZoom = map.value.getZoom();

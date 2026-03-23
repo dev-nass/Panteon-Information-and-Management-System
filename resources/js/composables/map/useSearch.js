@@ -15,6 +15,7 @@ export function useSearch() {
             return;
         }
 
+        isOnSearchMode.value = true;
         loading.value = true;
 
         try {
@@ -47,8 +48,6 @@ export function useSearch() {
 
     const showSearchResult = (burialData) => {
         searchResultLayer.value.clearLayers();
-        isOnSearchMode.value = true;
-        console.log(isOnSearchMode.value);
 
         console.log("Picked Result: ", burialData);
 
@@ -98,8 +97,18 @@ export function useSearch() {
         });
     };
 
+    /**
+     * Description: Clears the current search; Used within the view
+     */
+    const clearSearch = () => {
+        suggestions.value = [];
+        searchResultLayer.value.clearLayers();
+        isOnSearchMode.value = false;
+    };
+
     return {
         fetchSuggestions,
         showSearchResult,
+        clearSearch,
     };
 }

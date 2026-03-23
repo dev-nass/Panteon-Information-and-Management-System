@@ -22,8 +22,8 @@ import { useSearch } from "@/composables/map/useSearch";
 import Search from "@/Components/Map/Search.vue";
 
 const { initializeMap, cleanupMap } = useMap();
-const { fetchSuggestions, showSearchResult } = useSearch();
-const { search, suggestions } = useMapSearchStates();
+const { fetchSuggestions, showSearchResult, clearSearch } = useSearch();
+const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
@@ -148,8 +148,10 @@ onBeforeUnmount(() => {
             <Search
                 v-model="search"
                 :suggestions="suggestions"
+                :isOnSearch="isOnSearchMode"
                 @input="fetchSuggestions"
                 @select-suggestion="showSearchResult"
+                @clear-search="clearSearch"
             />
 
             <div class="flex gap-x-2">
