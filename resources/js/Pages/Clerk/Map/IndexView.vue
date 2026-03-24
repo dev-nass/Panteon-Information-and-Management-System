@@ -66,7 +66,7 @@ const modalFeature = ref(null);
  */
 window.openLotModal = function (feature) {
     modalFeature.value = feature;
-    console.log(modalFeature.value);
+    console.log("Modal feature", modalFeature.value);
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
-        <LotModal :feature="modalFeature" />
+        <LotModal :feature="modalFeature" @view-path="showSearchResult" />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->

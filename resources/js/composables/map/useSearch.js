@@ -60,9 +60,30 @@ export function useSearch() {
 
         // Extract coordinates from Polygon GeoJSON
         // LotResource returns: lot.geometry.coordinates = [[lng, lat], [lng, lat], ...]
-        const polygonCoords = lot.geometry.coordinates[0][0];
+        const polygonCoords = normalizeCoordinates(lot.geometry.coordinates);
         console.log("Polygon coords", polygonCoords);
         markPolygon(lotData, polygonCoords);
+    };
+
+    const normalizeCoordinates = (coords) => {
+        if (!coords || !Array.isArray(coords)) return [];
+
+        // Flatten until we get array of [lng, lat] pairs
+        let result = coords;
+        while (Array.isArray(result[0]) && !isCoordinatePair(result[0])) {
+            result = result[0];
+        }
+
+        return result;
+    };
+
+    const isCoordinatePair = (item) => {
+        return (
+            Array.isArray(item) &&
+            item.length >= 2 &&
+            typeof item[0] === "number" &&
+            typeof item[1] === "number"
+        );
     };
 
     /**

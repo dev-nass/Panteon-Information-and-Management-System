@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class MapSearchDataController extends Controller
 {
+
+    /**
+     * TODO: Create a two function for search, one for user side and the this existing is for clerk
+     * TODO: Remember to also fetch the pathways and junctions later on
+     */
     public function search()
     {
         $search = request('search');

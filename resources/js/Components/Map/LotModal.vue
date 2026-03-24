@@ -13,13 +13,15 @@ const selectedBurial = ref(null);
 const ITEMS_PER_PAGE = 25;
 const currentPage = ref(1);
 
+const emit = defineEmits(["viewPath"]);
+
 // Reset state whenever feature changes (new lot clicked)
 watch(
     () => props.feature,
     () => {
         searchTerm.value = "";
         selectedBurial.value = null;
-    },
+    }
 );
 
 const filteredBurials = computed(() => {
@@ -42,7 +44,7 @@ watch([searchTerm, () => props.feature], () => {
 });
 
 const totalPages = computed(() =>
-    Math.ceil(filteredBurials.value.length / ITEMS_PER_PAGE),
+    Math.ceil(filteredBurials.value.length / ITEMS_PER_PAGE)
 );
 
 const paginatedBurials = computed(() => {
@@ -277,17 +279,33 @@ const paginatedBurials = computed(() => {
                                     </div>
                                 </div>
 
-                                <Link
-                                    :href="
-                                        route(
-                                            'clerk.burial_records.show',
-                                            selectedBurial.id,
-                                        )
-                                    "
-                                    class="mr-2 flex items-center gap-1 text-sm text-green-600 dark:text-green-400 hover:underline"
-                                >
-                                    View More
-                                </Link>
+                                <div class="flex items-center gap-2">
+                                    <!-- Primary -->
+                                    <Link
+                                        :href="
+                                            route(
+                                                'clerk.burial_records.show',
+                                                selectedBurial.id
+                                            )
+                                        "
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
+                                    >
+                                        View More
+                                    </Link>
+
+                                    <!-- Secondary -->
+                                    <button
+                                        @click="
+                                            emit('viewPath', {
+                                                lot: feature,
+                                                burial: selectedBurial,
+                                            })
+                                        "
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                    >
+                                        View Path
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
