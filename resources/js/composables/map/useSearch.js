@@ -115,6 +115,7 @@ export function useSearch() {
         };
     };
 
+    // duplicate function
     const attachSearchPopup = (feature, layer) => {
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);
