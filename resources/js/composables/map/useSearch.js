@@ -46,26 +46,30 @@ export function useSearch() {
         }
     }, 300);
 
-    const showSearchResult = (burialData) => {
+    const showSearchResult = (lotData) => {
         searchResultLayer.value.clearLayers();
 
-        console.log("Picked Result: ", burialData);
+        console.log("Picked Result: ", lotData);
 
-        const lot = burialData.lot.geometry;
+        const lot = lotData.lot;
 
-        if (!lot || !lot.coordinates) {
+        if (!lot || !lot.geometry || !lot.geometry.coordinates) {
             console.error("No lot data available for this record");
             return;
         }
 
-        // Extract coordinates from MultiPolygon GeoJSON
-        // coordinates structure: [[[[[lng, lat], [lng, lat], ...]]]
-        const polygonCoords = lot.coordinates[0][0];
+        // Extract coordinates from Polygon GeoJSON
+        // LotResource returns: lot.geometry.coordinates = [[lng, lat], [lng, lat], ...]
+        const polygonCoords = lot.geometry.coordinates[0][0];
         console.log("Polygon coords", polygonCoords);
-        markPolygon(polygonCoords);
+        markPolygon(lotData, polygonCoords);
     };
 
-    const markPolygon = (polygonCoordinate) => {
+    /**
+     * @param lotData expects a lot record from LotResource
+     * @param polygonCoordinate expects GeoJSON coordinates
+     */
+    const markPolygon = (lotData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
                 `Unable to mark polygon, invalid polygon coordinates`
@@ -73,32 +77,53 @@ export function useSearch() {
             return;
         }
 
-        const latLngs = polygonCoordinate
-            .slice(0, -1)
-            .map((coord) => [coord[1], coord[0]]);
-        const polygon = L.polygon(latLngs, {
-            color: "#ef4444",
-            fillColor: "#ef4444",
-            fillOpacity: 0.3,
-            weight: 3,
+        const geoJsonFeature = {
+            type: "Feature",
+            geometry: {
+                type: "Polygon",
+                coordinates: [polygonCoordinate],
+            },
+            properties: {
+                burials: lotData.burials ?? [],
+                ...lotData.lot.properties,
+            },
+        };
+
+        const geoJsonLayer = L.geoJSON(geoJsonFeature, {
+            style: getSearchResultStyle,
+            onEachFeature: attachSearchPopup,
         });
 
-        searchResultLayer.value.addLayer(polygon);
+        searchResultLayer.value.addLayer(geoJsonLayer);
 
-        // Ensure the search result layer is added to the map
         if (!map.value.hasLayer(searchResultLayer.value)) {
             searchResultLayer.value.addTo(map.value);
         }
 
-        // Fit map bounds to show the polygon
-        map.value.fitBounds(polygon.getBounds(), {
+        map.value.fitBounds(geoJsonLayer.getBounds(), {
             padding: [50, 50],
             maxZoom: 20,
         });
     };
 
+    const getSearchResultStyle = () => {
+        return {
+            color: "#ef4444",
+            fillColor: "#ef4444",
+            fillOpacity: 0.3,
+            weight: 3,
+        };
+    };
+
+    const attachSearchPopup = (feature, layer) => {
+        layer.on("click", function () {
+            window.openLotModal(feature, layer._leaflet_id);
+        });
+    };
+
     /**
-     * Description: Clears the current search; Used within the view
+     * Description: Clears the current search
+     *              Used within the view
      */
     const clearSearch = () => {
         suggestions.value = [];

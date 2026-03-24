@@ -60,9 +60,13 @@ const modalFeature = ref(null);
 
 // Definition of global function using 'window' API
 
-// Definition of global function for apartment and comlubarium lot using 'window' API
+/**
+ * Description: Definition of a global function for apartment, comlabrium and search
+ * result lot using 'window' API
+ */
 window.openLotModal = function (feature) {
     modalFeature.value = feature;
+    console.log(modalFeature.value);
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };

@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BurialRecordResource;
-use App\Models\BurialRecord;
-use DB;
+use App\Http\Resources\LotResource;
+use App\Models\Lot;
+use Illuminate\Support\Facades\DB;
 
 class MapSearchDataController extends Controller
 {
@@ -13,41 +13,37 @@ class MapSearchDataController extends Controller
     {
         $search = request('search');
 
-        $burial = BurialRecord::with([
-            'lot' => function ($q) {
-                $q->select(
-                    'id',
-                    'lot_number',
-                    'lot_type',
-                    'status',
-                    'section_id',
-                    // This is how we should always retriee the coordinates from the DB
-                    DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
-                );
-            },
-            'deceasedRecord',
+        $lots = Lot::with([
+            'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository,date_of_death',
+            'burialRecords.user:id,name',
         ])
             ->when($search, function ($query) use ($search) {
-
                 $query->where(function ($q) use ($search) {
-
-                    // Search by deceased name
-                    $q->whereHas('deceasedRecord', function ($deceased) use ($search) {
+                    // Search by lot number
+                    $q->where('lot_number', 'like', "%{$search}%")
+                        // Search by deceased name
+                        ->orWhereHas('burialRecords.deceasedRecord', function ($deceased) use ($search) {
                         $deceased->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     })
-                        // Lot number
-                        ->orWhereHas('lot', function ($lot) use ($search) {
-                        $lot->where('lot_number', 'like', "%{$search}%");
-                    })
-                        // Section name
-                        ->orWhereHas('lot.section', function ($section) use ($search) {
+                        // Search by section name
+                        ->orWhereHas('section', function ($section) use ($search) {
                         $section->where('section_name', 'like', "%{$search}%");
                     });
                 });
-            })->limit(10) // important for suggestions
+            })
+            ->select(
+                'id',
+                'lot_number',
+                'lot_type',
+                'section_id',
+                'status',
+                'total_capacity',
+                DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+            )
+            ->limit(10)
             ->get();
 
-        return BurialRecordResource::collection($burial);
+        return LotResource::collection($lots);
     }
 }
