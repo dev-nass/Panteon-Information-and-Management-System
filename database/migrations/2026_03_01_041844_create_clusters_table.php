@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Cluster;
 use App\Models\Phase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,14 +11,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('lots', function (Blueprint $table) {
+        Schema::create('clusters', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(Cluster::class)->constrained()->cascadeOnDelete();
-
-            // APT. NUM combination of these two
-            $table->string('column')->comment('Level/Column letter e.g., A, B, C...');
-            $table->string('row')->comment('Position/Row number e.g., 1, 2, 3...');
+            $table->foreignIdFor(Phase::class)->constrained()->cascadeOnDelete();
+            $table->string('cluster_name')->unique();
+            $table->enum('cluster_type', ['underground', 'apartment', 'columbarium']);
+            $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
+            $table->bigInteger('total_capacity')->nullable();
 
             // ✅ Geometry column
             $table->geometry('coordinates', 4326);
@@ -36,6 +35,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('lots');
+        Schema::dropIfExists('clusters');
     }
 };

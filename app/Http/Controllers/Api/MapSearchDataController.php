@@ -31,9 +31,9 @@ class MapSearchDataController extends Controller
                         $deceased->where('first_name', 'like', "%{$search}%")
                             ->orWhere('last_name', 'like', "%{$search}%");
                     })
-                        // Search by section name
-                        ->orWhereHas('section', function ($section) use ($search) {
-                        $section->where('section_name', 'like', "%{$search}%");
+                        // Search by phase name
+                        ->orWhereHas('phase', function ($phase) use ($search) {
+                        $phase->where('phase_name', 'like', "%{$search}%");
                     });
                 });
             })
@@ -41,7 +41,7 @@ class MapSearchDataController extends Controller
                 'id',
                 'lot_number',
                 'lot_type',
-                'section_id',
+                'phase_id',
                 'status',
                 'total_capacity',
                 DB::raw('ST_AsGeoJSON(coordinates) as coordinates')

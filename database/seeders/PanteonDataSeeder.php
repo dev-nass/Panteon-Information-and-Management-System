@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
-use App\Models\Section;
+use App\Models\Phase;
 use App\Models\Lot;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,17 +19,17 @@ class PanteonDataSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->seedSections();
+        $this->seedPhases();
         $this->seedLots();
         $this->deceasedRecords();
     }
 
-    private function seedSections(): void
+    private function seedPhases(): void
     {
-        $geoJsonPath = public_path('data/sections.geojson');
+        $geoJsonPath = public_path('data/phases.geojson');
 
         if (!$geoJsonPath) {
-            $this->command->error("GeoJSON file for section not found at path $geoJsonPath");
+            $this->command->error("GeoJSON file for phase not found at path $geoJsonPath");
             return;
         }
 
@@ -40,21 +40,21 @@ class PanteonDataSeeder extends Seeder
             return;
         }
 
-        $this->command->info("Seeding sections from GeoJSON...");
+        $this->command->info("Seeding phases from GeoJSON...");
 
         foreach ($geoJsonData['features'] as $feature) {
-            // $section_attributes = $feature['properties'];
+            // $phase_attributes = $feature['properties'];
 
             // holds the coordinates from QGIS
-            $section_coords = [
+            $phase_coords = [
                 'coordinates' => json_encode($feature['geometry']),
             ];
 
-            // insert the other attributes using the factory definition & section variable data
-            Section::factory()->create($section_coords);
+            // insert the other attributes using the factory definition & phase variable data
+            Phase::factory()->create($phase_coords);
         }
 
-        $this->command->info("Sections imported: " . count($geoJsonData['features']));
+        $this->command->info("Phases imported: " . count($geoJsonData['features']));
     }
 
     private function seedLots(): void
@@ -98,16 +98,16 @@ class PanteonDataSeeder extends Seeder
                 continue;
             }
 
-            $attributes   = $feature['properties'];
+            $attributes = $feature['properties'];
             $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
             DB::statement("
-            INSERT INTO lots (lot_number, section_id, lot_type, total_capacity, coordinates, created_at, updated_at)
+            INSERT INTO lots (lot_number, phase_id, lot_type, total_capacity, coordinates, created_at, updated_at)
             VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
         ", [
                 $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
-                $attributes['section_id'],
+                $attributes['phase_id'],
                 $attributes['lot_type'],
                 $attributes['total_capacity'],
                 $geometryJson,
@@ -120,9 +120,9 @@ class PanteonDataSeeder extends Seeder
     }
 
     /**
-    * Description: Only use this function for testing (without the actual data from Panteon);
-    *   Mainly responsible for assigining each deceased record to teir own lot
-    */
+     * Description: Only use this function for testing (without the actual data from Panteon);
+     *   Mainly responsible for assigining each deceased record to teir own lot
+     */
     // FIX: Optimize this further, it take 2mins at least seed
     private function deceasedRecords(): void
     {

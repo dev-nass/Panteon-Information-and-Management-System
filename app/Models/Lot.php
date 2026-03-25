@@ -18,15 +18,15 @@ class Lot extends Model
     ];
 
     protected $fillable = [
-        'section_id',
+        'phase_id',
         'lot_type',
         'total_capacity',
         'coordinates',
     ];
 
-    public function section(): BelongsTo
+    public function phase(): BelongsTo
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(Phase::class);
     }
 
     public function burialRecords(): HasMany

@@ -17,7 +17,7 @@ class MapDataController extends Controller
     {
         $burials = BurialRecord::with([
             'lot' => function ($q) {
-                $q->select('id', 'lot_type', 'section_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
+                $q->select('id', 'lot_type', 'phase_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
             },
             'deceasedRecord:id,first_name,last_name',
             'user:id,name,email',
@@ -55,27 +55,32 @@ class MapDataController extends Controller
             coordinates
         )",
             [
-                $minLng,$minLat,
-                $maxLng,$minLat,
-                $maxLng,$maxLat,
-                $minLng,$maxLat,
-                $minLng,$minLat,
+                $minLng,
+                $minLat,
+                $maxLng,
+                $minLat,
+                $maxLng,
+                $maxLat,
+                $minLng,
+                $maxLat,
+                $minLng,
+                $minLat,
             ]
         )
-         ->with([
-             'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository',
-         ])
-         ->select(
-             'id',
-             'lot_number',
-             'lot_type',
-             'section_id',
-             'status',
-             'total_capacity',
-             DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
-         )
-         ->limit(100)
-         ->get();
+            ->with([
+                'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository',
+            ])
+            ->select(
+                'id',
+                'lot_number',
+                'lot_type',
+                'phase_id',
+                'status',
+                'total_capacity',
+                DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+            )
+            ->limit(100)
+            ->get();
 
         return LotResource::collection($lots);
     }

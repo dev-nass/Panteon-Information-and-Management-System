@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Section extends Model
+class Phase extends Model
 {
-    /** @use HasFactory<\Database\Factories\SectionFactory> */
+    /** @use HasFactory<\Database\Factories\PhaseFactory> */
     use HasFactory;
 
-    public function lots(): HasMany
+    public function cluster(): HasMany
     {
-        return $this->hasMany(Lot::class);
+        return $this->hasMany(Cluster::class);
     }
 }

@@ -10,11 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('sections', function (Blueprint $table) {
+        Schema::create('phases', function (Blueprint $table) {
             $table->id();
 
-            $table->bigInteger('section_code')->unique();
-            $table->string('section_name');
+            $table->bigInteger('phase_code')->unique();
+            $table->string('phase_name');
             $table->string('description')->nullable();
             $table->json('coordinates');
             $table->bigInteger('total_capacity')->nullable();
@@ -29,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('sections');
+        Schema::dropIfExists('phases');
     }
 };
