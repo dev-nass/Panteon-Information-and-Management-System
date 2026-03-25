@@ -20,8 +20,9 @@ class PanteonDataSeeder extends Seeder
     public function run(): void
     {
         $this->seedPhases();
+        $this->seedClusters();
         $this->seedLots();
-        $this->deceasedRecords();
+        // $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -54,13 +55,13 @@ class PanteonDataSeeder extends Seeder
             Phase::factory()->create($phase_coords);
         }
 
-        $this->command->info("Phases imported: " . count($geoJsonData['features']));
+        $this->command->info("Total phases imported: " . count($geoJsonData['features']));
     }
 
-    private function seedLots(): void
+    private function seedClusters(): void
     {
-        $geoJsonPath_Underground = public_path('data/lots_underground.geojson');
-        $geoJsonPath_Appartment = public_path('data/lots_appartment.geojson');
+        $geoJsonPath_Underground = public_path('data/cluster_underground.geojson');
+        $geoJsonPath_Appartment = public_path('data/cluster_apartment.geojson');
 
         if (!file_exists($geoJsonPath_Underground) || !file_exists($geoJsonPath_Appartment)) {
             $this->command->error("GeoJSON files not found");
@@ -73,13 +74,13 @@ class PanteonDataSeeder extends Seeder
         $allFeatures = [];
 
         foreach ($geoJsonData_underground['features'] as $feature) {
-            $feature['properties']['lot_type'] = 'underground';
+            $feature['properties']['cluster_type'] = 'underground';
             $feature['properties']['total_capacity'] = 1;
             $allFeatures[] = $feature;
         }
 
         foreach ($geoJsonData_appartment['features'] as $feature) {
-            $feature['properties']['lot_type'] = 'apartment';
+            $feature['properties']['cluster_type'] = 'apartment';
             $feature['properties']['total_capacity'] = 371;
             $allFeatures[] = $feature;
         }
@@ -103,13 +104,64 @@ class PanteonDataSeeder extends Seeder
 
             // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
             DB::statement("
-            INSERT INTO lots (lot_number, phase_id, lot_type, total_capacity, coordinates, created_at, updated_at)
+            INSERT INTO clusters (phase_id, cluster_name, cluster_type, total_capacity, coordinates, created_at, updated_at)
             VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
         ", [
-                $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
                 $attributes['phase_id'],
-                $attributes['lot_type'],
+                $attributes['name'], // cluster_name
+                $attributes['cluster_type'],
                 $attributes['total_capacity'],
+                $geometryJson,
+            ]);
+
+            $counter++;
+        }
+
+        $this->command->info("Total clusters imported: {$counter}");
+    }
+
+
+    private function seedLots(): void
+    {
+        $geoJsonPath_Lots = public_path('data/lots.geojson');
+
+        if (!file_exists($geoJsonPath_Lots)) {
+            $this->command->error("GeoJSON files not found");
+            return;
+        }
+
+        $geoJsonData_Lots = json_decode(file_get_contents($geoJsonPath_Lots), true);
+
+        if (!$geoJsonData_Lots['features']) {
+            $this->command->error("Invalid GeoJSON format: 'features' key not found.");
+            return;
+        }
+
+        $this->command->info("Seeding lots from GeoJSON...");
+
+        $counter = 0;
+
+        foreach ($geoJsonData_Lots['features'] as $index => $feature) {
+            if (
+                !isset($feature['geometry'])
+                || !isset($feature['geometry']['coordinates'])
+                || empty($feature['geometry']['coordinates'])
+            ) {
+                $this->command->warn("Skipping LOT-{$index} NAME-{$feature['row']}{$feature['column']}: empty geometry");
+                continue;
+            }
+
+            $attributes = $feature['properties'];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
+            DB::statement("
+            INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
+            VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+            ", [
+                $attributes['row'],
+                $attributes['column'], // cluster_name
+                $attributes['cluster_id'],
                 $geometryJson,
             ]);
 

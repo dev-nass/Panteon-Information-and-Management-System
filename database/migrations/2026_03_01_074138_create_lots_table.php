@@ -18,8 +18,8 @@ return new class extends Migration {
             $table->foreignIdFor(Cluster::class)->constrained()->cascadeOnDelete();
 
             // APT. NUM combination of these two
-            $table->string('column')->comment('Level/Column letter e.g., A, B, C...');
-            $table->string('row')->comment('Position/Row number e.g., 1, 2, 3...');
+            $table->string('column')->comment('Position/Column letter e.g., 1, 2, 3...');
+            $table->string('row')->comment('Level/Row number e.g., A, B, C...');
 
             // ✅ Geometry column
             $table->geometry('coordinates', 4326);
