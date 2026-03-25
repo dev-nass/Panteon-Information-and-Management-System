@@ -24,9 +24,9 @@ class Lot extends Model
         'coordinates',
     ];
 
-    public function phase(): BelongsTo
+    public function cluster(): BelongsTo
     {
-        return $this->belongsTo(Phase::class);
+        return $this->belongsTo(cluster::class);
     }
 
     public function burialRecords(): HasMany
