@@ -36,6 +36,8 @@ class MapDataController extends Controller
             'maxLng' => 'required|numeric',
         ]);
 
+        $limit = $validated['limit'] ?? 100;
+
         $minLng = $request->minLng;
         $minLat = $request->minLat;
         $maxLng = $request->maxLng;
@@ -68,20 +70,24 @@ class MapDataController extends Controller
             ]
         )
             ->with([
-                'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository',
+                'cluster.phase',  // Load cluster and phase
+                'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository,deceased_date',
+                'burialRecords.user:id,name',
             ])
             ->select(
                 'id',
-                'lot_number',
-                'lot_type',
-                'phase_id',
-                'status',
-                'total_capacity',
-                DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+                'cluster_id',
+                DB::raw('`column`'),
+                DB::raw('`row`'),
+                DB::raw('ST_AsGeoJSON(coordinates) as coordinates')  // ✅ This converts binary to JSON
             )
-            ->limit(100)
+            ->limit($limit)
             ->get();
 
         return LotResource::collection($lots);
     }
+
+
+    // TODO: Create a method for fetching the Phases
+    // TODO: Create a method for fetching the Clusters 
 }
