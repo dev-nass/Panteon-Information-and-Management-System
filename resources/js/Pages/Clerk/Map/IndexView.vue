@@ -25,12 +25,17 @@ import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useSearch } from "@/composables/map/useSearch";
 
 // states
-const { clusterVisibility, uniqueTypes, toggleMapFeaturesState } =
-    useMapStates();
+const {
+    phaseVisibility,
+    clusterVisibility,
+    uniqueTypes,
+    toggleMapFeaturesState,
+} = useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 // compsable
-const { initializeMap, cleanupMap, toggleMapFeatures } = useMap();
+const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
+    useMap();
 const {
     fetchSuggestions,
     fetchClusterByBurialId,
@@ -234,6 +239,12 @@ onBeforeUnmount(() => {
                                 class="flex flex-col gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3"
                             >
                                 <Switch
+                                    :model-value="phaseVisibility"
+                                    @update:model-value="togglePhaseVisibility"
+                                    label="Phases"
+                                    size="sm"
+                                />
+                                <Switch
                                     v-if="uniqueTypes.length > 0"
                                     v-for="type in uniqueTypes"
                                     :key="type"
@@ -244,9 +255,6 @@ onBeforeUnmount(() => {
                                     :label="type"
                                     size="sm"
                                 />
-                                <p v-else class="italic w-50">
-                                    Zoom-in first to load the map and filters
-                                </p>
                             </div>
                         </template>
                     </Modal>

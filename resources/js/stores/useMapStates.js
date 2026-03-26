@@ -6,7 +6,7 @@ const googleLayer = ref(null);
 
 const dbGeoJsonPhases = ref([]);
 const phaseLayerGroup = ref(null);
-const phaseVisibility = ref(false);
+const phaseVisibility = ref(true);
 
 const dbGeoJsonClusters = ref([]); // holds the processes features data (before clusterLayers hashmap)
 const clusterLayers = ref(new Map()); // each type is divided into their own HashMap and this variable holds them all

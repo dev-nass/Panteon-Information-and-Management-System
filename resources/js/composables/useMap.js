@@ -15,9 +15,14 @@ export function useMap() {
     const {
         map,
         googleLayer,
+
+        phaseLayerGroup,
+        phaseVisibility,
+
         clusterLayers,
         clusterVisibility,
         uniqueTypes,
+
         toggleMapFeaturesState,
     } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
@@ -38,13 +43,11 @@ export function useMap() {
         map.value.on("moveend", () => {
             if (moveTimeout) clearTimeout(moveTimeout);
             moveTimeout = setTimeout(() => {
-                loadAllPhases();
                 loadVisibleClusters(); // ← no argument needed
             }, 300);
         });
 
         map.value.on("zoomend", () => {
-            loadAllPhases();
             loadVisibleClusters(); // ← no argument needed
             updateVisibility();
         });
@@ -91,6 +94,11 @@ export function useMap() {
         });
     };
 
+    /**
+     * Description: Toggle map features on/off for filtering
+     * @param {string} type - Type of feature to toggle ("all" or specific type)
+     * @enum {string} type - "all", "apartment", 'underground'
+     */
     const toggleMapFeatures = (type = "all") => {
         console.log("Toggling feature type of: ", type);
         if (type === "all") {
@@ -119,6 +127,20 @@ export function useMap() {
         ).some((v) => v);
     };
 
+    const togglePhaseVisibility = () => {
+        phaseVisibility.value = !phaseVisibility.value;
+
+        if (phaseVisibility.value == true) {
+            if (phaseLayerGroup.value) {
+                phaseLayerGroup.value.addTo(map.value);
+            }
+        } else {
+            if (phaseLayerGroup.value) {
+                map.value.removeLayer(phaseLayerGroup.value);
+            }
+        }
+    };
+
     /**
      * Description: Update the visibility of the map based on clusterVisibility (true/false)
      * and zoom level
@@ -129,28 +151,46 @@ export function useMap() {
         // Hide all layers when in search mode
         if (isOnSearchMode.value) {
             cleanupLayers();
+            return;
         }
 
         const zoom = map.value.getZoom();
 
-        uniqueTypes.value.forEach((type) => {
-            const layer = clusterLayers.value.get(type);
-            if (!layer) return;
-
-            const shouldShow =
-                zoom >= MIN_RENDER_ZOOM &&
-                clusterVisibility.value.get(type) === true;
-
-            const isAdded = map.value.hasLayer(layer);
-
-            if (shouldShow && !isAdded) {
-                layer.addTo(map.value);
+        // loads the cluster
+        if (zoom >= MIN_RENDER_ZOOM) {
+            if (
+                phaseLayerGroup.value &&
+                map.value.hasLayer(phaseLayerGroup.value)
+            ) {
+                map.value.removeLayer(phaseLayerGroup.value);
             }
 
-            if (!shouldShow && isAdded) {
-                map.value.removeLayer(layer);
+            uniqueTypes.value.forEach((type) => {
+                const layer = clusterLayers.value.get(type);
+                if (!layer) return;
+
+                const shouldShow = clusterVisibility.value.get(type) === true;
+
+                const isAdded = map.value.hasLayer(layer);
+
+                if (shouldShow && !isAdded) {
+                    layer.addTo(map.value);
+                }
+
+                if (!shouldShow && isAdded) {
+                    map.value.removeLayer(layer);
+                }
+            });
+        }
+        // loads the phase
+        else if (phaseVisibility.value == true) {
+            if (
+                phaseLayerGroup.value &&
+                !map.value.hasLayer(phaseLayerGroup.value)
+            ) {
+                phaseLayerGroup.value.addTo(map.value);
             }
-        });
+        }
     };
 
     // continuously calls the updateVisibility
@@ -163,5 +203,6 @@ export function useMap() {
         initializeMap,
         cleanupMap,
         toggleMapFeatures,
+        togglePhaseVisibility,
     };
 }

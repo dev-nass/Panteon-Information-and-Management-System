@@ -8,6 +8,7 @@ const MIN_RENDER_ZOOM = 20;
 let lastBounds = null;
 let lastZoom = null;
 let lastFeatureIds = new Set();
+let isPhasesLoaded = false; // emsure that the loadAllPhases function is called once
 
 export function useDbGeoJson() {
     const {
@@ -16,19 +17,25 @@ export function useDbGeoJson() {
         clearLayers,
         renderPhases,
     } = useFeatureProcessing();
-    const { map, toggleMapFeaturesState } = useMapStates();
+    const { map, phaseVisibility, toggleMapFeaturesState } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
 
     /**
      * Description: Fetch all Phases
      */
     const loadAllPhases = async () => {
-        if (!map.value || isOnSearchMode.value) return;
+        if (
+            !map.value ||
+            isOnSearchMode.value ||
+            !phaseVisibility.value ||
+            !toggleMapFeaturesState.value ||
+            isPhasesLoaded
+        )
+            return;
 
-        console.log("fetching phases");
         const currentZoom = map.value.getZoom();
 
-        if (currentZoom >= 18) {
+        if (currentZoom >= 20) {
             console.log(currentZoom);
             return;
         }
@@ -43,6 +50,7 @@ export function useDbGeoJson() {
             const json = await response.json();
             const processed = processFeatures(json.data, "phase");
             renderPhases(processed);
+            isPhasesLoaded = true;
         } catch (error) {
             console.error("Error loading phases:", error);
         }
