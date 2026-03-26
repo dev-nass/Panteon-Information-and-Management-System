@@ -39,6 +39,7 @@ class MapDataController extends Controller
 
         $limit = $validated['limit'] ?? 100;
 
+        // query to find cluster within the bounds
         $clusters = DB::table('clusters')
             ->whereRaw(
                 "MBRContains(
@@ -68,6 +69,7 @@ class MapDataController extends Controller
             )
             ->pluck('id');
 
+        // fetch all burial resurce where its lot is within the bounded cluster
         $burialRecords = BurialRecord::whereHas('lot', function ($query) use ($clusters) {
             $query->whereIn('cluster_id', $clusters);
         })
