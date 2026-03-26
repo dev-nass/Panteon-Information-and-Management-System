@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class LotResource extends JsonResource
+class ClusterResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -15,9 +15,9 @@ class LotResource extends JsonResource
                 ? json_decode($this->coordinates, true)
                 : ($this->coordinates ?? ['type' => 'Polygon', 'coordinates' => []]),
             'properties' => [
-                'lot_id' => $this->id,
-                'column' => $this->column,
-                'row' => $this->row,
+                'cluster_id' => $this->id,
+                'name' => $this->cluster_name,
+                'type' => $this->cluster_type,
             ],
         ];
     }

@@ -22,7 +22,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        // $this->deceasedRecords();
+        $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -178,48 +178,30 @@ class PanteonDataSeeder extends Seeder
     // FIX: Optimize this further, it take 2mins at least seed
     private function deceasedRecords(): void
     {
-
         $deceasedCollection = DeceasedRecord::all();
-
         $deceasedIndex = 0;
         $totalDeceased = $deceasedCollection->count();
 
-        // eager load burialRecords count to track usage
         $lots = Lot::withCount('burialRecords')->get();
 
         foreach ($lots as $lot) {
             if ($deceasedIndex >= $totalDeceased) {
-                break; // stop if all deceased assigned
+                break;
             }
 
-            $lot_capacity = $lot->total_capacity;
-            $lot_current_occupants = $lot->burial_records_count;
-            $lot_remaining_slots = $lot_capacity - $lot_current_occupants;
-
-            if ($lot_remaining_slots <= 0) {
-                continue; // lot already full, continue to next lot
+            if ($lot->burial_records_count > 0) {
+                continue;
             }
 
-            for ($i = 0; $i < $lot_remaining_slots; $i++) {
-                if ($deceasedIndex >= $totalDeceased) {
-                    break; // stop if all deceased assigned
-                }
+            $deceased = $deceasedCollection[$deceasedIndex];
 
-                $deceased = $deceasedCollection[$deceasedIndex];
+            $lot->burialRecords()->create(
+                BurialRecord::factory()->make([
+                    'deceased_record_id' => $deceased->id,
+                ])->toArray()
+            );
 
-                $lot->burialRecords()->create(
-                    BurialRecord::factory()->make([
-                        'deceased_record_id' => $deceased->id,
-                    ])->toArray()
-                );
-
-                $deceasedIndex++;
-            }
-
-            // If lot is full, mark occupied
-            if ($lot_remaining_slots > 0) {
-                $lot->update(['status' => 'Occupied']);
-            }
+            $deceasedIndex++;
         }
     }
 }
