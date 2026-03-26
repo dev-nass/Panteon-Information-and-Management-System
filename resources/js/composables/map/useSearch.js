@@ -36,7 +36,24 @@ export function useSearch() {
             }
 
             const data = await response.json();
-            suggestions.value = data.data;
+            // Flatten burial records from all clusters and lots
+            const burials = [];
+            data.data.forEach((cluster) => {
+                cluster.lots.forEach((lotResource) => {
+                    const lot = lotResource.lot;
+                    const burialRecords = lotResource.burial_records || [];
+                    burialRecords.forEach((burial) => {
+                        burials.push({
+                            burial_id: burial.burial.id,
+                            deceased_name: burial.deceased.full_name,
+                            lot_location: `${lot.properties.column}${lot.properties.row}`,
+                            cluster_name: cluster.cluster.properties.name,
+                        });
+                    });
+                });
+            });
+            console.log(burials);
+            suggestions.value = burials;
             console.log(suggestions.value);
         } catch (err) {
             console.error(err);
@@ -46,23 +63,60 @@ export function useSearch() {
         }
     }, 300);
 
-    const showSearchResult = (lotData) => {
+    const fetchClusterByBurialId = async (burialId) => {
+        try {
+            const response = await fetch(
+                `${route("api.map.search")}?burial_id=${burialId}`,
+                {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                    credentials: "same-origin",
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch cluster data");
+            }
+
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                showSearchResult(data.data[0]);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const showSearchResult = (clusterData) => {
         searchResultLayer.value.clearLayers();
 
-        console.log("Picked Result: ", lotData);
+        console.log("Picked Result: ", clusterData);
 
-        const lot = lotData.lot;
+        const cluster = clusterData.cluster;
+        const lots = clusterData.lots;
 
-        if (!lot || !lot.geometry || !lot.geometry.coordinates) {
-            console.error("No lot data available for this record");
+        if (!cluster || !cluster.geometry || !cluster.geometry.coordinates) {
+            console.error("No cluster data available for this record");
             return;
         }
 
-        // Extract coordinates from Polygon GeoJSON
-        // LotResource returns: lot.geometry.coordinates = [[lng, lat], [lng, lat], ...]
-        const polygonCoords = normalizeCoordinates(lot.geometry.coordinates);
-        console.log("Polygon coords", polygonCoords);
-        markPolygon(lotData, polygonCoords);
+        // Extract cluster polygon coordinates
+        const clusterPolygonCoords = normalizeCoordinates(
+            cluster.geometry.coordinates
+        );
+        console.log("Cluster polygon coords", clusterPolygonCoords);
+        markClusterPolygon(clusterData, clusterPolygonCoords);
+
+        // Mark each lot as a point
+        if (lots && lots.length > 0) {
+            lots.forEach((lotResource) => {
+                const lot = lotResource.lot;
+                if (lot && lot.geometry && lot.geometry.coordinates) {
+                    markLotPoint(lot);
+                }
+            });
+        }
     };
 
     const normalizeCoordinates = (coords) => {
@@ -87,13 +141,13 @@ export function useSearch() {
     };
 
     /**
-     * @param lotData expects a lot record from LotResource
+     * @param clusterData expects a cluster record from ClusterResource
      * @param polygonCoordinate expects GeoJSON coordinates
      */
-    const markPolygon = (lotData, polygonCoordinate) => {
+    const markClusterPolygon = (clusterData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
-                `Unable to mark polygon, invalid polygon coordinates`
+                `Unable to mark cluster polygon, invalid polygon coordinates`
             );
             return;
         }
@@ -105,13 +159,12 @@ export function useSearch() {
                 coordinates: [polygonCoordinate],
             },
             properties: {
-                burials: lotData.burials ?? [],
-                ...lotData.lot.properties,
+                ...clusterData.cluster.properties,
             },
         };
 
         const geoJsonLayer = L.geoJSON(geoJsonFeature, {
-            style: getSearchResultStyle,
+            style: getClusterSearchResultStyle,
             onEachFeature: attachSearchPopup,
         });
 
@@ -127,16 +180,40 @@ export function useSearch() {
         });
     };
 
-    const getSearchResultStyle = () => {
+    /**
+     * @param lot expects a lot with Point geometry
+     */
+    const markLotPoint = (lot) => {
+        if (!lot.geometry || !lot.geometry.coordinates) {
+            console.error(`Unable to mark lot point, invalid coordinates`);
+            return;
+        }
+
+        // lot.geometry.coordinates = [lng, lat] for Point type
+        const [lng, lat] = lot.geometry.coordinates;
+
+        const marker = L.circleMarker([lat, lng], {
+            radius: 8,
+            fillColor: "#ef4444",
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8,
+        });
+
+        searchResultLayer.value.addLayer(marker);
+    };
+
+    const getClusterSearchResultStyle = () => {
         return {
             color: "#ef4444",
             fillColor: "#ef4444",
-            fillOpacity: 0.3,
+            fillOpacity: 0.2,
             weight: 3,
         };
     };
 
-    // duplicate function
+    // Attach popup to cluster polygon
     const attachSearchPopup = (feature, layer) => {
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);
@@ -155,6 +232,7 @@ export function useSearch() {
 
     return {
         fetchSuggestions,
+        fetchClusterByBurialId,
         showSearchResult,
         clearSearch,
     };

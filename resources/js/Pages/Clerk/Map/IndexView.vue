@@ -31,7 +31,7 @@ const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 // compsable
 const { initializeMap, cleanupMap, toggleMapFeatures } = useMap();
-const { fetchSuggestions, showSearchResult, clearSearch } = useSearch();
+const { fetchSuggestions, fetchClusterByBurialId, showSearchResult, clearSearch } = useSearch();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
@@ -160,7 +160,7 @@ onBeforeUnmount(() => {
                 :suggestions="suggestions"
                 :isOnSearch="isOnSearchMode"
                 @input="fetchSuggestions"
-                @select-suggestion="showSearchResult"
+                @select-suggestion="(suggestion) => fetchClusterByBurialId(suggestion.burial_id)"
                 @clear-search="clearSearch"
             />
 

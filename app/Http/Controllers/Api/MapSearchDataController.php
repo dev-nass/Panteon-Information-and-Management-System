@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\LotResource;
-use App\Models\Lot;
+use App\Http\Resources\ClusterResource;
+use App\Models\Cluster;
 use Illuminate\Support\Facades\DB;
 
 class MapSearchDataController extends Controller
@@ -17,38 +17,81 @@ class MapSearchDataController extends Controller
     public function search()
     {
         $search = request('search');
+        $burialId = request('burial_id');
 
-        $lots = Lot::with([
-            'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository,date_of_death',
-            'burialRecords.user:id,name',
-        ])
+        // If burial_id is provided, fetch specific cluster for that burial
+        if ($burialId) {
+            $lotId = DB::table('burial_records')
+                ->where('id', $burialId)
+                ->value('lot_id');
+
+            if (!$lotId) {
+                return ClusterResource::collection([]);
+            }
+
+            $clusterId = DB::table('lots')
+                ->where('id', $lotId)
+                ->value('cluster_id');
+
+            $cluster = DB::table('clusters')
+                ->where('id', $clusterId)
+                ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                ->first();
+
+            if (!$cluster) {
+                return ClusterResource::collection([]);
+            }
+
+            $clusterModel = Cluster::find($cluster->id);
+            $clusterModel->coordinates = $cluster->coordinates;
+            $clusterModel->load([
+                'lots' => function ($query) use ($lotId) {
+                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                        ->where('id', $lotId);
+                },
+                'lots.burialRecords.deceasedRecord',
+                'lots.burialRecords.user'
+            ]);
+
+            return ClusterResource::collection([$clusterModel]);
+        }
+
+        // Otherwise, search by deceased name
+        $lotIds = DB::table('burial_records')
+            ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
-                    // Search by lot number
-                    $q->where('lot_number', 'like', "%{$search}%")
-                        // Search by deceased name
-                        ->orWhereHas('burialRecords.deceasedRecord', function ($deceased) use ($search) {
-                        $deceased->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
-                    })
-                        // Search by phase name
-                        ->orWhereHas('phase', function ($phase) use ($search) {
-                        $phase->where('phase_name', 'like', "%{$search}%");
-                    });
+                    $q->where('deceased_records.first_name', 'like', "%{$search}%")
+                        ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
                 });
             })
-            ->select(
-                'id',
-                'lot_number',
-                'type',
-                'phase_id',
-                'status',
-                'total_capacity',
-                DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
-            )
+            ->distinct()
             ->limit(10)
-            ->get();
+            ->pluck('burial_records.lot_id');
 
-        return LotResource::collection($lots);
+        $clusterIds = DB::table('lots')
+            ->whereIn('id', $lotIds)
+            ->distinct()
+            ->pluck('cluster_id');
+
+        $clusters = DB::table('clusters')
+            ->whereIn('id', $clusterIds)
+            ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->get()
+            ->map(function ($cluster) use ($lotIds) {
+                $clusterModel = Cluster::find($cluster->id);
+                $clusterModel->coordinates = $cluster->coordinates;
+                $clusterModel->load([
+                    'lots' => function ($query) use ($lotIds) {
+                        $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                            ->whereIn('id', $lotIds);
+                    },
+                    'lots.burialRecords.deceasedRecord',
+                    'lots.burialRecords.user'
+                ]);
+                return $clusterModel;
+            });
+
+        return ClusterResource::collection($clusters);
     }
 }

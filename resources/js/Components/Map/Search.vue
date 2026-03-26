@@ -116,14 +116,18 @@ const clearSearch = () => {
         >
             <!-- Suggestions -->
             <template v-if="suggestions.length">
-                <p
+                <div
                     v-for="suggestion in suggestions"
-                    :key="suggestion.id"
+                    :key="suggestion.burial_id"
                     @mousedown.prevent="emit('select-suggestion', suggestion)"
                     class="px-3 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer transition"
                 >
-                    {{ suggestion.burials[0].deceased.full_name }}
-                </p>
+                    <p class="font-medium">{{ suggestion.deceased_name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Cluster {{ suggestion.cluster_name }} - Lot
+                        {{ suggestion.lot_location }}
+                    </p>
+                </div>
             </template>
 
             <!-- Empty State -->
