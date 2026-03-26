@@ -31,7 +31,12 @@ const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 // compsable
 const { initializeMap, cleanupMap, toggleMapFeatures } = useMap();
-const { fetchSuggestions, fetchClusterByBurialId, showSearchResult, clearSearch } = useSearch();
+const {
+    fetchSuggestions,
+    fetchClusterByBurialId,
+    showSearchResult,
+    clearSearch,
+} = useSearch();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
@@ -98,7 +103,10 @@ onBeforeUnmount(() => {
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
-        <ClusterModal :feature="modalFeature" @view-path="showSearchResult" />
+        <ClusterModal
+            :feature="modalFeature"
+            @view-path="(burialId) => fetchClusterByBurialId(burialId)"
+        />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->
@@ -160,7 +168,9 @@ onBeforeUnmount(() => {
                 :suggestions="suggestions"
                 :isOnSearch="isOnSearchMode"
                 @input="fetchSuggestions"
-                @select-suggestion="(suggestion) => fetchClusterByBurialId(suggestion.burial_id)"
+                @select-suggestion="
+                    (suggestion) => fetchClusterByBurialId(suggestion.burial_id)
+                "
                 @clear-search="clearSearch"
             />
 

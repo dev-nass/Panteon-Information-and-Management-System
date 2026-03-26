@@ -52,9 +52,9 @@ export function useSearch() {
                     });
                 });
             });
-            console.log(burials);
+            // console.log(burials);
             suggestions.value = burials;
-            console.log(suggestions.value);
+            // console.log(suggestions.value);
         } catch (err) {
             console.error(err);
             suggestions.value = [];
@@ -63,7 +63,15 @@ export function useSearch() {
         }
     }, 300);
 
+    /**
+     * Description: Fetches the cluster by the passed burialId
+     * @param burialId expects an integer
+     */
     const fetchClusterByBurialId = async (burialId) => {
+        if (isOnSearchMode.value == false) {
+            isOnSearchMode.value = true;
+        }
+
         try {
             const response = await fetch(
                 `${route("api.map.search")}?burial_id=${burialId}`,
@@ -88,10 +96,14 @@ export function useSearch() {
         }
     };
 
+    /**
+     * Description: Displays the search result on the map
+     * @param clusterData expects an object containing cluster and lots
+     */
     const showSearchResult = (clusterData) => {
         searchResultLayer.value.clearLayers();
 
-        console.log("Picked Result: ", clusterData);
+        // console.log("Picked Result: ", clusterData);
 
         const cluster = clusterData.cluster;
         const lots = clusterData.lots;
@@ -105,7 +117,7 @@ export function useSearch() {
         const clusterPolygonCoords = normalizeCoordinates(
             cluster.geometry.coordinates
         );
-        console.log("Cluster polygon coords", clusterPolygonCoords);
+        // console.log("Cluster polygon coords", clusterPolygonCoords);
         markClusterPolygon(clusterData, clusterPolygonCoords);
 
         // Mark each lot as a point
@@ -161,6 +173,8 @@ export function useSearch() {
             properties: {
                 ...clusterData.cluster.properties,
             },
+            cluster: clusterData.cluster,
+            lots: clusterData.lots,
         };
 
         const geoJsonLayer = L.geoJSON(geoJsonFeature, {
@@ -213,8 +227,13 @@ export function useSearch() {
         };
     };
 
-    // Attach popup to cluster polygon
+    /**
+     * Description: Attach popup to the searched result cluster polygon
+     * @param feature
+     * @param layer
+     */
     const attachSearchPopup = (feature, layer) => {
+        // console.log(feature);
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);
         });

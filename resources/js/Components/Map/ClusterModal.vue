@@ -310,10 +310,10 @@ const paginatedBurials = computed(() => {
                                     <!-- Secondary -->
                                     <button
                                         @click="
-                                            emit('viewPath', {
-                                                lot: feature,
-                                                burial: selectedBurial,
-                                            })
+                                            emit(
+                                                'viewPath',
+                                                selectedBurial.burial?.id
+                                            )
                                         "
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
                                     >

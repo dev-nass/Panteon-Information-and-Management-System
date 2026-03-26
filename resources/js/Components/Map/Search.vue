@@ -86,7 +86,7 @@ const clearSearch = () => {
 
             <!-- 🔥 Search Mode Button -->
             <Button
-                v-if="isOnSearch && modelValue"
+                v-if="isOnSearch || modelValue"
                 size="sm"
                 highlighted
                 @mousedown.prevent="clearSearch"
