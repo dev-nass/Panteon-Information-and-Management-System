@@ -118,7 +118,7 @@ const paginatedBurials = computed(() => {
                             </p>
                             <p>
                                 <strong>Type:</strong>
-                                {{ feature.properties.lot_type }}
+                                {{ feature.properties.type }}
                             </p>
                             <p>
                                 <strong>Occupants:</strong>

@@ -5,8 +5,8 @@ import { join } from "lodash";
 export function useFeatureProcessing() {
     const {
         map,
-        lotLayers,
-        lotVisibility,
+        clusterLayers,
+        clusterVisibility,
         uniqueTypes,
         toggleMapFeaturesState,
     } = useMapStates();
@@ -71,30 +71,30 @@ export function useFeatureProcessing() {
     /**
      * @param features receives the processed features
      */
-    const separateLotsByType = (features) => {
+    const separateClustersByType = (features) => {
         const types = [
-            ...new Set(features.map((feature) => feature.properties.lot_type)),
+            ...new Set(features.map((feature) => feature.properties.type)),
         ];
 
-        // separate the types into their own L.layerGroup() and store it in the lotLayers hashMap
+        // separate the types into their own L.layerGroup() and store it in the clusterLayers hashMap
         types.forEach((type) => {
             // Reuse existing layerGroup or create new one
-            if (!lotLayers.value.has(type)) {
-                lotLayers.value.set(type, L.layerGroup());
+            if (!clusterLayers.value.has(type)) {
+                clusterLayers.value.set(type, L.layerGroup());
                 // only set the visibility to true again if it doesn't exist yet
-                if (!lotVisibility.value.has(type)) {
-                    lotVisibility.value.set(type, true);
+                if (!clusterVisibility.value.has(type)) {
+                    clusterVisibility.value.set(type, true);
                 }
             } else {
                 // Clear old features but keep the layerGroup reference
-                lotLayers.value.get(type).clearLayers();
+                clusterLayers.value.get(type).clearLayers();
             }
         });
 
         types.forEach((type) => {
             // holds bunch of same type lots
             const typeFeatures = features.filter(
-                (f) => f.properties.lot_type === type
+                (f) => f.properties.type === type
             );
 
             // apply style to those same type lots
@@ -106,16 +106,16 @@ export function useFeatureProcessing() {
                 }
             );
 
-            // since we set lotLayers hash map values to L.layerGroup() above, we are just accessing
+            // since we set clusterLayers hash map values to L.layerGroup() above, we are just accessing
             // that L.layerGroup here
-            const layerGroup = lotLayers.value.get(type);
+            const layerGroup = clusterLayers.value.get(type);
             // console.log(`layer group`, layerGroup);
             // console.log(`geoJson layer`, geoJsonLayer);
             geoJsonLayer.addTo(layerGroup);
 
             // ✅ Add directly to map if visible
             if (
-                lotVisibility.value.get(type) &&
+                clusterVisibility.value.get(type) &&
                 !map.value.hasLayer(layerGroup)
             ) {
                 layerGroup.addTo(map.value);
@@ -127,13 +127,13 @@ export function useFeatureProcessing() {
 
         // Updates the visibility
         toggleMapFeaturesState.value = Array.from(
-            lotVisibility.value.values()
+            clusterVisibility.value.values()
         ).some((v) => v);
     };
 
     const clearLayers = () => {
         uniqueTypes.value.forEach((type) => {
-            const layer = lotLayers.value.get(type);
+            const layer = clusterLayers.value.get(type);
             if (layer) {
                 if (map.value?.hasLayer(layer)) {
                     map.value.removeLayer(layer);
@@ -142,7 +142,7 @@ export function useFeatureProcessing() {
             }
         });
 
-        lotLayers.value.clear();
+        clusterLayers.value.clear();
         uniqueTypes.value = []; // ✅ Only cleared here, not mid-rebuild
     };
 
@@ -165,7 +165,7 @@ export function useFeatureProcessing() {
             fillColor: colors[feature.properties.status] || "#CCCCCC",
             weight: 1,
             color: "black",
-            fillOpacity: 0.7,
+            fillOpacity: 0.5,
         };
     };
 
@@ -184,7 +184,7 @@ export function useFeatureProcessing() {
 
     return {
         processFeatures,
-        separateLotsByType,
+        separateClustersByType,
         clearLayers,
     };
 }

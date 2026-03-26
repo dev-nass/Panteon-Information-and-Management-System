@@ -18,7 +18,7 @@ class Lot extends Model
 
     protected $fillable = [
         'phase_id',
-        'lot_type',
+        'type',
         'total_capacity',
         'coordinates',
     ];

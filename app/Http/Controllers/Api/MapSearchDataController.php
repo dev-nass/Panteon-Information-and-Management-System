@@ -40,7 +40,7 @@ class MapSearchDataController extends Controller
             ->select(
                 'id',
                 'lot_number',
-                'lot_type',
+                'type',
                 'phase_id',
                 'status',
                 'total_capacity',

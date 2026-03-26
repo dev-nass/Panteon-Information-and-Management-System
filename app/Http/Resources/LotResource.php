@@ -9,16 +9,30 @@ class LotResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $burialRecordsCount = $this->whenLoaded('burialRecords', function () {
+            return $this->burialRecords->count();
+        }, 0);
+
+        $status = $burialRecordsCount > 0 ? 'occupied' : 'available';
+
         return [
-            'type' => 'Feature',
-            'geometry' => is_string($this->coordinates)
-                ? json_decode($this->coordinates, true)
-                : ($this->coordinates ?? ['type' => 'Polygon', 'coordinates' => []]),
-            'properties' => [
-                'lot_id' => $this->id,
-                'column' => $this->column,
-                'row' => $this->row,
+            'lot' => [
+                'type' => 'Feature',
+                'geometry' => is_string($this->coordinates)
+                    ? json_decode($this->coordinates, true)
+                    : ($this->coordinates ?? ['type' => 'Polygon', 'coordinates' => []]),
+                'properties' => [
+                    'lot_id' => $this->id,
+                    'column' => $this->column,
+                    'row' => $this->row,
+                    'status' => $status,
+                    'burial_count' => $burialRecordsCount,
+                ],
             ],
+
+            'burial_records' => $this->whenLoaded('burialRecords', function () {
+                return BurialRecordResource::collection($this->burialRecords);
+            }),
         ];
     }
 }

@@ -25,7 +25,8 @@ import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useSearch } from "@/composables/map/useSearch";
 
 // states
-const { lotVisibility, uniqueTypes, toggleMapFeaturesState } = useMapStates();
+const { clusterVisibility, uniqueTypes, toggleMapFeaturesState } =
+    useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
 // compsable
@@ -226,7 +227,7 @@ onBeforeUnmount(() => {
                                     v-if="uniqueTypes.length > 0"
                                     v-for="type in uniqueTypes"
                                     :key="type"
-                                    :model-value="lotVisibility.get(type)"
+                                    :model-value="clusterVisibility.get(type)"
                                     @update:model-value="
                                         toggleMapFeatures(type)
                                     "

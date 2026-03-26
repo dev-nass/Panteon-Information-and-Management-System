@@ -10,12 +10,12 @@ let lastZoom = null;
 let lastFeatureIds = new Set();
 
 export function useDbGeoJson() {
-    const { processFeatures, separateLotsByType, clearLayers } =
+    const { processFeatures, separateClustersByType, clearLayers } =
         useFeatureProcessing();
     const { map, toggleMapFeaturesState } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
 
-    const loadVisibleLots = useDebounceFn(async () => {
+    const loadVisibleClusters = useDebounceFn(async () => {
         // prevents if the map doesn't exist or is on search mode
         if (!map.value || isOnSearchMode.value || !toggleMapFeaturesState.value)
             return;
@@ -65,12 +65,12 @@ export function useDbGeoJson() {
             //const features = json.data.map((r) => r.lot).filter(Boolean);
             const features = json.data
                 .map((r) => {
-                    if (!r.lot) return null;
+                    if (!r.cluster) return null;
 
                     return {
-                        ...r.lot,
+                        ...r.cluster,
                         properties: {
-                            ...r.lot.properties,
+                            ...r.cluster.properties,
                             burials: r.burials ?? [],
                         },
                     };
@@ -96,11 +96,11 @@ export function useDbGeoJson() {
             // ✅ Clear AFTER confirming new data exists, not before
             clearLayers(); // this part still causes issue its automticaly removing the features on the map
             const processed = processFeatures(features);
-            separateLotsByType(processed);
+            separateClustersByType(processed);
         } finally {
             NProgress.done();
         }
     }, 400);
 
-    return { loadVisibleLots };
+    return { loadVisibleClusters };
 }
