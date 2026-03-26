@@ -13,15 +13,48 @@ export function useFeatureProcessing() {
 
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
-    const processFeatures = (lots) => {
-        if (!Array.isArray(lots)) return [];
+    const processFeatures = (clusters) => {
+        // console.log("Raw clusters data:", clusters);
 
-        return lots
+        if (!Array.isArray(clusters)) {
+            console.warn("Clusters is not an array:", clusters);
+            return [];
+        }
+
+        // Transform clusters to features with lots attached
+        const allClusters = [];
+
+        clusters.forEach((clusterData) => {
+            // console.log("Processing cluster:", clusterData);
+
+            const cluster = clusterData.cluster;
+            const lots = clusterData.lots || [];
+
+            // console.log("Cluster:", cluster, "Lots count:", lots.length);
+
+            // Create a feature for the cluster with lots attached
+            const feature = {
+                // first thrree are for validation
+                type: cluster.type,
+                geometry: cluster.geometry,
+                properties: cluster.properties,
+                // these two are for the data for the UI and components
+                cluster: cluster,
+                lots: lots,
+            };
+
+            allClusters.push(feature);
+        });
+
+        // console.log("Total clusters extracted:", allClusters.length);
+
+        return allClusters
             .filter((feature) => {
                 const hasGeom =
                     feature?.geometry?.type &&
                     Array.isArray(feature.geometry.coordinates);
-                if (!hasGeom) console.warn("Skipping invalid lot:", feature);
+                if (!hasGeom)
+                    console.warn("Skipping invalid cluster:", feature);
                 return hasGeom;
             })
             .map((feature) => {
@@ -69,11 +102,13 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * @param features receives the processed features
+     * @param features receives the processed features (lots with cluster and burial data)
      */
     const separateClustersByType = (features) => {
         const types = [
-            ...new Set(features.map((feature) => feature.properties.type)),
+            ...new Set(
+                features.map((feature) => feature.cluster.properties.type)
+            ),
         ];
 
         // separate the types into their own L.layerGroup() and store it in the clusterLayers hashMap
@@ -94,7 +129,7 @@ export function useFeatureProcessing() {
         types.forEach((type) => {
             // holds bunch of same type lots
             const typeFeatures = features.filter(
-                (f) => f.properties.type === type
+                (f) => f.cluster.properties.type === type
             );
 
             // apply style to those same type lots
@@ -151,14 +186,14 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * @param feature the actual renderd polygon
-     * Description: responsible for lot styling
+     * @param feature the actual rendered polygon (cluster)
+     * Description: responsible for cluster styling
      */
     const getLotStyle = (feature) => {
         const colors = {
             available: "#90EE90",
             occupied: "#FFB6C6",
-            reserved: "#FFE66D",
+            partial: "#FFE66D",
         };
 
         return {
@@ -170,13 +205,11 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * @param feature is the actual lot rendered as polygon hence referred to as 'feature'
+     * @param feature is the actual cluster rendered as polygon
      * @param layer
      * Description: attach modal as popUp
      */
     const attachLotPopup = (feature, layer) => {
-        // console.log(feature);
-
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);
         });

@@ -61,29 +61,20 @@ export function useDbGeoJson() {
             );
 
             const json = await response.json();
-            // TODO: understand this before and after
-            //const features = json.data.map((r) => r.lot).filter(Boolean);
-            const features = json.data
-                .map((r) => {
-                    if (!r.cluster) return null;
+            // Backend returns array of clusters with nested lots and burial_records
+            const clusters = json.data || [];
 
-                    return {
-                        ...r.cluster,
-                        properties: {
-                            ...r.cluster.properties,
-                            burials: r.burials ?? [],
-                        },
-                    };
-                })
-                .filter(Boolean);
-
-            if (features.length === 0) {
+            if (clusters.length === 0) {
                 clearLayers();
                 lastFeatureIds = new Set();
                 return;
             }
 
-            const currentIds = new Set(json.data.map((r) => r.id));
+            const currentIds = new Set(
+                clusters
+                    .map((c) => c.cluster?.properties?.cluster_id)
+                    .filter(Boolean)
+            );
             const isSame =
                 currentIds.size === lastFeatureIds.size &&
                 [...currentIds].every((id) => lastFeatureIds.has(id));
@@ -95,7 +86,8 @@ export function useDbGeoJson() {
 
             // ✅ Clear AFTER confirming new data exists, not before
             clearLayers(); // this part still causes issue its automticaly removing the features on the map
-            const processed = processFeatures(features);
+            const processed = processFeatures(clusters);
+            // console.log("processed", processed);
             separateClustersByType(processed);
         } finally {
             NProgress.done();

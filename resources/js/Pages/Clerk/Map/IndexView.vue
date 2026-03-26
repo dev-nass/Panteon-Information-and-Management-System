@@ -13,7 +13,7 @@ import { forEach } from "lodash";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
-import LotModal from "@/Components/Map/LotModal.vue";
+import ClusterModal from "@/Components/Map/ClusterModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
@@ -67,7 +67,7 @@ const modalFeature = ref(null);
  */
 window.openLotModal = function (feature) {
     modalFeature.value = feature;
-    console.log("Modal feature", modalFeature.value);
+    // console.log("Modal feature", modalFeature.value.lots);
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
-        <LotModal :feature="modalFeature" @view-path="showSearchResult" />
+        <ClusterModal :feature="modalFeature" @view-path="showSearchResult" />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->

@@ -25,14 +25,23 @@ watch(
 );
 
 const filteredBurials = computed(() => {
-    if (!props.feature?.properties?.burials) return [];
-    const term = searchTerm.value.toLowerCase().trim();
-    if (!term) return props.feature.properties.burials;
+    if (!props.feature?.lots) return [];
 
-    return props.feature.properties.burials.filter((burial) => {
+    const allBurials = props.feature.lots.flatMap((lot) =>
+        (lot.burial_records || []).map((burial) => ({
+            ...burial,
+            lot: lot.lot,
+        }))
+    );
+
+    const term = searchTerm.value.toLowerCase().trim();
+    if (!term) return allBurials;
+
+    return allBurials.filter((burial) => {
         return (
-            burial.deceased?.full_name?.toLowerCase().includes(term) ||
-            burial.burial_date?.toLowerCase().includes(term)
+            burial.deceased?.first_name?.toLowerCase().includes(term) ||
+            burial.deceased?.last_name?.toLowerCase().includes(term) ||
+            burial.burial?.date?.toLowerCase().includes(term)
         );
     });
 });
@@ -75,7 +84,7 @@ const paginatedBurials = computed(() => {
                         id="hs-scroll-inside-body-modal-label"
                         class="font-bold text-gray-800 dark:text-white"
                     >
-                        Lot Details
+                        Cluster Details
                     </h3>
 
                     <button
@@ -113,21 +122,21 @@ const paginatedBurials = computed(() => {
 
                         <div class="text-sm space-y-1">
                             <p>
-                                <strong>Lot:</strong>
-                                {{ feature.properties.lot_id }}
+                                <strong>Cluster:</strong>
+                                {{ feature.cluster.properties.name }}
                             </p>
                             <p>
                                 <strong>Type:</strong>
-                                {{ feature.properties.type }}
+                                {{ feature.cluster.properties.type }}
                             </p>
                             <p>
                                 <strong>Occupants:</strong>
-                                {{ feature.properties.burials?.length ?? 0 }} /
-                                {{ feature.properties.total_capacity }}
+                                {{ feature.cluster.properties.total_lots }} /
+                                {{ feature.cluster.properties.occupied_lots }}
                             </p>
                             <p>
                                 <strong>Status:</strong>
-                                {{ feature.properties.status }}
+                                {{ feature.cluster.properties.status }}
                             </p>
                         </div>
 
@@ -161,7 +170,9 @@ const paginatedBurials = computed(() => {
                                         class="font-semibold text-green-600 dark:text-green-400 text-sm"
                                     >
                                         {{
-                                            burial.deceased?.full_name ??
+                                            burial.deceased?.first_name +
+                                                " " +
+                                                burial.deceased?.last_name ??
                                             "Unknown"
                                         }}
                                     </div>
@@ -169,8 +180,8 @@ const paginatedBurials = computed(() => {
                                     <div
                                         class="text-xs text-gray-500 dark:text-gray-400"
                                     >
-                                        Burial:
-                                        {{ burial.burial_date ?? "N/A" }}
+                                        Lot: {{ burial.lot?.properties?.column
+                                        }}{{ burial.lot?.properties?.row }}
                                     </div>
                                 </div>
                             </button>
@@ -265,7 +276,10 @@ const paginatedBurials = computed(() => {
                                         >
                                             {{
                                                 selectedBurial.deceased
-                                                    ?.full_name ?? "Unknown"
+                                                    ?.first_name +
+                                                    " " +
+                                                    selectedBurial.deceased
+                                                        ?.last_name ?? "Unknown"
                                             }}
                                         </h3>
 
@@ -273,7 +287,7 @@ const paginatedBurials = computed(() => {
                                             class="text-xs text-gray-500 dark:text-gray-400"
                                         >
                                             Burial Record #{{
-                                                selectedBurial.id
+                                                selectedBurial.burial?.id
                                             }}
                                         </p>
                                     </div>
@@ -285,7 +299,7 @@ const paginatedBurials = computed(() => {
                                         :href="
                                             route(
                                                 'clerk.burial_records.show',
-                                                selectedBurial.id
+                                                selectedBurial.burial?.id
                                             )
                                         "
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
@@ -317,7 +331,7 @@ const paginatedBurials = computed(() => {
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.burial_date ?? "N/A"
+                                            selectedBurial.burial?.date ?? "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -326,12 +340,14 @@ const paginatedBurials = computed(() => {
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Date of Death
+                                        Lot Location
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.deceased
-                                                ?.deceased_date ?? "N/A"
+                                            selectedBurial.lot?.properties
+                                                ?.column +
+                                                selectedBurial.lot?.properties
+                                                    ?.row ?? "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -357,7 +373,7 @@ const paginatedBurials = computed(() => {
                                         Burial ID
                                     </span>
                                     <div class="font-medium">
-                                        {{ selectedBurial.id }}
+                                        {{ selectedBurial.burial?.id }}
                                     </div>
                                 </div>
                             </div>
