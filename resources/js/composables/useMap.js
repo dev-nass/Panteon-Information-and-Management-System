@@ -158,6 +158,7 @@ export function useMap() {
 
         // loads the cluster
         if (zoom >= MIN_RENDER_ZOOM) {
+            phaseVisibility.value = false;
             if (
                 phaseLayerGroup.value &&
                 map.value.hasLayer(phaseLayerGroup.value)

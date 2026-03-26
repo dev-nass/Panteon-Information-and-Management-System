@@ -190,7 +190,6 @@ export function useFeatureProcessing() {
      * Description: Simpler version for phases - just applies style and renders
      */
     const renderPhases = (features) => {
-        console.log(features);
         // Create a single layer group for all phases
         phaseLayerGroup.value = L.layerGroup();
 
@@ -223,9 +222,37 @@ export function useFeatureProcessing() {
      * Description: Attach click handler for phases
      */
     const onEachPhaseFeature = (feature, layer) => {
+        console.log(feature);
+        // Get the center of the polygon
+        const center = layer.getBounds().getCenter();
+
+        // Create a div icon with the phase number using Tailwind
+        const phaseNumber = feature.id;
+
+        const numberIcon = L.divIcon({
+            className: "phase-number-label",
+            html: `<div class="
+            bg-white 
+            border-2 border-blue-800 
+            rounded-full 
+            w-10 h-10 
+            flex items-center justify-center 
+            font-bold 
+            text-blue-800 
+            text-base 
+            shadow-md
+        ">${phaseNumber}</div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+        });
+
+        // Add marker to the phase layer group
+        const marker = L.marker(center, { icon: numberIcon });
+        marker.addTo(phaseLayerGroup.value);
+
+        // Click handler for the polygon
         layer.on("click", function () {
             console.log("Phase clicked:", feature);
-            // Add phase modal or info display here
         });
     };
 
