@@ -10,11 +10,47 @@ let lastZoom = null;
 let lastFeatureIds = new Set();
 
 export function useDbGeoJson() {
-    const { processFeatures, separateClustersByType, clearLayers } =
-        useFeatureProcessing();
+    const {
+        processFeatures,
+        separateClustersByType,
+        clearLayers,
+        renderPhases,
+    } = useFeatureProcessing();
     const { map, toggleMapFeaturesState } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
 
+    /**
+     * Description: Fetch all Phases
+     */
+    const loadAllPhases = async () => {
+        if (!map.value || isOnSearchMode.value) return;
+
+        console.log("fetching phases");
+        const currentZoom = map.value.getZoom();
+
+        if (currentZoom >= 18) {
+            console.log(currentZoom);
+            return;
+        }
+
+        try {
+            const response = await fetch(route("api.map.phases"));
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch phases");
+            }
+
+            const json = await response.json();
+            const processed = processFeatures(json.data, "phase");
+            renderPhases(processed);
+        } catch (error) {
+            console.error("Error loading phases:", error);
+        }
+    };
+
+    /**
+     * Description: Fetch all the Clusters within the bounds
+     */
     const loadVisibleClusters = useDebounceFn(async () => {
         // prevents if the map doesn't exist or is on search mode
         if (!map.value || isOnSearchMode.value || !toggleMapFeaturesState.value)
@@ -94,5 +130,5 @@ export function useDbGeoJson() {
         }
     }, 400);
 
-    return { loadVisibleClusters };
+    return { loadAllPhases, loadVisibleClusters };
 }

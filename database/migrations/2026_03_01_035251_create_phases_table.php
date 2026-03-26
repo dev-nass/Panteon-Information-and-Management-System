@@ -13,12 +13,18 @@ return new class extends Migration {
         Schema::create('phases', function (Blueprint $table) {
             $table->id();
 
-            $table->bigInteger('phase_code')->unique();
-            $table->string('phase_name');
-            $table->string('description')->nullable();
-            $table->json('coordinates');
-            $table->bigInteger('total_capacity')->nullable();
-            $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
+            // $table->bigInteger('phase_code')->unique();
+            // $table->string('phase_name');
+            // $table->string('description')->nullable();
+
+            // ✅ Geometry column
+            $table->geometry('coordinates', 4326);
+
+            // ✅ Spatial index
+            $table->spatialIndex('coordinates');
+
+            // $table->bigInteger('total_capacity')->nullable();
+            // $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
 
             $table->timestamps();
         });

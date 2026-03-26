@@ -46,13 +46,11 @@ class PanteonDataSeeder extends Seeder
         foreach ($geoJsonData['features'] as $feature) {
             // $phase_attributes = $feature['properties'];
 
-            // holds the coordinates from QGIS
-            $phase_coords = [
-                'coordinates' => json_encode($feature['geometry']),
-            ];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            // insert the other attributes using the factory definition & phase variable data
-            Phase::factory()->create($phase_coords);
+            DB::statement("INSERT INTO phases(coordinates, created_at, updated_at) VALUES (ST_GeomFromGeoJSON(?), NOW(), NOW())", [
+                $geometryJson,
+            ]);
         }
 
         $this->command->info("Total phases imported: " . count($geoJsonData['features']));

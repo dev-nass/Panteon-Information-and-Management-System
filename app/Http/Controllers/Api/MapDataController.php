@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
 use App\Http\Resources\ClusterResource;
+use App\Http\Resources\PhaseResource;
 use App\Models\BurialRecord;
 use App\Models\Cluster;
 use App\Models\Lot;
+use App\Models\Phase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +27,21 @@ class MapDataController extends Controller
         ])->get();
 
         return BurialRecordResource::collection($burials);
+    }
+
+    public function phaseRecords()
+    {
+        $phases = Phase::select(
+            'id',
+            // 'phase_code',
+            // 'phase_name',
+            // 'description',
+            // 'status',
+            // 'total_capacity',
+            DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+        )->get();
+
+        return PhaseResource::collection($phases);
     }
 
     // Fetch burial records within a bounding box

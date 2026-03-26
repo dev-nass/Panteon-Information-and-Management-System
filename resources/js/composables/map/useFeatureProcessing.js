@@ -5,6 +5,7 @@ import { join } from "lodash";
 export function useFeatureProcessing() {
     const {
         map,
+        phaseLayerGroup,
         clusterLayers,
         clusterVisibility,
         uniqueTypes,
@@ -13,48 +14,66 @@ export function useFeatureProcessing() {
 
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
-    const processFeatures = (clusters) => {
-        // console.log("Raw clusters data:", clusters);
+    const processFeatures = (data, type = "cluster") => {
+        // console.log("Raw data:", data);
 
-        if (!Array.isArray(clusters)) {
-            console.warn("Clusters is not an array:", clusters);
+        if (!Array.isArray(data)) {
+            console.warn(`${type}s is not an array:`, data);
             return [];
         }
 
-        // Transform clusters to features with lots attached
-        const allClusters = [];
+        // Transform data to features
+        const allFeatures = [];
 
-        clusters.forEach((clusterData) => {
-            // console.log("Processing cluster:", clusterData);
+        data.forEach((item) => {
+            // console.log("Processing item:", item);
 
-            const cluster = clusterData.cluster;
-            const lots = clusterData.lots || [];
+            let feature;
 
-            // console.log("Cluster:", cluster, "Lots count:", lots.length);
+            if (type === "cluster") {
+                const cluster = item.cluster;
+                const lots = item.lots || [];
 
-            // Create a feature for the cluster with lots attached
-            const feature = {
-                // first thrree are for validation
-                type: cluster.type,
-                geometry: cluster.geometry,
-                properties: cluster.properties,
-                // these two are for the data for the UI and components
-                cluster: cluster,
-                lots: lots,
-            };
+                // console.log("Cluster:", cluster, "Lots count:", lots.length);
 
-            allClusters.push(feature);
+                // Create a feature for the cluster with lots attached
+                feature = {
+                    // first three are for validation
+                    type: cluster.type,
+                    geometry: cluster.geometry,
+                    properties: cluster.properties,
+                    // these two are for the data for the UI and components
+                    cluster: cluster,
+                    lots: lots,
+                };
+            } else if (type === "phase") {
+                const phase = item.phase;
+
+                // Create a feature for the phase
+                feature = {
+                    // first three are for validation
+                    type: phase.type,
+                    geometry: phase.geometry,
+                    properties: phase.properties,
+                    // this is for the data for the UI and components
+                    phase: phase,
+                };
+            }
+
+            if (feature) {
+                allFeatures.push(feature);
+            }
         });
 
-        // console.log("Total clusters extracted:", allClusters.length);
+        // console.log("Total features extracted:", allFeatures.length);
 
-        return allClusters
+        return allFeatures
             .filter((feature) => {
                 const hasGeom =
                     feature?.geometry?.type &&
                     Array.isArray(feature.geometry.coordinates);
                 if (!hasGeom)
-                    console.warn("Skipping invalid cluster:", feature);
+                    console.warn(`Skipping invalid ${type}:`, feature);
                 return hasGeom;
             })
             .map((feature) => {
@@ -166,6 +185,50 @@ export function useFeatureProcessing() {
         ).some((v) => v);
     };
 
+    /**
+     * @param features receives the processed phase features
+     * Description: Simpler version for phases - just applies style and renders
+     */
+    const renderPhases = (features) => {
+        console.log(features);
+        // Create a single layer group for all phases
+        phaseLayerGroup.value = L.layerGroup();
+
+        // Apply style to phases
+        const geoJsonLayer = L.geoJSON(
+            { type: "FeatureCollection", features: features },
+            {
+                style: getPhaseStyle,
+                onEachFeature: onEachPhaseFeature,
+            }
+        );
+
+        geoJsonLayer.addTo(phaseLayerGroup.value);
+        phaseLayerGroup.value.addTo(map.value);
+    };
+
+    /**
+     * Description: Style for phase polygons
+     */
+    const getPhaseStyle = (feature) => {
+        return {
+            fillColor: "#3B82F6",
+            weight: 2,
+            color: "#1E40AF",
+            fillOpacity: 0.3,
+        };
+    };
+
+    /**
+     * Description: Attach click handler for phases
+     */
+    const onEachPhaseFeature = (feature, layer) => {
+        layer.on("click", function () {
+            console.log("Phase clicked:", feature);
+            // Add phase modal or info display here
+        });
+    };
+
     const clearLayers = () => {
         uniqueTypes.value.forEach((type) => {
             const layer = clusterLayers.value.get(type);
@@ -218,6 +281,7 @@ export function useFeatureProcessing() {
     return {
         processFeatures,
         separateClustersByType,
+        renderPhases,
         clearLayers,
     };
 }

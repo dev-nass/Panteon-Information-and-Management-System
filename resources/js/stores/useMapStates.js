@@ -4,6 +4,10 @@ import L from "leaflet";
 const map = ref(null);
 const googleLayer = ref(null);
 
+const dbGeoJsonPhases = ref([]);
+const phaseLayerGroup = ref(null);
+const phaseVisibility = ref(false);
+
 const dbGeoJsonClusters = ref([]); // holds the processes features data (before clusterLayers hashmap)
 const clusterLayers = ref(new Map()); // each type is divided into their own HashMap and this variable holds them all
 const clusterVisibility = ref(new Map());
@@ -22,6 +26,10 @@ export function useMapStates() {
     return {
         map,
         googleLayer,
+
+        dbGeoJsonPhases,
+        phaseLayerGroup,
+        phaseVisibility,
 
         dbGeoJsonClusters,
         clusterLayers,

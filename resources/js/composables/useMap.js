@@ -21,7 +21,7 @@ export function useMap() {
         toggleMapFeaturesState,
     } = useMapStates();
     const { isOnSearchMode } = useMapSearchStates();
-    const { loadVisibleClusters } = useDbGeoJson();
+    const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     const initializeMap = async (mapContainerElem) => {
         map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
@@ -38,15 +38,18 @@ export function useMap() {
         map.value.on("moveend", () => {
             if (moveTimeout) clearTimeout(moveTimeout);
             moveTimeout = setTimeout(() => {
+                loadAllPhases();
                 loadVisibleClusters(); // ← no argument needed
             }, 300);
         });
 
         map.value.on("zoomend", () => {
+            loadAllPhases();
             loadVisibleClusters(); // ← no argument needed
             updateVisibility();
         });
 
+        loadAllPhases();
         loadVisibleClusters(); // initial load
     };
 
