@@ -54,9 +54,9 @@ export function useFeatureProcessing() {
                     // first three are for validation
                     type: phase.type,
                     geometry: phase.geometry,
-                    properties: phase.properties,
                     // this is for the data for the UI and components
-                    phase: phase,
+                    properties: phase.properties,
+                    id: item.id,
                 };
             }
 
@@ -222,24 +222,23 @@ export function useFeatureProcessing() {
      * Description: Attach click handler for phases
      */
     const onEachPhaseFeature = (feature, layer) => {
-        console.log(feature);
         // Get the center of the polygon
         const center = layer.getBounds().getCenter();
 
         // Create a div icon with the phase number using Tailwind
-        const phaseNumber = feature.id;
+        const phaseNumber = feature.properties.phase_name;
 
         const numberIcon = L.divIcon({
             className: "phase-number-label",
             html: `<div class="
-            bg-white 
-            border-2 border-blue-800 
+            border-2 border-blue-900 
             rounded-full 
-            w-10 h-10 
+            w-12 h-12 
             flex items-center justify-center 
             font-bold 
-            text-blue-800 
-            text-base 
+            text-white 
+            text-center
+            text-base
             shadow-md
         ">${phaseNumber}</div>`,
             iconSize: [40, 40],
@@ -252,7 +251,7 @@ export function useFeatureProcessing() {
 
         // Click handler for the polygon
         layer.on("click", function () {
-            console.log("Phase clicked:", feature);
+            // console.log("Phase clicked:", feature);
         });
     };
 

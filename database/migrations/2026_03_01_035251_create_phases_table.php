@@ -13,8 +13,8 @@ return new class extends Migration {
         Schema::create('phases', function (Blueprint $table) {
             $table->id();
 
-            // $table->bigInteger('phase_code')->unique();
-            // $table->string('phase_name');
+            // $table->string('phase_code')->unique();
+            $table->string('phase_name');
             // $table->string('description')->nullable();
 
             // ✅ Geometry column

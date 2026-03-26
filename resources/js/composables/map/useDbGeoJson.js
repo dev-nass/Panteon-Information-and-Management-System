@@ -49,6 +49,7 @@ export function useDbGeoJson() {
 
             const json = await response.json();
             const processed = processFeatures(json.data, "phase");
+            // console.log(processed);
             renderPhases(processed);
             isPhasesLoaded = true;
         } catch (error) {

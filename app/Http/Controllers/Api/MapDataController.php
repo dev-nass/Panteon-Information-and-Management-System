@@ -34,7 +34,7 @@ class MapDataController extends Controller
         $phases = Phase::select(
             'id',
             // 'phase_code',
-            // 'phase_name',
+            'phase_name',
             // 'description',
             // 'status',
             // 'total_capacity',

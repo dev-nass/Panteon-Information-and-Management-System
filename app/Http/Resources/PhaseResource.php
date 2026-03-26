@@ -19,7 +19,7 @@ class PhaseResource extends JsonResource
                 'properties' => [
                     // 'phase_id' => $this->id,
                     // 'phase_code' => $this->phase_code,
-                    // 'phase_name' => $this->phase_name,
+                    'phase_name' => $this->phase_name,
                     // 'description' => $this->description,
                     // 'status' => $this->status,
                     // 'total_capacity' => $this->total_capacity,
