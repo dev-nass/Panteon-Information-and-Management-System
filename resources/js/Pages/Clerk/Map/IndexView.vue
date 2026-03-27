@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
                         </template>
                         <template v-slot:main>
                             <div
-                                class="flex flex-col gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3"
+                                class="grid grid-cols-2 gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3 py-2"
                             >
                                 <Switch
                                     :model-value="phaseVisibility"
