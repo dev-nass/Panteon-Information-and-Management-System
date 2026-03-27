@@ -5,6 +5,8 @@ import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
+import TableHeader from "@/Components/Table/TableHeader.vue";
+import TableData from "@/Components/Table/TableData.vue";
 
 // NOTE:(out for now since we ended up separating the MAP and TABLE)
 // const emit = defineEmits(["toggleTable"]);
@@ -21,7 +23,7 @@ const props = defineProps({
 });
 
 // TODO: Remove this
-console.log(props.burial_records);
+// console.log(props.burial_records);
 
 const { search } = useSearchBurialRecords("clerk.burial_records.index");
 
@@ -45,7 +47,7 @@ const sort = (field) => {
         {
             preserveState: true,
             replace: true,
-        },
+        }
     );
 };
 
@@ -398,48 +400,32 @@ defineOptions({
                         >
                             <thead class="bg-gray-50 dark:bg-neutral-800">
                                 <tr>
-                                    <th
-                                        @click="sort('id')"
-                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
-                                    >
+                                    <TableHeader @sort="sort('id')">
                                         ID
-                                    </th>
-
-                                    <th
+                                    </TableHeader>
+                                    <TableHeader
                                         @click="sort('deceased_first_name')"
-                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Full Name
-                                    </th>
-
-                                    <th
+                                    </TableHeader>
+                                    <TableHeader
                                         @click="sort('deceased_date_of_birth')"
-                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Birth Date
-                                    </th>
-
-                                    <th
+                                    </TableHeader>
+                                    <TableHeader
                                         @click="sort('deceased_date_of_death')"
-                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Death Date
-                                    </th>
-
-                                    <th
+                                    </TableHeader>
+                                    <TableHeader
                                         @click="
                                             sort('deceased_date_of_depository')
                                         "
-                                        class="cursor-pointer px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
                                     >
                                         Burial Date
-                                    </th>
-
-                                    <th
-                                        class="px-6 py-3 text-xs font-semibold uppercase text-gray-800 dark:text-neutral-200 text-left"
-                                    >
-                                        Precinct Num
-                                    </th>
+                                    </TableHeader>
+                                    <TableHeader> Precinct Num </TableHeader>
                                 </tr>
                             </thead>
 
@@ -455,51 +441,32 @@ defineOptions({
                                             $inertia.visit(
                                                 route(
                                                     'clerk.burial_records.show',
-                                                    record.id,
-                                                ),
+                                                    record.id
+                                                )
                                             )
                                     "
                                 >
-                                    <td
-                                        class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200"
-                                    >
-                                        {{ record.id }}
-                                    </td>
-
-                                    <td
-                                        class="px-6 py-4 text-sm text-gray-800 dark:text-neutral-200"
-                                    >
+                                    <TableData>{{ record.id }}</TableData>
+                                    <TableData>
                                         {{ record.deceased.first_name }}
                                         {{ record.deceased.last_name }}
-                                    </td>
-
-                                    <td
-                                        class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
-                                    >
+                                    </TableData>
+                                    <TableData>
                                         {{ record.deceased.birth.date }}
-                                    </td>
-
-                                    <td
-                                        class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
-                                    >
+                                    </TableData>
+                                    <TableData>
                                         {{ record.deceased.death.date }}
-                                    </td>
+                                    </TableData>
 
-                                    <td
-                                        class="px-6 py-4 text-sm text-gray-600 dark:text-neutral-400"
-                                    >
+                                    <TableData>
                                         {{
                                             record.deceased.burial.date ?? "N/A"
                                         }}
-                                    </td>
+                                    </TableData>
 
-                                    <td class="px-6 py-4">
-                                        <span
-                                            class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400"
-                                        >
-                                            {{ record.deceased.precinct_num }}
-                                        </span>
-                                    </td>
+                                    <TableData :isHighlighted="true">
+                                        {{ record.deceased.precinct_num }}
+                                    </TableData>
                                 </tr>
                             </tbody>
                         </table>
