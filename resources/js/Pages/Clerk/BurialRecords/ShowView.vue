@@ -1,14 +1,21 @@
 <script setup>
-import { onMounted, ref, watch } from "vue";
-import { usePage, router } from "@inertiajs/vue3";
+import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { Link, usePage, router } from "@inertiajs/vue3";
 import { has, isEqual } from "lodash";
 
 import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
+import { useMap } from "@/composables/useMap";
+import { useSearch } from "@/composables/map/useSearch";
+
 const props = defineProps({
     burial_record: { type: Object, required: true },
 });
+
+const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
+    useMap();
+const { fetchClusterByBurialId } = useSearch();
 
 console.log(props.burial_record);
 
@@ -37,7 +44,7 @@ watch(
     (newVal) => {
         hasChanges.value = !isEqual(newVal, originalData.value);
     },
-    { deep: true },
+    { deep: true }
 );
 
 const discardChanges = () => {
@@ -57,6 +64,18 @@ const confirmDiscard = () => {
     HSOverlay.close("#hs-cookies");
 };
 
+const redirectToClerkMap = () => {
+    const burialId = props.burial_record.data.burial.id;
+    router.visit(route("clerk.map.index"), {
+        data: { burialId },
+        onSuccess: () => {
+            setTimeout(() => {
+                fetchClusterByBurialId(burialId);
+            }, 500);
+        },
+    });
+};
+
 const saveChanges = () => {
     alert("saving...");
 };
@@ -67,6 +86,15 @@ defineOptions({
 
 // added to close the modal from Clerk/Map/IndexView
 onMounted(() => {
+    // initializeMap(mapContainer.value);
+
+    document
+        .querySelectorAll("#hs-scroll-inside-body-modal")
+        .forEach((el) => HSOverlay.close(el));
+});
+
+onBeforeUnmount(() => {
+    cleanupMap();
     document
         .querySelectorAll("#hs-scroll-inside-body-modal")
         .forEach((el) => HSOverlay.close(el));
@@ -217,31 +245,40 @@ onMounted(() => {
             </div>
 
             <div>
-                <button
+                <article
                     v-if="!editing"
-                    @click="editing = !editing"
-                    class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
+                    class="flex space-x-3 items-center justify-center"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-pencil-icon lucide-pencil"
+                    <button
+                        @click="redirectToClerkMap"
+                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
-                        <path
-                            d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
-                        />
-                        <path d="m15 5 4 4" />
-                    </svg>
-                    Edit
-                </button>
-
+                        View on Map
+                    </button>
+                    <button
+                        @click="editing = !editing"
+                        class="flex items-center justify-center gap-x-2 px-4 mt-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-pencil-icon lucide-pencil"
+                        >
+                            <path
+                                d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                            />
+                            <path d="m15 5 4 4" />
+                        </svg>
+                        Edit
+                    </button>
+                </article>
                 <div class="flex gap-x-3">
                     <button
                         v-if="editing"

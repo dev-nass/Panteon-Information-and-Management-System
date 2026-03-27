@@ -23,7 +23,7 @@ const props = defineProps({
 });
 
 // TODO: Remove this
-// console.log(props.burial_records);
+console.log(props.burial_records);
 
 const { search } = useSearchBurialRecords("clerk.burial_records.index");
 
@@ -441,12 +441,14 @@ defineOptions({
                                             $inertia.visit(
                                                 route(
                                                     'clerk.burial_records.show',
-                                                    record.id
+                                                    record.burial.id
                                                 )
                                             )
                                     "
                                 >
-                                    <TableData>{{ record.id }}</TableData>
+                                    <TableData>{{
+                                        record.burial.id
+                                    }}</TableData>
                                     <TableData>
                                         {{ record.deceased.first_name }}
                                         {{ record.deceased.last_name }}

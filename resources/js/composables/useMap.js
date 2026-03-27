@@ -63,7 +63,7 @@ export function useMap() {
                 {
                     maxZoom: 30,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
-                }
+                },
             );
 
             googleLayer.value.addTo(map.value);
@@ -104,7 +104,7 @@ export function useMap() {
         if (type === "all") {
             // Toggle all types
             const allVisible = Array.from(
-                clusterVisibility.value.values()
+                clusterVisibility.value.values(),
             ).every((v) => v);
             const newState = !allVisible;
 
@@ -123,7 +123,7 @@ export function useMap() {
 
         // Update the state
         toggleMapFeaturesState.value = Array.from(
-            clusterVisibility.value.values()
+            clusterVisibility.value.values(),
         ).some((v) => v);
     };
 
