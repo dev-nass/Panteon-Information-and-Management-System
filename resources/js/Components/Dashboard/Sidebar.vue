@@ -517,7 +517,12 @@ const page = usePage();
                 </li>
 
                 <li>
-                    <SidebarLink>
+                    <SidebarLink
+                        :href="route('clerk.lot_management.index')"
+                        :isActive="
+                            page.component === 'Clerk/LotManagment/IndexView'
+                        "
+                    >
                         <template v-slot:icon>
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"

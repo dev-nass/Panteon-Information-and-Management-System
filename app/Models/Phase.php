@@ -11,7 +11,7 @@ class Phase extends Model
     /** @use HasFactory<\Database\Factories\PhaseFactory> */
     use HasFactory;
 
-    public function cluster(): HasMany
+    public function clusters(): HasMany
     {
         return $this->hasMany(Cluster::class);
     }

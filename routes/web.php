@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
+use App\Http\Controllers\Clerk\LotManagementController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -46,5 +47,10 @@ Route::prefix('clerk')
         Route::controller(BurialRecordController::class)->group(function () {
             Route::get('/burial-records', 'index')->name('burial_records.index');
             Route::get('/burial-records/{burial_record}', 'show')->name('burial_records.show');
+        });
+
+
+        Route::controller(LotManagementController::class)->group(function () {
+            Route::get('/lot-management', 'index')->name('lot_management.index');
         });
     });
