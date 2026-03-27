@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Cluster;
-use App\Models\Phase;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,20 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('lots', function (Blueprint $table) {
+        Schema::create('phases', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignIdFor(Cluster::class)->constrained()->cascadeOnDelete();
-
-            // APT. NUM combination of these two
-            $table->string('column')->comment('Position/Column letter e.g., 1, 2, 3...');
-            $table->string('row')->comment('Level/Row number e.g., A, B, C...');
+            // $table->string('phase_code')->unique();
+            $table->string('phase_name');
+            // $table->string('description')->nullable();
 
             // ✅ Geometry column
             $table->geometry('coordinates', 4326);
 
             // ✅ Spatial index
             $table->spatialIndex('coordinates');
+
+            // $table->bigInteger('total_capacity')->nullable();
+            // $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
 
             $table->timestamps();
         });
@@ -36,6 +35,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('lots');
+        Schema::dropIfExists('phases');
     }
 };

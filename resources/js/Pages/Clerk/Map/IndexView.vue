@@ -13,25 +13,40 @@ import { forEach } from "lodash";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
-import LotModal from "@/Components/Map/LotModal.vue";
+import ClusterModal from "@/Components/Map/ClusterModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
-
-import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useSearch } from "@/composables/map/useSearch";
 import Search from "@/Components/Map/Search.vue";
+import Switch from "@/Components/Switch.vue";
 
-const { initializeMap, cleanupMap } = useMap();
-const { fetchSuggestions, showSearchResult, clearSearch } = useSearch();
+import { useMapStates } from "@/stores/useMapStates";
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
+
+import { useSearch } from "@/composables/map/useSearch";
+
+// states
+const {
+    phaseVisibility,
+    clusterVisibility,
+    uniqueTypes,
+    toggleMapFeaturesState,
+} = useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
+
+// compsable
+const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
+    useMap();
+const {
+    fetchSuggestions,
+    fetchClusterByBurialId,
+    showSearchResult,
+    clearSearch,
+} = useSearch();
 
 const mapContainer = ref(null);
 // previously use bcz im swaping from map to table
-const toggleMap = ref(true);
-// testing purposes for the SVG of eye to turn on and off polygon (delete later)
-const toggleMapPolygon = () => {
-    toggleMap.value = !toggleMap.value;
-};
+
+// local state for changing the EYE SVG
 
 // NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
 // const toggleMapEvent = () => {
@@ -52,13 +67,17 @@ const toggleMapPolygon = () => {
 const modalFeature = ref(null);
 
 // TODO: remove this
-console.log(modalFeature.value);
+// console.log(modalFeature.value);
 
 // Definition of global function using 'window' API
 
-// Definition of global function for apartment and comlubarium lot using 'window' API
+/**
+ * Description: Definition of a global function for apartment, comlabrium and search
+ * result lot using 'window' API
+ */
 window.openLotModal = function (feature) {
     modalFeature.value = feature;
+    // console.log("Modal feature", modalFeature.value.lots);
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
@@ -86,54 +105,58 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!--- NOTE: Uncomment this later -->
-    <!-- <Teleport to="body"> -->
-    <LotModal :feature="modalFeature" />
-    <!--     <Modal> -->
-    <!--         <template v-slot:header> -->
-    <!--             <svg -->
-    <!--                 xmlns="http://www.w3.org/2000/svg" -->
-    <!--                 width="24" -->
-    <!--                 height="24" -->
-    <!--                 viewBox="0 0 24 24" -->
-    <!--                 fill="none" -->
-    <!--                 stroke="currentColor" -->
-    <!--                 stroke-width="2" -->
-    <!--                 stroke-linecap="round" -->
-    <!--                 stroke-linejoin="round" -->
-    <!--                 class="lucide lucide-info-icon lucide-info" -->
-    <!--             > -->
-    <!--                 <circle cx="12" cy="12" r="10" /> -->
-    <!--                 <path d="M12 16v-4" /> -->
-    <!--                 <path d="M12 8h.01" /> -->
-    <!--             </svg> -->
-    <!--         </template> -->
-    <!---->
-    <!--         <template v-slot:main> -->
-    <!--             <h3 -->
-    <!--                 id="hs-cookies-label" -->
-    <!--                 class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
-    <!--             > -->
-    <!--                 Notice -->
-    <!--             </h3> -->
-    <!---->
-    <!--             <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
-    <!--                 Slowly zoom in the map to see the markings and polygon -->
-    <!--             </p> -->
-    <!--         </template> -->
-    <!--         <template v-slot:footer> -->
-    <!--             <button -->
-    <!--                 type="button" -->
-    <!--                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
-    <!--                 data-hs-overlay="#hs-cookies" -->
-    <!--             > -->
-    <!--                 Got it -->
-    <!--             </button> -->
-    <!--         </template> -->
-    <!--     </Modal> -->
-    <!-- </Teleport> -->
-
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
+        <!--- NOTE: Uncomment this later -->
+        <!-- <Teleport to="body"> -->
+        <ClusterModal
+            :feature="modalFeature"
+            @view-path="(burialId) => fetchClusterByBurialId(burialId)"
+        />
+        <!--     <Modal> -->
+        <!--         <template v-slot:header> -->
+        <!--             <svg -->
+        <!--                 xmlns="http://www.w3.org/2000/svg" -->
+        <!--                 width="24" -->
+        <!--                 height="24" -->
+        <!--                 viewBox="0 0 24 24" -->
+        <!--                 fill="none" -->
+        <!--                 stroke="currentColor" -->
+        <!--                 stroke-width="2" -->
+        <!--                 stroke-linecap="round" -->
+        <!--                 stroke-linejoin="round" -->
+        <!--                 class="lucide lucide-info-icon lucide-info" -->
+        <!--             > -->
+        <!--                 <circle cx="12" cy="12" r="10" /> -->
+        <!--                 <path d="M12 16v-4" /> -->
+        <!--                 <path d="M12 8h.01" /> -->
+        <!--             </svg> -->
+        <!--         </template> -->
+        <!---->
+        <!--         <template v-slot:main> -->
+        <!--             <h3 -->
+        <!--                 id="hs-cookies-label" -->
+        <!--                 class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
+        <!--             > -->
+        <!--                 Notice -->
+        <!--             </h3> -->
+        <!---->
+        <!--             <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
+        <!--                 Slowly zoom in the map to see the markings and polygon -->
+        <!--             </p> -->
+        <!--         </template> -->
+        <!--         <template v-slot:footer> -->
+        <!--             <button -->
+        <!--                 type="button" -->
+        <!--                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
+        <!--                 data-hs-overlay="#hs-cookies" -->
+        <!--             > -->
+        <!--                 Got it -->
+        <!--             </button> -->
+        <!--         </template> -->
+        <!--     </Modal> -->
+        <!-- </Teleport> -->
+
+        <!-- Main Content Start -->
         <div class="h-full w-full">
             <!-- Map container -->
             <div
@@ -150,15 +173,20 @@ onBeforeUnmount(() => {
                 :suggestions="suggestions"
                 :isOnSearch="isOnSearchMode"
                 @input="fetchSuggestions"
-                @select-suggestion="showSearchResult"
+                @select-suggestion="
+                    (suggestion) => fetchClusterByBurialId(suggestion.burial_id)
+                "
                 @clear-search="clearSearch"
             />
 
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this into offcanvas or modal button --->
                 <!--- NOTE: Filter button  --->
-                <div
-                    class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
+                <Button
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="hs-filter"
+                    data-hs-overlay="#hs-filter"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -178,10 +206,61 @@ onBeforeUnmount(() => {
                         <path d="M16 6h6" />
                         <path d="M19 3v6" />
                     </svg>
-                </div>
+                </Button>
+
+                <Teleport to="body">
+                    <Modal id="hs-filter">
+                        <template v-slot:header>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-sliders-horizontal-icon lucide-sliders-horizontal"
+                            >
+                                <path d="M10 5H3" />
+                                <path d="M12 19H3" />
+                                <path d="M14 3v4" />
+                                <path d="M16 17v4" />
+                                <path d="M21 12h-9" />
+                                <path d="M21 19h-5" />
+                                <path d="M21 5h-7" />
+                                <path d="M8 10v4" />
+                                <path d="M8 12H3" />
+                            </svg>
+                        </template>
+                        <template v-slot:main>
+                            <div
+                                class="grid grid-cols-2 gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3 py-2"
+                            >
+                                <Switch
+                                    :model-value="phaseVisibility"
+                                    @update:model-value="togglePhaseVisibility"
+                                    label="Phases"
+                                    size="sm"
+                                />
+                                <Switch
+                                    v-if="uniqueTypes.length > 0"
+                                    v-for="type in uniqueTypes"
+                                    :key="type"
+                                    :model-value="clusterVisibility.get(type)"
+                                    @update:model-value="
+                                        toggleMapFeatures(type)
+                                    "
+                                    :label="type"
+                                    size="sm"
+                                />
+                            </div>
+                        </template>
+                    </Modal>
+                </Teleport>
 
                 <!--- NOTE: Toggle table view button --->
-
                 <Link
                     :href="route('clerk.burial_records.index')"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
@@ -204,6 +283,7 @@ onBeforeUnmount(() => {
                         <path d="M4 17h16" />
                     </svg>
                 </Link>
+                <!-- END: Toggle table view -->
             </div>
         </div>
 
@@ -211,9 +291,12 @@ onBeforeUnmount(() => {
             <div class="flex gap-x-2">
                 <!--- ISSUE: Change this a button that on and off polygon, and change the element to be button --->
                 <!--- NOTE: Toggle polygon button --->
-                <Button @click="toggleMapPolygon">
+                <Button
+                    v-if="uniqueTypes.length > 0"
+                    @click="toggleMapFeatures()"
+                >
                     <svg
-                        v-if="toggleMap"
+                        v-if="toggleMapFeaturesState"
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
                         height="24"
@@ -223,7 +306,7 @@ onBeforeUnmount(() => {
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        class="lucide lucide-eye-icon lucide-eye text-green-500 dark:text-green-600"
+                        class="lucide lucide-eye-icon lucide-eye text-green-500 dark:text-green-400"
                     >
                         <path
                             d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"

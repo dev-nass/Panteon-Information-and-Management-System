@@ -15,6 +15,7 @@ Route::get('/sample', function () {
 
 Route::controller(MapDataController::class)->group(function () {
     Route::get('/data/burials', 'burialRecords')->name('api.map.burials');
+    Route::get('/data/phases', 'phaseRecords')->name('api.map.phases');
     Route::get('/data/partial-burials', 'partialBurialRecords')->name('api.map.partial.burials');
 });
 

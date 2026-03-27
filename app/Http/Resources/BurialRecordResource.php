@@ -15,26 +15,19 @@ class BurialRecordResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-
             'burial' => [
-                'date' => $this->burial_date,
+                'id' => $this->id,
             ],
 
+            'cluster' => $this->whenLoaded('lot', function () {
+                if ($this->lot && $this->lot->relationLoaded('cluster')) {
+                    return new ClusterResource($this->lot->cluster);
+                }
+                return null;
+            }),
+
             'lot' => $this->whenLoaded('lot', function () {
-                return [
-                    'type' => 'Feature',
-                    'geometry' => $this->lot->coordinates ?? [
-                        'type' => 'Polygon',
-                        'coordinates' => [],
-                    ],
-                    'properties' => [
-                        'lot_id' => $this->lot->id,
-                        'lot_number' => $this->lot->lot_number,
-                        'lot_type' => $this->lot->lot_type,
-                        'status' => $this->lot->status,
-                    ],
-                ];
+                return new LotResource($this->lot);
             }),
 
             'deceased' => new DeceasedRecordResource(

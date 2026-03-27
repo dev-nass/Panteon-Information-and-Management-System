@@ -3,19 +3,77 @@ import { geoJson } from "leaflet";
 import { join } from "lodash";
 
 export function useFeatureProcessing() {
-    const { map, lotLayers, lotVisibility, uniqueTypes } = useMapStates();
+    const {
+        map,
+        phaseLayerGroup,
+        clusterLayers,
+        clusterVisibility,
+        uniqueTypes,
+        toggleMapFeaturesState,
+    } = useMapStates();
 
     /* traverse through DBGeoJson data and change 'multipolygon'
    to 'polygon' */
-    const processFeatures = (lots) => {
-        if (!Array.isArray(lots)) return [];
+    const processFeatures = (data, type = "cluster") => {
+        // console.log("Raw data:", data);
 
-        return lots
+        if (!Array.isArray(data)) {
+            console.warn(`${type}s is not an array:`, data);
+            return [];
+        }
+
+        // Transform data to features
+        const allFeatures = [];
+
+        data.forEach((item) => {
+            // console.log("Processing item:", item);
+
+            let feature;
+
+            if (type === "cluster") {
+                const cluster = item.cluster;
+                const lots = item.lots || [];
+
+                // console.log("Cluster:", cluster, "Lots count:", lots.length);
+
+                // Create a feature for the cluster with lots attached
+                feature = {
+                    // first three are for validation
+                    type: cluster.type,
+                    geometry: cluster.geometry,
+                    properties: cluster.properties,
+                    // these two are for the data for the UI and components
+                    cluster: cluster,
+                    lots: lots,
+                };
+            } else if (type === "phase") {
+                const phase = item.phase;
+
+                // Create a feature for the phase
+                feature = {
+                    // first three are for validation
+                    type: phase.type,
+                    geometry: phase.geometry,
+                    // this is for the data for the UI and components
+                    properties: phase.properties,
+                    id: item.id,
+                };
+            }
+
+            if (feature) {
+                allFeatures.push(feature);
+            }
+        });
+
+        // console.log("Total features extracted:", allFeatures.length);
+
+        return allFeatures
             .filter((feature) => {
                 const hasGeom =
                     feature?.geometry?.type &&
                     Array.isArray(feature.geometry.coordinates);
-                if (!hasGeom) console.warn("Skipping invalid lot:", feature);
+                if (!hasGeom)
+                    console.warn(`Skipping invalid ${type}:`, feature);
                 return hasGeom;
             })
             .map((feature) => {
@@ -63,28 +121,34 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * @param features receives the processed features
+     * @param features receives the processed features (lots with cluster and burial data)
      */
-    const separateLotsByType = (features) => {
+    const separateClustersByType = (features) => {
         const types = [
-            ...new Set(features.map((feature) => feature.properties.lot_type)),
+            ...new Set(
+                features.map((feature) => feature.cluster.properties.type)
+            ),
         ];
 
+        // separate the types into their own L.layerGroup() and store it in the clusterLayers hashMap
         types.forEach((type) => {
             // Reuse existing layerGroup or create new one
-            if (!lotLayers.value.has(type)) {
-                lotLayers.value.set(type, L.layerGroup());
-                lotVisibility.value.set(type, true);
+            if (!clusterLayers.value.has(type)) {
+                clusterLayers.value.set(type, L.layerGroup());
+                // only set the visibility to true again if it doesn't exist yet
+                if (!clusterVisibility.value.has(type)) {
+                    clusterVisibility.value.set(type, true);
+                }
             } else {
                 // Clear old features but keep the layerGroup reference
-                lotLayers.value.get(type).clearLayers();
+                clusterLayers.value.get(type).clearLayers();
             }
         });
 
         types.forEach((type) => {
             // holds bunch of same type lots
             const typeFeatures = features.filter(
-                (f) => f.properties.lot_type === type,
+                (f) => f.cluster.properties.type === type
             );
 
             // apply style to those same type lots
@@ -93,19 +157,19 @@ export function useFeatureProcessing() {
                 {
                     style: getLotStyle,
                     onEachFeature: onEachFeatureCustom,
-                },
+                }
             );
 
-            // since we set lotLayers hash map values to L.layerGroup() above, we are just accessing
+            // since we set clusterLayers hash map values to L.layerGroup() above, we are just accessing
             // that L.layerGroup here
-            const layerGroup = lotLayers.value.get(type);
+            const layerGroup = clusterLayers.value.get(type);
             // console.log(`layer group`, layerGroup);
             // console.log(`geoJson layer`, geoJsonLayer);
             geoJsonLayer.addTo(layerGroup);
 
             // ✅ Add directly to map if visible
             if (
-                lotVisibility.value.get(type) &&
+                clusterVisibility.value.get(type) &&
                 !map.value.hasLayer(layerGroup)
             ) {
                 layerGroup.addTo(map.value);
@@ -114,11 +178,86 @@ export function useFeatureProcessing() {
 
         // ✅ Update uniqueTypes AFTER layers are built
         uniqueTypes.value = types;
+
+        // Updates the visibility
+        toggleMapFeaturesState.value = Array.from(
+            clusterVisibility.value.values()
+        ).some((v) => v);
+    };
+
+    /**
+     * @param features receives the processed phase features
+     * Description: Simpler version for phases - just applies style and renders
+     */
+    const renderPhases = (features) => {
+        // Create a single layer group for all phases
+        phaseLayerGroup.value = L.layerGroup();
+
+        // Apply style to phases
+        const geoJsonLayer = L.geoJSON(
+            { type: "FeatureCollection", features: features },
+            {
+                style: getPhaseStyle,
+                onEachFeature: onEachPhaseFeature,
+            }
+        );
+
+        geoJsonLayer.addTo(phaseLayerGroup.value);
+        phaseLayerGroup.value.addTo(map.value);
+    };
+
+    /**
+     * Description: Style for phase polygons
+     */
+    const getPhaseStyle = (feature) => {
+        return {
+            fillColor: "#3B82F6",
+            weight: 2,
+            color: "#1E40AF",
+            fillOpacity: 0.3,
+        };
+    };
+
+    /**
+     * Description: Attach click handler for phases
+     */
+    const onEachPhaseFeature = (feature, layer) => {
+        // Get the center of the polygon
+        const center = layer.getBounds().getCenter();
+
+        // Create a div icon with the phase number using Tailwind
+        const phaseNumber = feature.properties.phase_name;
+
+        const numberIcon = L.divIcon({
+            className: "phase-number-label",
+            html: `<div class="
+            border-2 border-blue-900 
+            rounded-full 
+            w-12 h-12 
+            flex items-center justify-center 
+            font-bold 
+            text-white 
+            text-center
+            text-base
+            shadow-md
+        ">${phaseNumber}</div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+        });
+
+        // Add marker to the phase layer group
+        const marker = L.marker(center, { icon: numberIcon });
+        marker.addTo(phaseLayerGroup.value);
+
+        // Click handler for the polygon
+        layer.on("click", function () {
+            // console.log("Phase clicked:", feature);
+        });
     };
 
     const clearLayers = () => {
         uniqueTypes.value.forEach((type) => {
-            const layer = lotLayers.value.get(type);
+            const layer = clusterLayers.value.get(type);
             if (layer) {
                 if (map.value?.hasLayer(layer)) {
                     map.value.removeLayer(layer);
@@ -127,7 +266,7 @@ export function useFeatureProcessing() {
             }
         });
 
-        lotLayers.value.clear();
+        clusterLayers.value.clear();
         uniqueTypes.value = []; // ✅ Only cleared here, not mid-rebuild
     };
 
@@ -136,32 +275,30 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * @param feature the actual renderd polygon
-     * Description: responsible for lot styling
+     * @param feature the actual rendered polygon (cluster)
+     * Description: responsible for cluster styling
      */
     const getLotStyle = (feature) => {
         const colors = {
             available: "#90EE90",
             occupied: "#FFB6C6",
-            reserved: "#FFE66D",
+            partial: "#FFE66D",
         };
 
         return {
             fillColor: colors[feature.properties.status] || "#CCCCCC",
             weight: 1,
             color: "black",
-            fillOpacity: 0.7,
+            fillOpacity: 0.5,
         };
     };
 
     /**
-     * @param feature is the actual lot rendered as polygon hence referred to as 'feature'
+     * @param feature is the actual cluster rendered as polygon
      * @param layer
      * Description: attach modal as popUp
      */
     const attachLotPopup = (feature, layer) => {
-        // console.log(feature);
-
         layer.on("click", function () {
             window.openLotModal(feature, layer._leaflet_id);
         });
@@ -169,7 +306,8 @@ export function useFeatureProcessing() {
 
     return {
         processFeatures,
-        separateLotsByType,
+        separateClustersByType,
+        renderPhases,
         clearLayers,
     };
 }

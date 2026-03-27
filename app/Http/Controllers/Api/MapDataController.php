@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
-use App\Http\Resources\LotResource;
+use App\Http\Resources\ClusterResource;
+use App\Http\Resources\PhaseResource;
 use App\Models\BurialRecord;
+use App\Models\Cluster;
 use App\Models\Lot;
+use App\Models\Phase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +20,7 @@ class MapDataController extends Controller
     {
         $burials = BurialRecord::with([
             'lot' => function ($q) {
-                $q->select('id', 'lot_type', 'section_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
+                $q->select('id', 'type', 'phase_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
             },
             'deceasedRecord:id,first_name,last_name',
             'user:id,name,email',
@@ -26,57 +29,85 @@ class MapDataController extends Controller
         return BurialRecordResource::collection($burials);
     }
 
+    public function phaseRecords()
+    {
+        $phases = Phase::select(
+            'id',
+            // 'phase_code',
+            'phase_name',
+            // 'description',
+            // 'status',
+            // 'total_capacity',
+            DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
+        )->get();
+
+        return PhaseResource::collection($phases);
+    }
+
     // Fetch burial records within a bounding box
     public function partialBurialRecords(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'minLat' => 'required|numeric',
             'maxLat' => 'required|numeric',
             'minLng' => 'required|numeric',
             'maxLng' => 'required|numeric',
+            'limit' => 'nullable|integer|min:1|max:5000',
         ]);
 
-        $minLng = $request->minLng;
-        $minLat = $request->minLat;
-        $maxLng = $request->maxLng;
-        $maxLat = $request->maxLat;
+        $limit = $validated['limit'] ?? 5000;
 
-        $lots = Lot::whereRaw(
-            "MBRContains(
-            ST_GeomFromText(CONCAT(
-                'POLYGON((',
-                ?, ' ', ?, ',',
-                ?, ' ', ?, ',',
-                ?, ' ', ?, ',',
-                ?, ' ', ?, ',',
-                ?, ' ', ?,
-                '))'
-            )),
-            coordinates
-        )",
-            [
-                $minLng,$minLat,
-                $maxLng,$minLat,
-                $maxLng,$maxLat,
-                $minLng,$maxLat,
-                $minLng,$minLat,
-            ]
-        )
-         ->with([
-             'burialRecords.deceasedRecord:id,first_name,last_name,date_of_depository',
-         ])
-         ->select(
-             'id',
-             'lot_number',
-             'lot_type',
-             'section_id',
-             'status',
-             'total_capacity',
-             DB::raw('ST_AsGeoJSON(coordinates) as coordinates')
-         )
-         ->limit(100)
-         ->get();
+        $clusterIds = DB::table('clusters')
+            ->whereRaw(
+                "MBRContains(
+                ST_GeomFromText(CONCAT(
+                    'POLYGON((',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?, ',',
+                    ?, ' ', ?,
+                    '))'
+                )),
+                coordinates
+            )",
+                [
+                    $validated['minLng'],
+                    $validated['minLat'],
+                    $validated['maxLng'],
+                    $validated['minLat'],
+                    $validated['maxLng'],
+                    $validated['maxLat'],
+                    $validated['minLng'],
+                    $validated['maxLat'],
+                    $validated['minLng'],
+                    $validated['minLat'],
+                ]
+            )
+            ->limit($limit)
+            ->pluck('id');
 
-        return LotResource::collection($lots);
+        $clusters = DB::table('clusters')
+            ->whereIn('id', $clusterIds)
+            ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->get()
+            ->map(function ($cluster) {
+                $clusterModel = Cluster::find($cluster->id);
+                $clusterModel->coordinates = $cluster->coordinates;
+                $clusterModel->load([
+                    'lots' => function ($query) {
+                        $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                    },
+                    'lots.burialRecords.deceasedRecord',
+                    'lots.burialRecords.user'
+                ]);
+                return $clusterModel;
+            });
+
+        return ClusterResource::collection($clusters);
     }
+
+
+    // TODO: Create a method for fetching the Phases
+    // TODO: Create a method for fetching the Clusters 
 }

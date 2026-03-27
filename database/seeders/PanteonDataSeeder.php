@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
-use App\Models\Section;
+use App\Models\Phase;
 use App\Models\Lot;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,17 +19,18 @@ class PanteonDataSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->seedSections();
+        $this->seedPhases();
+        $this->seedClusters();
         $this->seedLots();
         $this->deceasedRecords();
     }
 
-    private function seedSections(): void
+    private function seedPhases(): void
     {
-        $geoJsonPath = public_path('data/sections.geojson');
+        $geoJsonPath = public_path('data/phases.geojson');
 
         if (!$geoJsonPath) {
-            $this->command->error("GeoJSON file for section not found at path $geoJsonPath");
+            $this->command->error("GeoJSON file for phase not found at path $geoJsonPath");
             return;
         }
 
@@ -40,27 +41,26 @@ class PanteonDataSeeder extends Seeder
             return;
         }
 
-        $this->command->info("Seeding sections from GeoJSON...");
+        $this->command->info("Seeding phases from GeoJSON...");
 
         foreach ($geoJsonData['features'] as $feature) {
-            // $section_attributes = $feature['properties'];
+            // $phase_attributes = $feature['properties'];
 
-            // holds the coordinates from QGIS
-            $section_coords = [
-                'coordinates' => json_encode($feature['geometry']),
-            ];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            // insert the other attributes using the factory definition & section variable data
-            Section::factory()->create($section_coords);
+            DB::statement("INSERT INTO phases(phase_name, coordinates, created_at, updated_at) VALUES (?, ST_GeomFromGeoJSON(?), NOW(), NOW())", [
+                $feature['properties']['name'],
+                $geometryJson,
+            ]);
         }
 
-        $this->command->info("Sections imported: " . count($geoJsonData['features']));
+        $this->command->info("Total phases imported: " . count($geoJsonData['features']));
     }
 
-    private function seedLots(): void
+    private function seedClusters(): void
     {
-        $geoJsonPath_Underground = public_path('data/lots_underground.geojson');
-        $geoJsonPath_Appartment = public_path('data/lots_appartment.geojson');
+        $geoJsonPath_Underground = public_path('data/cluster_underground.geojson');
+        $geoJsonPath_Appartment = public_path('data/cluster_apartment.geojson');
 
         if (!file_exists($geoJsonPath_Underground) || !file_exists($geoJsonPath_Appartment)) {
             $this->command->error("GeoJSON files not found");
@@ -73,13 +73,13 @@ class PanteonDataSeeder extends Seeder
         $allFeatures = [];
 
         foreach ($geoJsonData_underground['features'] as $feature) {
-            $feature['properties']['lot_type'] = 'underground';
+            $feature['properties']['cluster_type'] = 'underground';
             $feature['properties']['total_capacity'] = 1;
             $allFeatures[] = $feature;
         }
 
         foreach ($geoJsonData_appartment['features'] as $feature) {
-            $feature['properties']['lot_type'] = 'apartment';
+            $feature['properties']['cluster_type'] = 'apartment';
             $feature['properties']['total_capacity'] = 371;
             $allFeatures[] = $feature;
         }
@@ -98,18 +98,69 @@ class PanteonDataSeeder extends Seeder
                 continue;
             }
 
-            $attributes   = $feature['properties'];
+            $attributes = $feature['properties'];
             $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
             DB::statement("
-            INSERT INTO lots (lot_number, section_id, lot_type, total_capacity, coordinates, created_at, updated_at)
+            INSERT INTO clusters (phase_id, cluster_name, cluster_type, total_capacity, coordinates, created_at, updated_at)
             VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
         ", [
-                $attributes['lot_number'] ?? 'LOT-' . ($index + 1),
-                $attributes['section_id'],
-                $attributes['lot_type'],
+                $attributes['phase_id'],
+                $attributes['name'], // cluster_name
+                $attributes['cluster_type'],
                 $attributes['total_capacity'],
+                $geometryJson,
+            ]);
+
+            $counter++;
+        }
+
+        $this->command->info("Total clusters imported: {$counter}");
+    }
+
+
+    private function seedLots(): void
+    {
+        $geoJsonPath_Lots = public_path('data/lots.geojson');
+
+        if (!file_exists($geoJsonPath_Lots)) {
+            $this->command->error("GeoJSON files not found");
+            return;
+        }
+
+        $geoJsonData_Lots = json_decode(file_get_contents($geoJsonPath_Lots), true);
+
+        if (!$geoJsonData_Lots['features']) {
+            $this->command->error("Invalid GeoJSON format: 'features' key not found.");
+            return;
+        }
+
+        $this->command->info("Seeding lots from GeoJSON...");
+
+        $counter = 0;
+
+        foreach ($geoJsonData_Lots['features'] as $index => $feature) {
+            if (
+                !isset($feature['geometry'])
+                || !isset($feature['geometry']['coordinates'])
+                || empty($feature['geometry']['coordinates'])
+            ) {
+                $this->command->warn("Skipping LOT-{$index} NAME-{$feature['row']}{$feature['column']}: empty geometry");
+                continue;
+            }
+
+            $attributes = $feature['properties'];
+            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+            // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
+            DB::statement("
+            INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
+            VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+            ", [
+                $attributes['row'],
+                $attributes['column'], // cluster_name
+                $attributes['cluster_id'],
                 $geometryJson,
             ]);
 
@@ -120,54 +171,36 @@ class PanteonDataSeeder extends Seeder
     }
 
     /**
-    * Description: Only use this function for testing (without the actual data from Panteon);
-    *   Mainly responsible for assigining each deceased record to teir own lot
-    */
+     * Description: Only use this function for testing (without the actual data from Panteon);
+     *   Mainly responsible for assigining each deceased record to teir own lot
+     */
     // FIX: Optimize this further, it take 2mins at least seed
     private function deceasedRecords(): void
     {
-
         $deceasedCollection = DeceasedRecord::all();
-
         $deceasedIndex = 0;
         $totalDeceased = $deceasedCollection->count();
 
-        // eager load burialRecords count to track usage
         $lots = Lot::withCount('burialRecords')->get();
 
         foreach ($lots as $lot) {
             if ($deceasedIndex >= $totalDeceased) {
-                break; // stop if all deceased assigned
+                break;
             }
 
-            $lot_capacity = $lot->total_capacity;
-            $lot_current_occupants = $lot->burial_records_count;
-            $lot_remaining_slots = $lot_capacity - $lot_current_occupants;
-
-            if ($lot_remaining_slots <= 0) {
-                continue; // lot already full, continue to next lot
+            if ($lot->burial_records_count > 0) {
+                continue;
             }
 
-            for ($i = 0; $i < $lot_remaining_slots; $i++) {
-                if ($deceasedIndex >= $totalDeceased) {
-                    break; // stop if all deceased assigned
-                }
+            $deceased = $deceasedCollection[$deceasedIndex];
 
-                $deceased = $deceasedCollection[$deceasedIndex];
+            $lot->burialRecords()->create(
+                BurialRecord::factory()->make([
+                    'deceased_record_id' => $deceased->id,
+                ])->toArray()
+            );
 
-                $lot->burialRecords()->create(
-                    BurialRecord::factory()->make([
-                        'deceased_record_id' => $deceased->id,
-                    ])->toArray()
-                );
-
-                $deceasedIndex++;
-            }
-
-            // If lot is full, mark occupied
-            if ($lot_remaining_slots > 0) {
-                $lot->update(['status' => 'Occupied']);
-            }
+            $deceasedIndex++;
         }
     }
 }

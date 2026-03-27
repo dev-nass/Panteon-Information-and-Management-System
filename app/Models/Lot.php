@@ -14,19 +14,18 @@ class Lot extends Model
 
     // Add this:
     protected $casts = [
-        'coordinates' => 'array', // automatically decodes JSON strings
     ];
 
     protected $fillable = [
-        'section_id',
-        'lot_type',
+        'phase_id',
+        'type',
         'total_capacity',
         'coordinates',
     ];
 
-    public function section(): BelongsTo
+    public function cluster(): BelongsTo
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(Cluster::class);
     }
 
     public function burialRecords(): HasMany
