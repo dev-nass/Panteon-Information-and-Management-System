@@ -35,7 +35,7 @@ export function useSearchFeatureProcessing() {
     const markBurialRecordClusterPolygon = (clusterData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
-                `Unable to mark cluster polygon, invalid polygon coordinates`,
+                `Unable to mark cluster polygon, invalid polygon coordinates`
             );
             return;
         }
@@ -118,10 +118,133 @@ export function useSearchFeatureProcessing() {
         searchResultLayer.value.addLayer(marker);
     };
 
+    /**
+     * Description: Mark phase polygon on map
+     * @param phaseData expects a phase record from PhaseResource
+     * @param polygonCoordinate expects GeoJSON coordinates
+     */
+    const markPhasePolygon = (phaseData, polygonCoordinate) => {
+        if (!polygonCoordinate || !polygonCoordinate.length) {
+            console.error(
+                `Unable to mark phase polygon, invalid polygon coordinates`
+            );
+            return;
+        }
+
+        const geoJsonFeature = {
+            type: "Feature",
+            geometry: {
+                type: "Polygon",
+                coordinates: [polygonCoordinate],
+            },
+            properties: {
+                ...phaseData.phase.properties,
+            },
+        };
+
+        const geoJsonLayer = L.geoJSON(geoJsonFeature, {
+            style: () => ({
+                color: "#10b981",
+                fillColor: "#10b981",
+                fillOpacity: 0.2,
+                weight: 3,
+            }),
+        });
+
+        searchResultLayer.value.addLayer(geoJsonLayer);
+
+        if (!map.value.hasLayer(searchResultLayer.value)) {
+            searchResultLayer.value.addTo(map.value);
+        }
+
+        map.value.fitBounds(geoJsonLayer.getBounds(), {
+            padding: [50, 50],
+            maxZoom: 18,
+        });
+    };
+
+    /**
+     * Description: Mark cluster polygon on map
+     * @param clusterData expects a cluster record from ClusterResource
+     * @param polygonCoordinate expects GeoJSON coordinates
+     */
+    const markClusterPolygon = (clusterData, polygonCoordinate) => {
+        if (!polygonCoordinate || !polygonCoordinate.length) {
+            console.error(
+                `Unable to mark cluster polygon, invalid polygon coordinates`
+            );
+            return;
+        }
+
+        const geoJsonFeature = {
+            type: "Feature",
+            geometry: {
+                type: "Polygon",
+                coordinates: [polygonCoordinate],
+            },
+            properties: {
+                ...clusterData.cluster.properties,
+            },
+        };
+
+        const geoJsonLayer = L.geoJSON(geoJsonFeature, {
+            style: () => ({
+                color: "#3b82f6",
+                fillColor: "#3b82f6",
+                fillOpacity: 0.2,
+                weight: 3,
+            }),
+        });
+
+        searchResultLayer.value.addLayer(geoJsonLayer);
+
+        if (!map.value.hasLayer(searchResultLayer.value)) {
+            searchResultLayer.value.addTo(map.value);
+        }
+
+        map.value.fitBounds(geoJsonLayer.getBounds(), {
+            padding: [50, 50],
+            maxZoom: 19,
+        });
+    };
+
+    /**
+     * Description: Mark lot point on map
+     * @param lot expects a lot with Point geometry
+     */
+    const markLotPoint = (lot) => {
+        if (!lot.geometry || !lot.geometry.coordinates) {
+            console.error(`Unable to mark lot point, invalid coordinates`);
+            return;
+        }
+
+        const [lng, lat] = lot.geometry.coordinates;
+
+        const marker = L.circleMarker([lat, lng], {
+            radius: 10,
+            fillColor: "#f59e0b",
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8,
+        });
+
+        searchResultLayer.value.addLayer(marker);
+
+        if (!map.value.hasLayer(searchResultLayer.value)) {
+            searchResultLayer.value.addTo(map.value);
+        }
+
+        map.value.setView([lat, lng], 20);
+    };
+
     // ✅ Export helpers so useSearch can consume them
     return {
         normalizeCoordinates,
         markBurialRecordClusterPolygon,
         markBurialRecordLotPoint,
+        markPhasePolygon,
+        markClusterPolygon,
+        markLotPoint,
     };
 }

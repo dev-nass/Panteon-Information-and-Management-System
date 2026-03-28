@@ -12,6 +12,9 @@ export function useSearch() {
         normalizeCoordinates,
         markBurialRecordClusterPolygon,
         markBurialRecordLotPoint,
+        markPhasePolygon,
+        markClusterPolygon,
+        markLotPoint,
     } = useSearchFeatureProcessing();
 
     /**
@@ -178,31 +181,28 @@ export function useSearch() {
                 });
             }
         } else if (type === 'phase') {
-            // TODO: Process for phase
-            // const phase = data.phase;
-            // if (!phase?.geometry?.coordinates) {
-            //     console.error("No phase data available");
-            //     return;
-            // }
-            // const phasePolygonCoords = normalizeCoordinates(phase.geometry.coordinates);
-            // markPhasePolygon(data, phasePolygonCoords);
+            const phase = data.phase;
+            if (!phase?.geometry?.coordinates) {
+                console.error("No phase data available");
+                return;
+            }
+            const phasePolygonCoords = normalizeCoordinates(phase.geometry.coordinates);
+            markPhasePolygon(data, phasePolygonCoords);
         } else if (type === 'cluster') {
-            // TODO: Process for cluster
-            // const cluster = data.cluster;
-            // if (!cluster?.geometry?.coordinates) {
-            //     console.error("No cluster data available");
-            //     return;
-            // }
-            // const clusterPolygonCoords = normalizeCoordinates(cluster.geometry.coordinates);
-            // markClusterPolygon(data, clusterPolygonCoords);
+            const cluster = data.cluster;
+            if (!cluster?.geometry?.coordinates) {
+                console.error("No cluster data available");
+                return;
+            }
+            const clusterPolygonCoords = normalizeCoordinates(cluster.geometry.coordinates);
+            markClusterPolygon(data, clusterPolygonCoords);
         } else if (type === 'lot') {
-            // TODO: Process for lot
-            // const lot = data.lot;
-            // if (!lot?.geometry?.coordinates) {
-            //     console.error("No lot data available");
-            //     return;
-            // }
-            // markLotPoint(lot);
+            const lot = data.lot;
+            if (!lot?.geometry?.coordinates) {
+                console.error("No lot data available");
+                return;
+            }
+            markLotPoint(lot);
         }
     };
 
