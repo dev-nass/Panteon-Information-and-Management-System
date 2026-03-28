@@ -37,6 +37,7 @@ class ClusterResource extends JsonResource
                 ],
             ],
 
+            // then fetches the Burial Records alongside it
             'lots' => $this->whenLoaded('lots', function () {
                 return LotResource::collection($this->lots);
             }),

@@ -22,6 +22,13 @@ const uniqueTypes = ref([]);
  */
 const toggleMapFeaturesState = ref(true);
 
+/**
+ * Description: Is use to make the map more versatile. With this state the map can be use
+ *              for Clerk/BurialRecord and Clerk/LotManagement
+ */
+const mode = ref("view"); // view | manage
+const context = ref("burial"); // burial | phase | cluster | lot
+
 export function useMapStates() {
     return {
         map,
@@ -37,5 +44,8 @@ export function useMapStates() {
         uniqueTypes,
 
         toggleMapFeaturesState,
+
+        mode,
+        context,
     };
 }

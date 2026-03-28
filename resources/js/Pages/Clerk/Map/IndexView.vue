@@ -30,6 +30,8 @@ const {
     clusterVisibility,
     uniqueTypes,
     toggleMapFeaturesState,
+    mode,
+    context,
 } = useMapStates();
 const { search, suggestions, isOnSearchMode } = useMapSearchStates();
 
@@ -44,26 +46,6 @@ const {
 } = useSearch();
 
 const mapContainer = ref(null);
-// previously use bcz im swaping from map to table
-
-// local state for changing the EYE SVG
-
-// NOTE: toggle map and table view (out for now since we ended up separating the MAP and TABLE)
-// const toggleMapEvent = () => {
-//     toggleMap.value = !toggleMap.value;
-//     if (toggleMap.value) {
-//         cleanupMap();
-//         setTimeout(() => initializeMap(mapContainer.value), 0);
-//     } else {
-//         // Switched to table view - need to reinitialize Preline
-//         setTimeout(() => {
-//             if (window.HSStaticMethods) {
-//                 window.HSStaticMethods.autoInit();
-//             }
-//         }, 0);
-//     }
-// };
-
 const modalFeature = ref(null);
 
 // TODO: remove this
@@ -81,6 +63,24 @@ window.openLotModal = function (feature) {
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
+
+const setViewMode = () => {
+    mode.value = "view";
+    context.value = "burial";
+};
+
+const setManageMode = (type) => {
+    mode.value = "manage";
+    context.value = type;
+};
+
+/**
+ * Styling
+ */
+const activeBtn = "px-3 py-2 text-sm rounded-lg bg-green-500 text-white";
+
+const inactiveBtn =
+    "px-3 py-2 text-sm rounded-lg bg-gray-100 dark:bg-neutral-700 text-gray-500";
 
 defineOptions({
     layout: Dashboard,
@@ -235,26 +235,130 @@ onBeforeUnmount(() => {
                             </svg>
                         </template>
                         <template v-slot:main>
-                            <div
-                                class="grid grid-cols-2 gap-y-3 mt-2 max-h-96 overflow-y-auto scrollbar-hide space-y-3 py-2"
-                            >
-                                <Switch
-                                    :model-value="phaseVisibility"
-                                    @update:model-value="togglePhaseVisibility"
-                                    label="Phases"
-                                    size="sm"
-                                />
-                                <Switch
-                                    v-if="uniqueTypes.length > 0"
-                                    v-for="type in uniqueTypes"
-                                    :key="type"
-                                    :model-value="clusterVisibility.get(type)"
-                                    @update:model-value="
-                                        toggleMapFeatures(type)
-                                    "
-                                    :label="type"
-                                    size="sm"
-                                />
+                            <div class="space-y-6 mt-2">
+                                <!-- MODE -->
+                                <div>
+                                    <p
+                                        class="text-xs text-gray-400 mb-2 uppercase"
+                                    >
+                                        Mode
+                                    </p>
+
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button
+                                            @click="setViewMode"
+                                            :class="
+                                                mode === 'view'
+                                                    ? activeBtn
+                                                    : inactiveBtn
+                                            "
+                                        >
+                                            View
+                                        </button>
+
+                                        <button
+                                            @click="setManageMode('lot')"
+                                            :class="
+                                                mode === 'manage'
+                                                    ? activeBtn
+                                                    : inactiveBtn
+                                            "
+                                        >
+                                            Manage
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- ===================== -->
+                                <!-- 👁️ VIEW MODE (FILTERS) -->
+                                <!-- ===================== -->
+                                <div
+                                    v-if="mode === 'view'"
+                                    class="grid grid-cols-2 gap-y-3 max-h-96 overflow-y-auto scrollbar-hide space-y-3 py-2"
+                                >
+                                    <Switch
+                                        :model-value="phaseVisibility"
+                                        @update:model-value="
+                                            togglePhaseVisibility
+                                        "
+                                        label="Phases"
+                                        size="sm"
+                                    />
+
+                                    <Switch
+                                        v-if="uniqueTypes.length > 0"
+                                        v-for="type in uniqueTypes"
+                                        :key="type"
+                                        :model-value="
+                                            clusterVisibility.get(type)
+                                        "
+                                        @update:model-value="
+                                            toggleMapFeatures(type)
+                                        "
+                                        :label="type"
+                                        size="sm"
+                                    />
+                                </div>
+
+                                <!-- ===================== -->
+                                <!-- 🛠️ MANAGE MODE -->
+                                <!-- ===================== -->
+                                <div v-else class="space-y-4">
+                                    <div>
+                                        <p
+                                            class="text-xs text-gray-400 mb-2 uppercase"
+                                        >
+                                            Manage Level
+                                        </p>
+
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <button
+                                                @click="setManageMode('phase')"
+                                                :class="
+                                                    context === 'phase'
+                                                        ? activeBtn
+                                                        : inactiveBtn
+                                                "
+                                            >
+                                                Phase
+                                            </button>
+
+                                            <button
+                                                @click="
+                                                    setManageMode('cluster')
+                                                "
+                                                :class="
+                                                    context === 'cluster'
+                                                        ? activeBtn
+                                                        : inactiveBtn
+                                                "
+                                            >
+                                                Cluster
+                                            </button>
+
+                                            <button
+                                                @click="setManageMode('lot')"
+                                                :class="
+                                                    context === 'lot'
+                                                        ? activeBtn
+                                                        : inactiveBtn
+                                                "
+                                            >
+                                                Lot
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- STATUS INDICATOR -->
+                                <div
+                                    class="text-xs text-gray-500 border-t pt-3"
+                                >
+                                    <span class="font-medium">Current:</span>
+                                    {{ mode }} /
+                                    <span v-if="mode === 'view'">burial</span>
+                                    <span v-else>{{ context }}</span>
+                                </div>
                             </div>
                         </template>
                     </Modal>
