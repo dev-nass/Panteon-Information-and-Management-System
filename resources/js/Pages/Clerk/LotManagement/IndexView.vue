@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
@@ -13,7 +13,44 @@ const props = defineProps({
     phases: Array, // each phase has clusters
 });
 
+// =========================
+// EDITING STATE
+// =========================
+const editing = ref(false);
+const hasChanges = ref(false);
+
+// deep copy original data
+const originalData = ref(JSON.parse(JSON.stringify(props.phases)));
+const localPhases = ref(JSON.parse(JSON.stringify(props.phases)));
+
+watch(
+    localPhases,
+    (val) => {
+        hasChanges.value =
+            JSON.stringify(val) !== JSON.stringify(originalData.value);
+    },
+    { deep: true },
+);
+
+const discardChanges = () => {
+    localPhases.value = JSON.parse(JSON.stringify(originalData.value));
+    hasChanges.value = false;
+    editing.value = false;
+};
+
+const saveChanges = () => {
+    router.post(route("clerk.lot-management.update"), {
+        phases: localPhases.value,
+    });
+
+    originalData.value = JSON.parse(JSON.stringify(localPhases.value));
+    hasChanges.value = false;
+    editing.value = false;
+};
+
+// =========================
 // Search
+// =========================
 const search = ref("");
 
 // Tabs
@@ -27,16 +64,16 @@ const selectedCluster = ref(null);
 // FILTERED DATA
 // =========================
 const filteredPhases = computed(() =>
-    props.phases.filter((p) =>
-        p.name.toLowerCase().includes(search.value.toLowerCase())
-    )
+    localPhases.value.filter((p) =>
+        p.name.toLowerCase().includes(search.value.toLowerCase()),
+    ),
 );
 
 const filteredClusters = computed(() => {
     if (!selectedPhase.value) return [];
 
     return selectedPhase.value.clusters.filter((c) =>
-        c.name.toLowerCase().includes(search.value.toLowerCase())
+        c.name.toLowerCase().includes(search.value.toLowerCase()),
     );
 });
 
@@ -44,29 +81,37 @@ const filteredLots = computed(() => {
     if (!selectedCluster.value) return [];
 
     return selectedCluster.value.lots.filter((l) =>
-        l.number.toLowerCase().includes(search.value.toLowerCase())
+        l.number.toLowerCase().includes(search.value.toLowerCase()),
     );
 });
+
+// =========================
+// CONTEXT LABELS
+// =========================
+const currentPhaseName = computed(() => selectedPhase.value?.name || null);
+const currentClusterName = computed(() => selectedCluster.value?.name || null);
 
 // =========================
 // NAVIGATION
 // =========================
 const goToClusters = (phase) => {
+    if (editing.value) return;
     selectedPhase.value = phase;
     selectedCluster.value = null;
     activeTab.value = "cluster";
 };
 
 const goToLots = (cluster) => {
+    if (editing.value) return;
     selectedCluster.value = cluster;
     activeTab.value = "lot";
 };
 
 const goToLotDetails = (lot) => {
+    if (editing.value) return;
     router.visit(route("clerk.lots.show", lot.id));
 };
 
-// Optional: back navigation
 const goBack = () => {
     if (activeTab.value === "lot") {
         activeTab.value = "cluster";
@@ -85,16 +130,18 @@ defineOptions({
 <template>
     <div class="max-w-[85rem] px-4 py-10 mx-auto">
         <div
-            class="bg-white dark:bg-neutral-800 border rounded-xl shadow overflow-hidden"
+            class="bg-white dark:bg-neutral-800 rounded-xl shadow overflow-hidden"
         >
             <!-- HEADER -->
-            <div class="px-6 py-4 flex justify-between items-center border-b">
+            <div
+                class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
+            >
                 <!-- Search -->
                 <Input placeholder="Search..." v-model="search" />
 
                 <!-- Tabs -->
                 <div
-                    class="flex gap-2 bg-gray-100 dark:bg-neutral-700 p-1 rounded-xl"
+                    class="flex gap-2 bg-gray-100 dark:bg-neutral-900 p-1 rounded-xl"
                 >
                     <button
                         v-for="tab in ['phase', 'cluster', 'lot']"
@@ -103,7 +150,7 @@ defineOptions({
                         class="px-4 py-2 rounded-lg text-sm font-medium transition"
                         :class="
                             activeTab === tab
-                                ? 'bg-green-500 text-white'
+                                ? 'bg-green-500/20 text-green-400'
                                 : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'
                         "
                     >
@@ -111,14 +158,73 @@ defineOptions({
                     </button>
                 </div>
 
-                <!-- Back button -->
-                <Button v-if="activeTab !== 'phase'" @click="goBack">
-                    Back
-                </Button>
+                <!-- ACTION BUTTONS -->
+                <div class="flex gap-2">
+                    <Button v-if="activeTab !== 'phase'" @click="goBack">
+                        Back
+                    </Button>
+
+                    <template v-if="!editing">
+                        <Button
+                            @click="editing = true"
+                            class="bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                        >
+                            Edit
+                        </Button>
+                    </template>
+
+                    <template v-else>
+                        <Button
+                            :disabled="!hasChanges"
+                            @click="saveChanges"
+                            class="bg-green-500/10 text-green-400"
+                        >
+                            Save
+                        </Button>
+
+                        <Button @click="discardChanges"> Discard </Button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- CONTEXT INDICATOR -->
+            <div
+                class="px-6 py-3 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 flex items-center gap-2 text-sm"
+            >
+                <span
+                    class="px-3 py-1 rounded-lg"
+                    :class="
+                        activeTab === 'phase'
+                            ? 'bg-green-500/20 text-green-400'
+                            : 'text-gray-500 dark:text-gray-400'
+                    "
+                >
+                    Phases
+                </span>
+
+                <span v-if="currentPhaseName" class="text-gray-400">→</span>
+
+                <span
+                    v-if="currentPhaseName"
+                    class="px-3 py-1 rounded-lg bg-green-500/10 text-green-400"
+                >
+                    {{ currentPhaseName }}
+                </span>
+
+                <span v-if="currentClusterName" class="text-gray-400">→</span>
+
+                <span
+                    v-if="currentClusterName"
+                    class="px-3 py-1 rounded-lg bg-green-500/10 text-green-400"
+                >
+                    {{ currentClusterName }}
+                </span>
             </div>
 
             <!-- TABLE -->
-            <table class="min-w-full divide-y">
+            <table
+                class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
+            >
                 <!-- HEADERS -->
                 <thead class="bg-gray-50 dark:bg-neutral-800">
                     <tr v-if="activeTab === 'phase'">
@@ -138,17 +244,33 @@ defineOptions({
                 </thead>
 
                 <!-- BODY -->
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
                     <!-- PHASE -->
                     <tr
                         v-if="activeTab === 'phase'"
                         v-for="phase in filteredPhases"
                         :key="phase.id"
-                        class="cursor-pointer hover:bg-gray-50"
                         @click="goToClusters(phase)"
+                        class="transition cursor-pointer"
+                        :class="[
+                            'bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700',
+                            selectedPhase?.id === phase.id
+                                ? 'bg-green-500/10 dark:bg-green-500/20'
+                                : '',
+                        ]"
                     >
-                        <TableData>{{ phase.name }}</TableData>
-                        <TableData>{{ phase.clusters.length }}</TableData>
+                        <TableData>
+                            <input
+                                v-if="editing"
+                                v-model="phase.name"
+                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                            />
+                            <span v-else>{{ phase.name }}</span>
+                        </TableData>
+
+                        <TableData>
+                            {{ phase.clusters.length }}
+                        </TableData>
                     </tr>
 
                     <!-- CLUSTER -->
@@ -156,11 +278,27 @@ defineOptions({
                         v-else-if="activeTab === 'cluster'"
                         v-for="cluster in filteredClusters"
                         :key="cluster.id"
-                        class="cursor-pointer hover:bg-gray-50"
                         @click="goToLots(cluster)"
+                        class="transition cursor-pointer"
+                        :class="[
+                            'bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700',
+                            selectedCluster?.id === cluster.id
+                                ? 'bg-green-500/10 dark:bg-green-500/20'
+                                : '',
+                        ]"
                     >
-                        <TableData>{{ cluster.name }}</TableData>
-                        <TableData>{{ cluster.lots.length }}</TableData>
+                        <TableData>
+                            <input
+                                v-if="editing"
+                                v-model="cluster.name"
+                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                            />
+                            <span v-else>{{ cluster.name }}</span>
+                        </TableData>
+
+                        <TableData>
+                            {{ cluster.lots.length }}
+                        </TableData>
                     </tr>
 
                     <!-- LOT -->
@@ -168,10 +306,18 @@ defineOptions({
                         v-else
                         v-for="lot in filteredLots"
                         :key="lot.id"
-                        class="cursor-pointer hover:bg-gray-50"
                         @click="goToLotDetails(lot)"
+                        class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
                     >
-                        <TableData>{{ lot.number }}</TableData>
+                        <TableData>
+                            <input
+                                v-if="editing"
+                                v-model="lot.number"
+                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                            />
+                            <span v-else>{{ lot.number }}</span>
+                        </TableData>
+
                         <TableData :isHighlighted="true">
                             {{ lot.status }}
                         </TableData>

@@ -520,7 +520,7 @@ const page = usePage();
                     <SidebarLink
                         :href="route('clerk.lot_management.index')"
                         :isActive="
-                            page.component === 'Clerk/LotManagment/IndexView'
+                            page.component === 'Clerk/LotManagement/IndexView'
                         "
                     >
                         <template v-slot:icon>

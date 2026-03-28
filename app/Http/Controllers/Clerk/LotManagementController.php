@@ -12,25 +12,28 @@ class LotManagementController extends Controller
 {
     public function index()
     {
-        $phases = Phase::with(['clusters.lots'])->get()->map(function ($phase) {
-            return [
-                'id' => $phase->id,
-                'name' => $phase->phase_name,
-                'clusters' => $phase->clusters->map(function ($cluster) {
-                    return [
-                        'id' => $cluster->id,
-                        'name' => $cluster->cluster_name,
-                        'lots' => $cluster->lots->map(function ($lot) {
-                            return [
-                                'id' => $lot->id,
-                                'number' => $lot->column . '-' . $lot->row,
-                                'status' => $lot->burialRecords()->count() > 0 ? 'occupied' : 'available',
-                            ];
-                        }),
-                    ];
-                }),
-            ];
-        });
+        $phases = Phase::with(['clusters.lots.burialRecords'])->get()
+            ->map(function ($phase) {
+                return [
+                    'id' => $phase->id,
+                    'name' => $phase->phase_name,
+                    'clusters' => $phase->clusters->map(function ($cluster) {
+                        return [
+                            'id' => $cluster->id,
+                            'name' => $cluster->cluster_name,
+                            'lots' => $cluster->lots->map(function ($lot) {
+                                return [
+                                    'id' => $lot->id,
+                                    'number' => $lot->column . '-' . $lot->row,
+                                    'status' => $lot->burialRecords->isNotEmpty()
+                                        ? 'occupied'
+                                        : 'available',
+                                ];
+                            }),
+                        ];
+                    }),
+                ];
+            });
 
         return Inertia::render('Clerk/LotManagement/IndexView', [
             'phases' => $phases,
