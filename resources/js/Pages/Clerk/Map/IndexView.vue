@@ -12,7 +12,7 @@ import { forEach } from "lodash";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
-import { Link } from "@inertiajs/vue3";
+import { Link, router } from "@inertiajs/vue3";
 import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import ClusterModal from "@/Components/Map/ClusterModal.vue";
@@ -44,6 +44,9 @@ const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
 const {
     fetchSuggestions,
     fetchClusterByBurialId,
+    fetchPhase,
+    fetchCluster,
+    fetchLot,
     showSearchResult,
     clearSearch,
 } = useSearch();
@@ -54,6 +57,42 @@ const phaseModalFeature = ref(null);
 const clusterModalFeature = ref(null);
 const lotModalFeature = ref(null);
 const modalFeature = ref(null);
+
+const handleViewPhaseOnTable = (phaseId) => {
+    router.visit(route("clerk.lot_management.index"), {
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewPhaseOnTable) {
+                    window.handleViewPhaseOnTable(phaseId);
+                }
+            }, 100);
+        },
+    });
+};
+
+const handleViewClusterOnTable = (clusterId) => {
+    router.visit(route("clerk.lot_management.index"), {
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewClusterOnTable) {
+                    window.handleViewClusterOnTable(clusterId);
+                }
+            }, 100);
+        },
+    });
+};
+
+const handleViewLotOnTable = (lotId) => {
+    router.visit(route("clerk.lot_management.index"), {
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewLotOnTable) {
+                    window.handleViewLotOnTable(lotId);
+                }
+            }, 100);
+        },
+    });
+};
 
 // TODO: remove this
 // console.log(modalFeature.value);
@@ -140,9 +179,18 @@ onBeforeUnmount(() => {
             :feature="modalFeature"
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
         />
-        <PhaseModal :feature="phaseModalFeature" />
-        <ClusterModal :feature="clusterModalFeature" />
-        <LotModal :feature="lotModalFeature" />
+        <PhaseModal
+            :feature="phaseModalFeature"
+            @view-on-table="handleViewPhaseOnTable"
+        />
+        <ClusterModal
+            :feature="clusterModalFeature"
+            @view-on-table="handleViewClusterOnTable"
+        />
+        <LotModal
+            :feature="lotModalFeature"
+            @view-on-table="handleViewLotOnTable"
+        />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->

@@ -65,6 +65,49 @@ const selectedPhase = ref(null);
 const selectedCluster = ref(null);
 
 // =========================
+// VIEW ON TABLE HANDLERS
+// =========================
+const handleViewPhaseOnTable = (phaseId) => {
+    const phase = localPhases.value.find(p => p.id === phaseId);
+    if (phase) {
+        selectedPhase.value = phase;
+        selectedCluster.value = null;
+        activeTab.value = "cluster";
+    }
+};
+
+const handleViewClusterOnTable = (clusterId) => {
+    for (const phase of localPhases.value) {
+        const cluster = phase.clusters.find(c => c.id === clusterId);
+        if (cluster) {
+            selectedPhase.value = phase;
+            selectedCluster.value = cluster;
+            activeTab.value = "lot";
+            break;
+        }
+    }
+};
+
+const handleViewLotOnTable = (lotId) => {
+    for (const phase of localPhases.value) {
+        for (const cluster of phase.clusters) {
+            const lot = cluster.lots.find(l => l.id === lotId);
+            if (lot) {
+                selectedPhase.value = phase;
+                selectedCluster.value = cluster;
+                activeTab.value = "lot";
+                search.value = lot.number;
+                return;
+            }
+        }
+    }
+};
+
+window.handleViewPhaseOnTable = handleViewPhaseOnTable;
+window.handleViewClusterOnTable = handleViewClusterOnTable;
+window.handleViewLotOnTable = handleViewLotOnTable;
+
+// =========================
 // FILTERED DATA
 // =========================
 const filteredPhases = computed(() =>
