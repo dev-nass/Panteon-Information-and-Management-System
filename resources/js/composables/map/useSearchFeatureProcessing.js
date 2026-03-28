@@ -124,6 +124,7 @@ export function useSearchFeatureProcessing() {
      * @param polygonCoordinate expects GeoJSON coordinates
      */
     const markPhasePolygon = (phaseData, polygonCoordinate) => {
+        console.log(phaseData);
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
                 `Unable to mark phase polygon, invalid polygon coordinates`
@@ -138,6 +139,7 @@ export function useSearchFeatureProcessing() {
                 coordinates: [polygonCoordinate],
             },
             properties: {
+                id: phaseData.id,
                 ...phaseData.phase.properties,
             },
         };
@@ -149,6 +151,7 @@ export function useSearchFeatureProcessing() {
                 fillOpacity: 0.2,
                 weight: 3,
             }),
+            onEachFeature: attachPhasePopup,
         });
 
         searchResultLayer.value.addLayer(geoJsonLayer);
@@ -160,6 +163,18 @@ export function useSearchFeatureProcessing() {
         map.value.fitBounds(geoJsonLayer.getBounds(), {
             padding: [50, 50],
             maxZoom: 18,
+        });
+    };
+
+    /**
+     * Description: Attach popup to the searched result phase polygon
+     * @param feature
+     * @param layer
+     */
+    const attachPhasePopup = (feature, layer) => {
+        console.log(feature);
+        layer.on("click", function () {
+            window.openPhaseModal(feature, layer._leaflet_id);
         });
     };
 
@@ -185,6 +200,8 @@ export function useSearchFeatureProcessing() {
             properties: {
                 ...clusterData.cluster.properties,
             },
+            cluster: clusterData.cluster,
+            lots: clusterData.lots,
         };
 
         const geoJsonLayer = L.geoJSON(geoJsonFeature, {
@@ -194,6 +211,7 @@ export function useSearchFeatureProcessing() {
                 fillOpacity: 0.2,
                 weight: 3,
             }),
+            onEachFeature: attachClusterPopup,
         });
 
         searchResultLayer.value.addLayer(geoJsonLayer);
@@ -205,6 +223,17 @@ export function useSearchFeatureProcessing() {
         map.value.fitBounds(geoJsonLayer.getBounds(), {
             padding: [50, 50],
             maxZoom: 19,
+        });
+    };
+
+    /**
+     * Description: Attach popup to the searched result cluster polygon
+     * @param feature
+     * @param layer
+     */
+    const attachClusterPopup = (feature, layer) => {
+        layer.on("click", function () {
+            window.openClusterModal(feature, layer._leaflet_id);
         });
     };
 
@@ -227,6 +256,10 @@ export function useSearchFeatureProcessing() {
             weight: 2,
             opacity: 1,
             fillOpacity: 0.8,
+        });
+
+        marker.on("click", function () {
+            window.openLotDetailsModal(lot);
         });
 
         searchResultLayer.value.addLayer(marker);

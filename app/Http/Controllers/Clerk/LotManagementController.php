@@ -14,24 +14,37 @@ class LotManagementController extends Controller
     {
         $phases = Phase::with(['clusters.lots.burialRecords'])->get()
             ->map(function ($phase) {
+                $totalCapacity = 0;
+                $occupants = 0;
+
+                $clusters = $phase->clusters->map(function ($cluster) use (&$totalCapacity, &$occupants) {
+                    $lots = $cluster->lots->map(function ($lot) use (&$totalCapacity, &$occupants) {
+                        $totalCapacity++;
+                        $isOccupied = $lot->burialRecords->isNotEmpty();
+                        if ($isOccupied) {
+                            $occupants++;
+                        }
+
+                        return [
+                            'id' => $lot->id,
+                            'number' => $lot->column . '-' . $lot->row,
+                            'status' => $isOccupied ? 'occupied' : 'available',
+                        ];
+                    });
+
+                    return [
+                        'id' => $cluster->id,
+                        'name' => $cluster->cluster_name,
+                        'lots' => $lots,
+                    ];
+                });
+
                 return [
                     'id' => $phase->id,
                     'name' => $phase->phase_name,
-                    'clusters' => $phase->clusters->map(function ($cluster) {
-                        return [
-                            'id' => $cluster->id,
-                            'name' => $cluster->cluster_name,
-                            'lots' => $cluster->lots->map(function ($lot) {
-                                return [
-                                    'id' => $lot->id,
-                                    'number' => $lot->column . '-' . $lot->row,
-                                    'status' => $lot->burialRecords->isNotEmpty()
-                                        ? 'occupied'
-                                        : 'available',
-                                ];
-                            }),
-                        ];
-                    }),
+                    'total_capacity' => $totalCapacity,
+                    'occupants' => $occupants,
+                    'clusters' => $clusters,
                 ];
             });
 

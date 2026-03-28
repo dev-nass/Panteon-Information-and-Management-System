@@ -13,7 +13,8 @@ import { forEach } from "lodash";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
-import ClusterModal from "@/Components/Map/ClusterModal.vue";
+import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
+import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
@@ -47,6 +48,7 @@ const {
 
 // local states
 const mapContainer = ref(null);
+const phaseModalFeature = ref(null);
 const modalFeature = ref(null);
 
 // TODO: remove this
@@ -54,11 +56,18 @@ const modalFeature = ref(null);
 
 // Definition of global function using 'window' API
 
+window.openPhaseModal = function (feature) {
+    phaseModalFeature.value = feature;
+    console.log("Modal feature", phaseModalFeature.value);
+
+    HSOverlay.open("#hs-phase-modal");
+};
+
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
  */
-window.openLotModal = function (feature) {
+window.openBurialRecordModal = function (feature) {
     modalFeature.value = feature;
     // console.log("Modal feature", modalFeature.value.lots);
 
@@ -109,10 +118,11 @@ onBeforeUnmount(() => {
     <section id="map-wrapper" class="relative w-full" style="height: 98vh">
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
-        <ClusterModal
+        <BurialRecordModal
             :feature="modalFeature"
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
         />
+        <PhaseModal :feature="phaseModalFeature" />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->
