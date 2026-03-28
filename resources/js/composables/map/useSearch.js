@@ -30,8 +30,10 @@ export function useSearch() {
                 },
             );
             if (!response.ok) throw new Error("Failed to fetch suggestions");
+
             const data = await response.json();
             const burials = [];
+
             data.data.forEach((cluster) => {
                 cluster.lots.forEach((lotResource) => {
                     const lot = lotResource.lot;
@@ -56,7 +58,7 @@ export function useSearch() {
     }, 300);
 
     /**
-     * Description: Used within Clerk/BurialRecord/Show
+     * Description: Used within the Clerk/Map/Index and Clerk/BurialRecord/Show
      */
     const fetchClusterByBurialId = async (burialId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -78,7 +80,11 @@ export function useSearch() {
         }
     };
 
-    // ✅ Now uses the imported helpers directly
+    /**
+     * Description: Process the cluster data fetched from the db
+     *              and apply useSearchFeatureProcessing
+     * @param {*} clusterData retrieved from the database based on BurialRecordID
+     */
     const showSearchResult = (clusterData) => {
         searchResultLayer.value.clearLayers();
         const cluster = clusterData.cluster;

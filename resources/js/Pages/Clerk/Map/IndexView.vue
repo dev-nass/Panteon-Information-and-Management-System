@@ -45,6 +45,7 @@ const {
     clearSearch,
 } = useSearch();
 
+// local states
 const mapContainer = ref(null);
 const modalFeature = ref(null);
 
