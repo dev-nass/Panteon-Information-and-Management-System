@@ -80,6 +80,12 @@ export function useSearch() {
         }
     };
 
+    // TODO: Create method for fetching the "View More Phase"
+    // TODO: Create method for fetching the "View More Cluster"
+    // TODO: Create method for fetching the "View More Lot"
+
+    // TODO: Update the method below so i wont just accept clusterData but from
+    // fetchClusterByBurialId but also fetchPhase, fetchCluster, fetchLot
     /**
      * Description: Process the cluster data fetched from the db
      *              and apply useSearchFeatureProcessing
