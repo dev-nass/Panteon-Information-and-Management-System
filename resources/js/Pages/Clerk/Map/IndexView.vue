@@ -15,6 +15,7 @@ import Input from "@/Components/Form/Input.vue";
 import { Link } from "@inertiajs/vue3";
 import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
+import ClusterModal from "@/Components/Map/ClusterModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
@@ -49,6 +50,7 @@ const {
 // local states
 const mapContainer = ref(null);
 const phaseModalFeature = ref(null);
+const clusterModalFeature = ref(null);
 const modalFeature = ref(null);
 
 // TODO: remove this
@@ -61,6 +63,13 @@ window.openPhaseModal = function (feature) {
     console.log("Modal feature", phaseModalFeature.value);
 
     HSOverlay.open("#hs-phase-modal");
+};
+
+window.openClusterModal = function (feature) {
+    clusterModalFeature.value = feature;
+    console.log("Modal feature", clusterModalFeature.value);
+
+    HSOverlay.open("#hs-cluster-modal");
 };
 
 /**
@@ -123,6 +132,7 @@ onBeforeUnmount(() => {
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
         />
         <PhaseModal :feature="phaseModalFeature" />
+        <ClusterModal :feature="clusterModalFeature" />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->
