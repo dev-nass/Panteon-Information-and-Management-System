@@ -28,10 +28,11 @@ export function useSearchFeatureProcessing() {
     };
 
     /**
+     * Description: Use for BurialRecord Search
      * @param clusterData expects a cluster record from ClusterResource
      * @param polygonCoordinate expects GeoJSON coordinates
      */
-    const markClusterPolygon = (clusterData, polygonCoordinate) => {
+    const markBurialRecordClusterPolygon = (clusterData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
                 `Unable to mark cluster polygon, invalid polygon coordinates`,
@@ -53,8 +54,8 @@ export function useSearchFeatureProcessing() {
         };
 
         const geoJsonLayer = L.geoJSON(geoJsonFeature, {
-            style: getClusterSearchResultStyle,
-            onEachFeature: attachSearchPopup,
+            style: getBurialRecordSearchClusterStyle,
+            onEachFeature: attachBurialRecordClusterPopup,
         });
 
         searchResultLayer.value.addLayer(geoJsonLayer);
@@ -70,9 +71,33 @@ export function useSearchFeatureProcessing() {
     };
 
     /**
+     * Description: also used for BurialRecord Search
+     */
+    const getBurialRecordSearchClusterStyle = () => {
+        return {
+            color: "#ef4444",
+            fillColor: "#ef4444",
+            fillOpacity: 0.2,
+            weight: 3,
+        };
+    };
+
+    /**
+     * Description: Attach popup to the searched result cluster polygon
+     * @param feature
+     * @param layer
+     */
+    const attachBurialRecordClusterPopup = (feature, layer) => {
+        // console.log(feature);
+        layer.on("click", function () {
+            window.openLotModal(feature, layer._leaflet_id);
+        });
+    };
+
+    /**
      * @param lot expects a lot with Point geometry
      */
-    const markLotPoint = (lot) => {
+    const markBurialRecordLotPoint = (lot) => {
         if (!lot.geometry || !lot.geometry.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;
@@ -93,31 +118,10 @@ export function useSearchFeatureProcessing() {
         searchResultLayer.value.addLayer(marker);
     };
 
-    const getClusterSearchResultStyle = () => {
-        return {
-            color: "#ef4444",
-            fillColor: "#ef4444",
-            fillOpacity: 0.2,
-            weight: 3,
-        };
-    };
-
-    /**
-     * Description: Attach popup to the searched result cluster polygon
-     * @param feature
-     * @param layer
-     */
-    const attachSearchPopup = (feature, layer) => {
-        // console.log(feature);
-        layer.on("click", function () {
-            window.openLotModal(feature, layer._leaflet_id);
-        });
-    };
-
     // ✅ Export helpers so useSearch can consume them
     return {
         normalizeCoordinates,
-        markClusterPolygon,
-        markLotPoint,
+        markBurialRecordClusterPolygon,
+        markBurialRecordLotPoint,
     };
 }
