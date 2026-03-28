@@ -44,7 +44,7 @@ watch(
     (newVal) => {
         hasChanges.value = !isEqual(newVal, originalData.value);
     },
-    { deep: true }
+    { deep: true },
 );
 
 const discardChanges = () => {
@@ -64,6 +64,10 @@ const confirmDiscard = () => {
     HSOverlay.close("#hs-cookies");
 };
 
+/**
+* Description: Get the burial ID of the record being showng and pass
+               it on the fetchClusterByBurialId()
+*/
 const redirectToClerkMap = () => {
     const burialId = props.burial_record.data.burial.id;
     router.visit(route("clerk.map.index"), {
