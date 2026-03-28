@@ -16,6 +16,7 @@ import { Link } from "@inertiajs/vue3";
 import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import ClusterModal from "@/Components/Map/ClusterModal.vue";
+import LotModal from "@/Components/Map/LotModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
@@ -51,6 +52,7 @@ const {
 const mapContainer = ref(null);
 const phaseModalFeature = ref(null);
 const clusterModalFeature = ref(null);
+const lotModalFeature = ref(null);
 const modalFeature = ref(null);
 
 // TODO: remove this
@@ -70,6 +72,13 @@ window.openClusterModal = function (feature) {
     console.log("Modal feature", clusterModalFeature.value);
 
     HSOverlay.open("#hs-cluster-modal");
+};
+
+window.openLotDetailsModal = function (feature) {
+    lotModalFeature.value = feature;
+    console.log("Lot Modal feature", lotModalFeature.value);
+
+    HSOverlay.open("#hs-lot-modal");
 };
 
 /**
@@ -133,6 +142,7 @@ onBeforeUnmount(() => {
         />
         <PhaseModal :feature="phaseModalFeature" />
         <ClusterModal :feature="clusterModalFeature" />
+        <LotModal :feature="lotModalFeature" />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->
         <!--             <svg -->

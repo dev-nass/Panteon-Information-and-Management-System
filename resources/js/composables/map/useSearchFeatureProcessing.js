@@ -258,8 +258,14 @@ export function useSearchFeatureProcessing() {
             fillOpacity: 0.8,
         });
 
+        const lotFeature = {
+            type: "Feature",
+            geometry: lot.geometry,
+            properties: lot.properties || {},
+        };
+
         marker.on("click", function () {
-            window.openLotDetailsModal(lot);
+            window.openLotDetailsModal(lotFeature);
         });
 
         searchResultLayer.value.addLayer(marker);
