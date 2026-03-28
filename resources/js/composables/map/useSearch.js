@@ -29,11 +29,13 @@ export function useSearch() {
         loading.value = true;
         try {
             const response = await fetch(
-                `${route("api.map.search")}?search=${encodeURIComponent(search.value)}`,
+                `${route("api.map.search")}?search=${encodeURIComponent(
+                    search.value
+                )}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                },
+                }
             );
             if (!response.ok) throw new Error("Failed to fetch suggestions");
 
@@ -74,12 +76,12 @@ export function useSearch() {
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                },
+                }
             );
             if (!response.ok) throw new Error("Failed to fetch cluster data");
             const data = await response.json();
             if (data.data && data.data.length > 0) {
-                showSearchResult(data.data[0], 'burial_record');
+                showSearchResult(data.data[0], "burial_record");
             }
         } catch (err) {
             console.error(err);
@@ -93,16 +95,16 @@ export function useSearch() {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
         try {
             const response = await fetch(
-                `${route("api.map.phase")}?phase_id=${phaseId}`,
+                `${route("api.lot.management.phase")}?phase_id=${phaseId}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                },
+                }
             );
             if (!response.ok) throw new Error("Failed to fetch phase data");
             const data = await response.json();
             if (data.data && data.data.length > 0) {
-                showSearchResult(data.data[0], 'phase');
+                showSearchResult(data.data[0], "phase");
             }
         } catch (err) {
             console.error(err);
@@ -116,16 +118,18 @@ export function useSearch() {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
         try {
             const response = await fetch(
-                `${route("api.map.cluster")}?cluster_id=${clusterId}`,
+                `${route(
+                    "api.lot.management.cluster"
+                )}?cluster_id=${clusterId}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                },
+                }
             );
             if (!response.ok) throw new Error("Failed to fetch cluster data");
             const data = await response.json();
             if (data.data && data.data.length > 0) {
-                showSearchResult(data.data[0], 'cluster');
+                showSearchResult(data.data[0], "cluster");
             }
         } catch (err) {
             console.error(err);
@@ -136,16 +140,16 @@ export function useSearch() {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
         try {
             const response = await fetch(
-                `${route("api.map.lot")}?lot_id=${lotId}`,
+                `${route("api.lot.management.lot")}?lot_id=${lotId}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                },
+                }
             );
             if (!response.ok) throw new Error("Failed to fetch lot data");
             const data = await response.json();
             if (data.data && data.data.length > 0) {
-                showSearchResult(data.data[0], 'lot');
+                showSearchResult(data.data[0], "lot");
             }
         } catch (err) {
             console.error(err);
@@ -158,10 +162,10 @@ export function useSearch() {
      * @param {*} data retrieved from the database
      * @param {string} type - 'burial_record', 'phase', 'cluster', or 'lot'
      */
-    const showSearchResult = (data, type = 'burial_record') => {
+    const showSearchResult = (data, type = "burial_record") => {
         searchResultLayer.value.clearLayers();
 
-        if (type === 'burial_record') {
+        if (type === "burial_record") {
             // Current process for burial records
             const cluster = data.cluster;
             const lots = data.lots;
@@ -170,33 +174,38 @@ export function useSearch() {
                 return;
             }
             const clusterPolygonCoords = normalizeCoordinates(
-                cluster.geometry.coordinates,
+                cluster.geometry.coordinates
             );
 
             markBurialRecordClusterPolygon(data, clusterPolygonCoords);
             if (lots?.length > 0) {
                 lots.forEach((lotResource) => {
                     const lot = lotResource.lot;
-                    if (lot?.geometry?.coordinates) markBurialRecordLotPoint(lot);
+                    if (lot?.geometry?.coordinates)
+                        markBurialRecordLotPoint(lot);
                 });
             }
-        } else if (type === 'phase') {
+        } else if (type === "phase") {
             const phase = data.phase;
             if (!phase?.geometry?.coordinates) {
                 console.error("No phase data available");
                 return;
             }
-            const phasePolygonCoords = normalizeCoordinates(phase.geometry.coordinates);
+            const phasePolygonCoords = normalizeCoordinates(
+                phase.geometry.coordinates
+            );
             markPhasePolygon(data, phasePolygonCoords);
-        } else if (type === 'cluster') {
+        } else if (type === "cluster") {
             const cluster = data.cluster;
             if (!cluster?.geometry?.coordinates) {
                 console.error("No cluster data available");
                 return;
             }
-            const clusterPolygonCoords = normalizeCoordinates(cluster.geometry.coordinates);
+            const clusterPolygonCoords = normalizeCoordinates(
+                cluster.geometry.coordinates
+            );
             markClusterPolygon(data, clusterPolygonCoords);
-        } else if (type === 'lot') {
+        } else if (type === "lot") {
             const lot = data.lot;
             if (!lot?.geometry?.coordinates) {
                 console.error("No lot data available");

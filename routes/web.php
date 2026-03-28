@@ -4,14 +4,12 @@ use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\LotManagementController;
+use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('WelcomeView');
-});
-Route::get('/sample', function () {
-    return Inertia::render('SampleView');
 });
 
 Route::controller(MapDataController::class)->group(function () {
@@ -24,7 +22,7 @@ Route::controller(MapSearchDataController::class)->group(function () {
     Route::get('/data-search/burials', 'search')->name('api.map.search');
 });
 
-Route::controller(LotManagementController::class)->group(function () {
+Route::controller(ApiLotManagement::class)->group(function () {
     Route::get('/data/phase', 'phase')->name('api.lot.management.phase');
     Route::get('/data/cluster', 'cluster')->name('api.lot.management.cluster');
     Route::get('/data/lot', 'lot')->name('api.lot.management.lot');

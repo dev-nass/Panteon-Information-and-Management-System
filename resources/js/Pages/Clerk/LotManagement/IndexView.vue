@@ -8,10 +8,14 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
 
+import { useSearch } from "@/composables/map/useSearch";
+
 // Props (you will pass these from backend)
 const props = defineProps({
     phases: Array, // each phase has clusters
 });
+
+const { fetchPhase, fetchCluster, fetchLot } = useSearch();
 
 // =========================
 // EDITING STATE
@@ -29,7 +33,7 @@ watch(
         hasChanges.value =
             JSON.stringify(val) !== JSON.stringify(originalData.value);
     },
-    { deep: true },
+    { deep: true }
 );
 
 const discardChanges = () => {
@@ -65,15 +69,15 @@ const selectedCluster = ref(null);
 // =========================
 const filteredPhases = computed(() =>
     localPhases.value.filter((p) =>
-        p.name.toLowerCase().includes(search.value.toLowerCase()),
-    ),
+        p.name.toLowerCase().includes(search.value.toLowerCase())
+    )
 );
 
 const filteredClusters = computed(() => {
     if (!selectedPhase.value) return [];
 
     return selectedPhase.value.clusters.filter((c) =>
-        c.name.toLowerCase().includes(search.value.toLowerCase()),
+        c.name.toLowerCase().includes(search.value.toLowerCase())
     );
 });
 
@@ -81,7 +85,7 @@ const filteredLots = computed(() => {
     if (!selectedCluster.value) return [];
 
     return selectedCluster.value.lots.filter((l) =>
-        l.number.toLowerCase().includes(search.value.toLowerCase()),
+        l.number.toLowerCase().includes(search.value.toLowerCase())
     );
 });
 
@@ -120,6 +124,25 @@ const goBack = () => {
         activeTab.value = "phase";
         selectedPhase.value = null;
     }
+};
+
+/**
+* Description: Get the burial ID of the record being showng and pass
+               it on the fetchClusterByBurialId()
+    @param type of navigation ex. 'phase', 'cluster', 'lot'
+*/
+const redirectToClerkMap = (id, type) => {
+    router.visit(route("clerk.map.index"), {
+        data: { id },
+        onSuccess: () => {
+            setTimeout(() => {
+                if (type === "phase") fetchPhase(id);
+                else if (type === "cluster") fetchCluster(id);
+                else if (type === "lot") fetchLot(id);
+                else console.warn("Provide a valid lot type to redirect");
+            }, 500);
+        },
+    });
 };
 
 defineOptions({
@@ -268,8 +291,16 @@ defineOptions({
                             <span v-else>{{ phase.name }}</span>
                         </TableData>
 
+                        <TableData> {{ phase.clusters.length }} </TableData>
                         <TableData>
-                            {{ phase.clusters.length }}
+                            <button
+                                @click.stop="
+                                    redirectToClerkMap(phase.id, 'phase')
+                                "
+                                class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
+                            >
+                                View on Map
+                            </button>
                         </TableData>
                     </tr>
 
@@ -299,6 +330,17 @@ defineOptions({
                         <TableData>
                             {{ cluster.lots.length }}
                         </TableData>
+
+                        <TableData>
+                            <button
+                                @click.stop="
+                                    redirectToClerkMap(cluster.id, 'cluster')
+                                "
+                                class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
+                            >
+                                View on Map
+                            </button>
+                        </TableData>
                     </tr>
 
                     <!-- LOT -->
@@ -320,6 +362,15 @@ defineOptions({
 
                         <TableData :isHighlighted="true">
                             {{ lot.status }}
+                        </TableData>
+
+                        <TableData>
+                            <button
+                                @click.stop="redirectToClerkMap(lot.id, 'lot')"
+                                class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
+                            >
+                                View on Map
+                            </button>
                         </TableData>
                     </tr>
                 </tbody>
