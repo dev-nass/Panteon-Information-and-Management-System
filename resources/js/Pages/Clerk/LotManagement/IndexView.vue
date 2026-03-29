@@ -190,6 +190,10 @@ const redirectToClerkMap = (id, type) => {
     });
 };
 
+const redirectToClerkBurialRecordShow = (lotId) => {
+    router.visit(route("clerk.lot_management.show", { lot: lotId }));
+};
+
 onBeforeUnmount(() => {
     clearSearch();
 });
@@ -319,6 +323,7 @@ defineOptions({
                         <TableHeader>ID</TableHeader>
                         <TableHeader>Lot Number</TableHeader>
                         <TableHeader>Status</TableHeader>
+                        <TableHeader>Burial Record</TableHeader>
                         <TableHeader>Location</TableHeader>
                     </tr>
                 </thead>
@@ -435,6 +440,17 @@ defineOptions({
                             "
                         >
                             {{ lot.status }}
+                        </TableData>
+
+                        <TableData>
+                            <button
+                                @click.stop="
+                                    redirectToClerkBurialRecordShow(lot.id)
+                                "
+                                class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
+                            >
+                                View Burial
+                            </button>
                         </TableData>
 
                         <TableData>

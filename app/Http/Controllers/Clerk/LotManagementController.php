@@ -4,12 +4,17 @@ namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PhaseResource;
+use App\Models\Lot;
 use App\Models\Phase;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class LotManagementController extends Controller
 {
+
+    /**
+     * Description: For the table view of the Lot Management page
+     */
     public function index()
     {
         $phases = Phase::with(['clusters.lots.burialRecords'])->get()
@@ -58,5 +63,20 @@ class LotManagementController extends Controller
         return Inertia::render('Clerk/LotManagement/IndexView', [
             'phases' => $phases,
         ]);
+    }
+
+    /**
+     * Description: Redirect to Burial Record Show by finding burial from lot
+     */
+    public function show(Lot $lot)
+    {
+        $burialRecord = $lot->burialRecords()->first();
+
+        if (!$burialRecord) {
+            return to_route('clerk.lot_management.index')
+                ->with('error', 'No burial record found for this lot.');
+        }
+
+        return to_route('clerk.burial_records.show', $burialRecord->id);
     }
 }

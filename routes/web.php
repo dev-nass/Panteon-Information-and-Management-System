@@ -57,5 +57,6 @@ Route::prefix('clerk')
 
         Route::controller(LotManagementController::class)->group(function () {
             Route::get('/lot-management', 'index')->name('lot_management.index');
+            Route::get('/lot-management/{lot}', 'show')->name('lot_management.show');
         });
     });
