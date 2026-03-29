@@ -63,7 +63,7 @@ class BurialRecordController extends Controller
     {
         return Inertia::render('Clerk/BurialRecords/ShowView', [
             'burial_record' => new BurialRecordResource(
-                $burial_record->load(['deceasedRecord', 'lot', 'user'])
+                $burial_record->load(['deceasedRecord', 'lot', 'user', 'lot.cluster'])
             ),
         ]);
     }

@@ -30,12 +30,12 @@ export function useSearch() {
         try {
             const response = await fetch(
                 `${route("api.map.search")}?search=${encodeURIComponent(
-                    search.value
+                    search.value,
                 )}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
             if (!response.ok) throw new Error("Failed to fetch suggestions");
 
@@ -76,7 +76,7 @@ export function useSearch() {
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
             if (!response.ok) throw new Error("Failed to fetch cluster data");
             const data = await response.json();
@@ -99,7 +99,7 @@ export function useSearch() {
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
             if (!response.ok) throw new Error("Failed to fetch phase data");
             const data = await response.json();
@@ -119,12 +119,12 @@ export function useSearch() {
         try {
             const response = await fetch(
                 `${route(
-                    "api.lot.management.cluster"
+                    "api.lot.management.cluster",
                 )}?cluster_id=${clusterId}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
             if (!response.ok) throw new Error("Failed to fetch cluster data");
             const data = await response.json();
@@ -144,7 +144,7 @@ export function useSearch() {
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
             if (!response.ok) throw new Error("Failed to fetch lot data");
             const data = await response.json();
@@ -174,7 +174,7 @@ export function useSearch() {
                 return;
             }
             const clusterPolygonCoords = normalizeCoordinates(
-                cluster.geometry.coordinates
+                cluster.geometry.coordinates,
             );
 
             markBurialRecordClusterPolygon(data, clusterPolygonCoords);
@@ -192,7 +192,7 @@ export function useSearch() {
                 return;
             }
             const phasePolygonCoords = normalizeCoordinates(
-                phase.geometry.coordinates
+                phase.geometry.coordinates,
             );
             markPhasePolygon(data, phasePolygonCoords);
         } else if (type === "cluster") {
@@ -202,7 +202,7 @@ export function useSearch() {
                 return;
             }
             const clusterPolygonCoords = normalizeCoordinates(
-                cluster.geometry.coordinates
+                cluster.geometry.coordinates,
             );
             markClusterPolygon(data, clusterPolygonCoords);
         } else if (type === "lot") {

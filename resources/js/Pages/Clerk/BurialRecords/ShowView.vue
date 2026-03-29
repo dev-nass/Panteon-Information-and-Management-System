@@ -17,7 +17,7 @@ const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
     useMap();
 const { fetchClusterByBurialId } = useSearch();
 
-console.log(props.burial_record);
+console.log("Clerk Burial Show", props.burial_record);
 
 const activeTab = ref("personal");
 const tabs = [
@@ -25,6 +25,7 @@ const tabs = [
     { key: "death", label: "Death Info" },
     { key: "disposition", label: "Disposition" },
     { key: "family", label: "Family & Company" },
+    { key: "location", label: "Location" },
 ];
 
 const back = () => {
@@ -44,7 +45,7 @@ watch(
     (newVal) => {
         hasChanges.value = !isEqual(newVal, originalData.value);
     },
-    { deep: true },
+    { deep: true }
 );
 
 const discardChanges = () => {
@@ -542,6 +543,53 @@ onBeforeUnmount(() => {
                     @update:modelValue="
                         (val) =>
                             (localData.deceased.occupation.supervisor = val)
+                    "
+                />
+            </div>
+
+            <!-- LOCATION -->
+            <div
+                v-if="activeTab === 'location'"
+                class="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+                <Display
+                    label="Phase"
+                    :modelValue="localData.cluster?.cluster?.properties?.phase"
+                    :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.cluster.cluster.properties.phase = val)
+                    "
+                />
+                <Display
+                    label="Cluster"
+                    :modelValue="localData.cluster?.cluster?.properties?.name"
+                    :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.cluster.cluster.properties.name = val)
+                    "
+                />
+                <Display
+                    label="Cluster Type"
+                    :modelValue="localData.cluster?.cluster?.properties?.type"
+                    :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.cluster.cluster.properties.type = val)
+                    "
+                />
+                <Display
+                    label="Column"
+                    :modelValue="localData.lot?.lot?.properties?.column"
+                    :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.lot.lot.properties.column = val)
+                    "
+                />
+                <Display
+                    label="Row"
+                    :modelValue="localData.lot?.lot?.properties?.row"
+                    :editing="editing"
+                    @update:modelValue="
+                        (val) => (localData.lot.lot.properties.row = val)
                     "
                 />
             </div>

@@ -90,7 +90,7 @@ export function useSearchFeatureProcessing() {
     const attachBurialRecordClusterPopup = (feature, layer) => {
         // console.log(feature);
         layer.on("click", function () {
-            window.openLotModal(feature, layer._leaflet_id);
+            window.openBurialRecordModal(feature, layer._leaflet_id);
         });
     };
 

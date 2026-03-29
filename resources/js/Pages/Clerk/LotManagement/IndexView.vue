@@ -449,7 +449,7 @@ defineOptions({
                                 "
                                 class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                             >
-                                View Burial
+                                View Details
                             </button>
                         </TableData>
 
