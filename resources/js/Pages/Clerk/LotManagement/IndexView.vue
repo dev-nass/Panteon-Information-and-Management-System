@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onBeforeUnmount } from "vue";
 import { router } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
@@ -15,7 +15,7 @@ const props = defineProps({
     phases: Array, // each phase has clusters
 });
 
-const { fetchPhase, fetchCluster, fetchLot } = useSearch();
+const { fetchPhase, fetchCluster, fetchLot, clearSearch } = useSearch();
 
 // =========================
 // EDITING STATE
@@ -68,7 +68,7 @@ const selectedCluster = ref(null);
 // VIEW ON TABLE HANDLERS
 // =========================
 const handleViewPhaseOnTable = (phaseId) => {
-    const phase = localPhases.value.find(p => p.id === phaseId);
+    const phase = localPhases.value.find((p) => p.id === phaseId);
     if (phase) {
         selectedPhase.value = phase;
         selectedCluster.value = null;
@@ -78,7 +78,7 @@ const handleViewPhaseOnTable = (phaseId) => {
 
 const handleViewClusterOnTable = (clusterId) => {
     for (const phase of localPhases.value) {
-        const cluster = phase.clusters.find(c => c.id === clusterId);
+        const cluster = phase.clusters.find((c) => c.id === clusterId);
         if (cluster) {
             selectedPhase.value = phase;
             selectedCluster.value = cluster;
@@ -91,7 +91,7 @@ const handleViewClusterOnTable = (clusterId) => {
 const handleViewLotOnTable = (lotId) => {
     for (const phase of localPhases.value) {
         for (const cluster of phase.clusters) {
-            const lot = cluster.lots.find(l => l.id === lotId);
+            const lot = cluster.lots.find((l) => l.id === lotId);
             if (lot) {
                 selectedPhase.value = phase;
                 selectedCluster.value = cluster;
@@ -187,6 +187,10 @@ const redirectToClerkMap = (id, type) => {
         },
     });
 };
+
+onBeforeUnmount(() => {
+    clearSearch();
+});
 
 defineOptions({
     layout: Dashboard,
