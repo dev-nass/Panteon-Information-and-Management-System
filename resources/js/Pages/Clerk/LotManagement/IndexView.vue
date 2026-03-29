@@ -15,6 +15,8 @@ const props = defineProps({
     phases: Array, // each phase has clusters
 });
 
+console.log(props.phases);
+
 const { fetchPhase, fetchCluster, fetchLot, clearSearch } = useSearch();
 
 // =========================
@@ -298,18 +300,26 @@ defineOptions({
                 <!-- HEADERS -->
                 <thead class="bg-gray-50 dark:bg-neutral-800">
                     <tr v-if="activeTab === 'phase'">
+                        <TableHeader>ID</TableHeader>
                         <TableHeader>Name</TableHeader>
                         <TableHeader>Total Clusters</TableHeader>
+                        <TableHeader>Location</TableHeader>
                     </tr>
 
                     <tr v-else-if="activeTab === 'cluster'">
+                        <TableHeader>ID</TableHeader>
                         <TableHeader>Name</TableHeader>
+                        <TableHeader>Occupants</TableHeader>
                         <TableHeader>Total Lots</TableHeader>
+                        <TableHeader>Type</TableHeader>
+                        <TableHeader>Location</TableHeader>
                     </tr>
 
                     <tr v-else>
+                        <TableHeader>ID</TableHeader>
                         <TableHeader>Lot Number</TableHeader>
                         <TableHeader>Status</TableHeader>
+                        <TableHeader>Location</TableHeader>
                     </tr>
                 </thead>
 
@@ -329,6 +339,7 @@ defineOptions({
                                 : '',
                         ]"
                     >
+                        <TableData> {{ phase.id }} </TableData>
                         <TableData>
                             <input
                                 v-if="editing"
@@ -365,6 +376,7 @@ defineOptions({
                                 : '',
                         ]"
                     >
+                        <TableData> {{ cluster.id }} </TableData>
                         <TableData>
                             <input
                                 v-if="editing"
@@ -373,11 +385,19 @@ defineOptions({
                             />
                             <span v-else>{{ cluster.name }}</span>
                         </TableData>
-
+                        <TableData> {{ cluster.occupants }} </TableData>
                         <TableData>
                             {{ cluster.lots.length }}
                         </TableData>
 
+                        <TableData>
+                            <input
+                                v-if="editing"
+                                v-model="cluster.type"
+                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                            />
+                            <span v-else>{{ cluster.type }}</span>
+                        </TableData>
                         <TableData>
                             <button
                                 @click.stop="
@@ -398,6 +418,7 @@ defineOptions({
                         @click="goToLotDetails(lot)"
                         class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
                     >
+                        <TableData> {{ lot.id }} </TableData>
                         <TableData>
                             <input
                                 v-if="editing"
@@ -407,7 +428,12 @@ defineOptions({
                             <span v-else>{{ lot.number }}</span>
                         </TableData>
 
-                        <TableData :isHighlighted="true">
+                        <TableData
+                            :isHighlighted="true"
+                            :highlightColor="
+                                lot.status === 'available' ? 'green' : 'red'
+                            "
+                        >
                             {{ lot.status }}
                         </TableData>
 

@@ -15,16 +15,19 @@ class LotManagementController extends Controller
         $phases = Phase::with(['clusters.lots.burialRecords'])->get()
             ->map(function ($phase) {
                 $totalCapacity = 0;
-                $occupants = 0;
+                $lotOccupants = 0;
 
-                $clusters = $phase->clusters->map(function ($cluster) use (&$totalCapacity, &$occupants) {
-                    $lots = $cluster->lots->map(function ($lot) use (&$totalCapacity, &$occupants) {
+                $clusters = $phase->clusters->map(function ($cluster) use (&$totalCapacity, &$lotOccupants) {
+                    $clusterOccupants = 0;
+                    $lots = $cluster->lots->map(function ($lot) use (&$totalCapacity, &$lotOccupants, &$clusterOccupants) {
                         $totalCapacity++;
                         $isOccupied = $lot->burialRecords->isNotEmpty();
                         if ($isOccupied) {
-                            $occupants++;
+                            $lotOccupants++;
+                            $clusterOccupants++;
                         }
 
+                        // lot
                         return [
                             'id' => $lot->id,
                             'number' => $lot->column . '-' . $lot->row,
@@ -32,18 +35,22 @@ class LotManagementController extends Controller
                         ];
                     });
 
+                    // cluster
                     return [
                         'id' => $cluster->id,
                         'name' => $cluster->cluster_name,
                         'lots' => $lots,
+                        'occupants' => $clusterOccupants,
+                        'type' => $cluster->cluster_type,
                     ];
                 });
 
+                // phase
                 return [
                     'id' => $phase->id,
                     'name' => $phase->phase_name,
                     'total_capacity' => $totalCapacity,
-                    'occupants' => $occupants,
+                    'occupants' => $lotOccupants,
                     'clusters' => $clusters,
                 ];
             });
