@@ -107,8 +107,7 @@ const emit = defineEmits(["viewOnTable"]);
                                         <h3
                                             class="text-lg font-semibold text-amber-600 dark:text-amber-400"
                                         >
-                                            Lot {{
-                                                feature.properties?.column
+                                            Lot {{ feature.properties?.column
                                             }}{{ feature.properties?.row }}
                                         </h3>
 
@@ -142,7 +141,28 @@ const emit = defineEmits(["viewOnTable"]);
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Location
+                                        Phase
+                                    </span>
+                                    <div class="font-medium capitalize">
+                                        {{ feature.properties.phase }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Cluster
+                                    </span>
+                                    <div class="font-medium capitalize">
+                                        {{ feature.properties.cluster }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Location (Col/Row)
                                     </span>
                                     <div class="font-medium">
                                         {{
@@ -176,30 +196,6 @@ const emit = defineEmits(["viewOnTable"]);
                                             feature.properties?.burial_count ||
                                             0
                                         }}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Column
-                                    </span>
-                                    <div class="font-medium">
-                                        {{
-                                            feature.properties?.column || "N/A"
-                                        }}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Row
-                                    </span>
-                                    <div class="font-medium">
-                                        {{ feature.properties?.row || "N/A" }}
                                     </div>
                                 </div>
                             </div>

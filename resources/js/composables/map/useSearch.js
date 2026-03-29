@@ -211,6 +211,7 @@ export function useSearch() {
                 console.error("No lot data available");
                 return;
             }
+            console.log("use search ", lot);
             markLotPoint(lot);
         }
     };

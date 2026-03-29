@@ -22,6 +22,8 @@ class LotResource extends JsonResource
                     ? json_decode($this->coordinates, true)
                     : ($this->coordinates ?? ['type' => 'Polygon', 'coordinates' => []]),
                 'properties' => [
+                    'phase' => $this->cluster->phase->phase_name ?? null,
+                    'cluster' => $this->cluster->cluster_name ?? null,
                     'lot_id' => $this->id,
                     'column' => $this->column,
                     'row' => $this->row,

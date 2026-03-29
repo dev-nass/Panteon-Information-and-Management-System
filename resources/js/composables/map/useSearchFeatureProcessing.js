@@ -242,6 +242,7 @@ export function useSearchFeatureProcessing() {
      * @param lot expects a lot with Point geometry
      */
     const markLotPoint = (lot) => {
+        console.log(lot);
         if (!lot.geometry || !lot.geometry.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;
