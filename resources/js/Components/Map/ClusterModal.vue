@@ -128,12 +128,20 @@ const emit = defineEmits(["viewOnTable"]);
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
+                                        Phase
+                                    </span>
+                                    <div class="font-medium">
+                                        {{ feature.properties.phase }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
                                         Cluster Name
                                     </span>
                                     <div class="font-medium">
-                                        {{
-                                            feature.properties?.name || "N/A"
-                                        }}
+                                        {{ feature.properties?.name || "N/A" }}
                                     </div>
                                 </div>
 
@@ -144,9 +152,7 @@ const emit = defineEmits(["viewOnTable"]);
                                         Type
                                     </span>
                                     <div class="font-medium">
-                                        {{
-                                            feature.properties?.type || "N/A"
-                                        }}
+                                        {{ feature.properties?.type || "N/A" }}
                                     </div>
                                 </div>
 

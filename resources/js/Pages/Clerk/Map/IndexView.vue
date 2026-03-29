@@ -101,21 +101,21 @@ const handleViewLotOnTable = (lotId) => {
 
 window.openPhaseModal = function (feature) {
     phaseModalFeature.value = feature;
-    console.log("Modal feature", phaseModalFeature.value);
+    // console.log("Modal feature", phaseModalFeature.value);
 
     HSOverlay.open("#hs-phase-modal");
 };
 
 window.openClusterModal = function (feature) {
     clusterModalFeature.value = feature;
-    console.log("Modal feature", clusterModalFeature.value);
+    // console.log("Modal feature", clusterModalFeature.value);
 
     HSOverlay.open("#hs-cluster-modal");
 };
 
 window.openLotDetailsModal = function (feature) {
     lotModalFeature.value = feature;
-    console.log("Lot Modal feature", lotModalFeature.value);
+    // console.log("Lot Modal feature", lotModalFeature.value);
 
     HSOverlay.open("#hs-lot-modal");
 };

@@ -29,6 +29,7 @@ class ClusterResource extends JsonResource
                     : ($this->coordinates ?? ['type' => 'Polygon', 'coordinates' => []]),
                 'properties' => [
                     'cluster_id' => $this->id,
+                    'phase' => $this->phase->phase_name,
                     'name' => $this->cluster_name,
                     'type' => $this->cluster_type,
                     'status' => $status,
