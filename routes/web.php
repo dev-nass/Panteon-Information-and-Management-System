@@ -52,6 +52,7 @@ Route::prefix('clerk')
         Route::controller(BurialRecordController::class)->group(function () {
             Route::get('/burial-records', 'index')->name('burial_records.index');
             Route::get('/burial-records/{burial_record}', 'show')->name('burial_records.show');
+            Route::post('/burial-records/{burial_record}', 'update')->name('burial_records.update');
         });
 
 

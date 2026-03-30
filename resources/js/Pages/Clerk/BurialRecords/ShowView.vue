@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import { has, isEqual } from "lodash";
 
@@ -11,6 +11,7 @@ import { useSearch } from "@/composables/map/useSearch";
 
 const props = defineProps({
     burial_record: { type: Object, required: true },
+    phases: { type: Array, required: true },
 });
 
 const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
@@ -82,8 +83,85 @@ const redirectToClerkMap = () => {
 };
 
 const saveChanges = () => {
-    alert("saving...");
+    router.post(
+        route(
+            "clerk.burial_records.update",
+            props.burial_record.data.burial.id
+        ),
+        {
+            deceased: localData.value.deceased,
+            lot_id: selectedLotId.value,
+        },
+        {
+            onSuccess: () => {
+                originalData.value = JSON.parse(
+                    JSON.stringify(localData.value)
+                );
+                hasChanges.value = false;
+                editing.value = false;
+            },
+        }
+    );
 };
+
+const selectedPhaseId = ref(null);
+const selectedClusterId = ref(null);
+const selectedLotId = ref(null);
+
+// Initialize location selections based on current burial record
+const initializeLocationSelections = () => {
+    const currentLotId = props.burial_record.data.lot?.lot?.id;
+    const currentClusterId = props.burial_record.data.cluster?.cluster?.id;
+
+    if (currentLotId && currentClusterId) {
+        // Find the phase that contains this cluster
+        for (const phase of props.phases) {
+            const cluster = phase.clusters.find(
+                (c) => c.id == currentClusterId
+            );
+            if (cluster) {
+                selectedPhaseId.value = phase.id;
+                selectedClusterId.value = currentClusterId;
+                selectedLotId.value = currentLotId;
+                break;
+            }
+        }
+    }
+};
+
+const availableClusters = computed(() => {
+    if (!selectedPhaseId.value) return [];
+    const phase = props.phases.find((p) => p.id == selectedPhaseId.value);
+    return phase?.clusters || [];
+});
+
+const availableLots = computed(() => {
+    if (!selectedClusterId.value) return [];
+    const cluster = availableClusters.value.find(
+        (c) => c.id == selectedClusterId.value
+    );
+    return cluster?.lots || [];
+});
+
+const selectedLotColumn = computed(() => {
+    if (!selectedLotId.value) return null;
+    const lot = availableLots.value.find((l) => l.id == selectedLotId.value);
+    return lot?.column || null;
+});
+
+const selectedLotRow = computed(() => {
+    if (!selectedLotId.value) return null;
+    const lot = availableLots.value.find((l) => l.id == selectedLotId.value);
+    return lot?.row || null;
+});
+
+const selectedClusterType = computed(() => {
+    if (!selectedClusterId.value) return null;
+    const cluster = availableClusters.value.find(
+        (c) => c.id == selectedClusterId.value
+    );
+    return cluster?.cluster_type || null;
+});
 
 defineOptions({
     layout: Dashboard,
@@ -92,6 +170,7 @@ defineOptions({
 // added to close the modal from Clerk/Map/IndexView
 onMounted(() => {
     // initializeMap(mapContainer.value);
+    initializeLocationSelections();
 
     document
         .querySelectorAll("#hs-scroll-inside-body-modal")
@@ -552,49 +631,137 @@ onBeforeUnmount(() => {
                 v-if="activeTab === 'location'"
                 class="grid grid-cols-1 md:grid-cols-2 gap-6"
             >
-                <Display
-                    label="Phase"
-                    :modelValue="localData.cluster?.cluster?.properties?.phase"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) =>
-                            (localData.cluster.cluster.properties.phase = val)
-                    "
-                />
-                <Display
-                    label="Cluster"
-                    :modelValue="localData.cluster?.cluster?.properties?.name"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) =>
-                            (localData.cluster.cluster.properties.name = val)
-                    "
-                />
-                <Display
-                    label="Cluster Type"
-                    :modelValue="localData.cluster?.cluster?.properties?.type"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) =>
-                            (localData.cluster.cluster.properties.type = val)
-                    "
-                />
-                <Display
-                    label="Column"
-                    :modelValue="localData.lot?.lot?.properties?.column"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) => (localData.lot.lot.properties.column = val)
-                    "
-                />
-                <Display
-                    label="Row"
-                    :modelValue="localData.lot?.lot?.properties?.row"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) => (localData.lot.lot.properties.row = val)
-                    "
-                />
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Phase
+                    </label>
+                    <select
+                        v-if="editing"
+                        v-model="selectedPhaseId"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                        <option value="">Select a phase</option>
+                        <option
+                            v-for="phase in phases"
+                            :key="phase.id"
+                            :value="phase.id"
+                        >
+                            {{ phase.name }}
+                        </option>
+                    </select>
+                    <p v-else class="text-gray-900 dark:text-gray-100">
+                        {{
+                            localData.cluster?.cluster?.properties?.phase ||
+                            "N/A"
+                        }}
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Cluster
+                    </label>
+                    <select
+                        v-if="editing"
+                        v-model="selectedClusterId"
+                        :disabled="!selectedPhaseId"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                    >
+                        <option value="">Select a cluster</option>
+                        <option
+                            v-for="cluster in availableClusters"
+                            :key="cluster.id"
+                            :value="cluster.id"
+                        >
+                            {{ cluster.name }}
+                        </option>
+                    </select>
+                    <p v-else class="text-gray-900 dark:text-gray-100">
+                        {{
+                            localData.cluster?.cluster?.properties?.name ||
+                            "N/A"
+                        }}
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Lot
+                    </label>
+                    <select
+                        v-if="editing"
+                        v-model="selectedLotId"
+                        :disabled="!selectedClusterId"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                    >
+                        <option value="">Select a lot</option>
+                        <option
+                            v-for="lot in availableLots"
+                            :key="lot.id"
+                            :value="lot.id"
+                        >
+                            {{ lot.column }} - {{ lot.row }}
+                        </option>
+                    </select>
+                    <p v-else class="text-gray-900 dark:text-gray-100">
+                        {{ localData.lot?.lot?.properties?.column }} -
+                        {{ localData.lot?.lot?.properties?.row || "N/A" }}
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Cluster Type
+                    </label>
+                    <p class="text-gray-900 dark:text-gray-100">
+                        {{
+                            editing
+                                ? selectedClusterType ||
+                                  "Select a cluster first"
+                                : localData.cluster?.cluster?.properties
+                                      ?.type || "N/A"
+                        }}
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Column
+                    </label>
+                    <p class="text-gray-900 dark:text-gray-100">
+                        {{
+                            editing
+                                ? selectedLotColumn || "Select a lot first"
+                                : localData.lot?.lot?.properties?.column ||
+                                  "N/A"
+                        }}
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Row
+                    </label>
+                    <p class="text-gray-900 dark:text-gray-100">
+                        {{
+                            editing
+                                ? selectedLotRow || "Select a lot first"
+                                : localData.lot?.lot?.properties?.row || "N/A"
+                        }}
+                    </p>
+                </div>
             </div>
         </div>
     </div>
