@@ -95,7 +95,6 @@ class BurialRecordController extends Controller
     public function update(Request $request, BurialRecord $burial_record)
     {
         $validated = $request->validate([
-            'deceased' => 'required|array',
             'deceased.first_name' => 'required|string|max:255',
             'deceased.middle_name' => 'nullable|string|max:255',
             'deceased.last_name' => 'required|string|max:255',
@@ -107,7 +106,7 @@ class BurialRecordController extends Controller
             'deceased.occupation.name' => 'nullable|string|max:255',
             'deceased.address' => 'nullable|string|max:255',
             'deceased.lgbtq' => 'nullable|string|max:255',
-            'deceased.precinct_num' => 'nullable|string|max:255',
+            'deceased.precinct_num' => 'nullable|integer',
             'deceased.death.date' => 'nullable|date',
             'deceased.death.cause' => 'nullable|string|max:255',
             'deceased.death.place' => 'nullable|string|max:255',
