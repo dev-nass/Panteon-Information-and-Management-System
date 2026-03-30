@@ -45,13 +45,21 @@ const discardChanges = () => {
 };
 
 const saveChanges = () => {
-    router.post(route("clerk.lot-management.update"), {
-        phases: localPhases.value,
-    });
-
-    originalData.value = JSON.parse(JSON.stringify(localPhases.value));
-    hasChanges.value = false;
-    editing.value = false;
+    router.post(
+        route("clerk.lot_management.update"),
+        {
+            phases: localPhases.value,
+        },
+        {
+            onSuccess: () => {
+                originalData.value = JSON.parse(
+                    JSON.stringify(localPhases.value)
+                );
+                hasChanges.value = false;
+                editing.value = false;
+            },
+        }
+    );
 };
 
 // =========================
@@ -288,10 +296,8 @@ defineOptions({
                             : 'text-gray-500 dark:text-gray-400'
                     "
                 >
-                    Phases
+                    Phase
                 </span>
-
-                <span v-if="currentPhaseName" class="text-gray-400">→</span>
 
                 <span
                     v-if="currentPhaseName"
@@ -300,7 +306,11 @@ defineOptions({
                     {{ currentPhaseName }}
                 </span>
 
-                <span v-if="currentClusterName" class="text-gray-400">→</span>
+                <span v-if="currentPhaseName" class="text-gray-400">→</span>
+
+                <span v-if="currentPhaseName" class="text-gray-400"
+                    >Cluster</span
+                >
 
                 <span
                     v-if="currentClusterName"
@@ -308,6 +318,10 @@ defineOptions({
                 >
                     {{ currentClusterName }}
                 </span>
+
+                <span v-if="currentClusterName" class="text-gray-400">→</span>
+
+                <span v-if="currentClusterName" class="text-gray-400">Lot</span>
             </div>
 
             <!-- TABLE -->
@@ -363,7 +377,8 @@ defineOptions({
                             <input
                                 v-if="editing"
                                 v-model="phase.name"
-                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                                @click.stop
+                                class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                             />
                             <span v-else>{{ phase.name }}</span>
                         </TableData>
@@ -400,7 +415,8 @@ defineOptions({
                             <input
                                 v-if="editing"
                                 v-model="cluster.name"
-                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                                @click.stop
+                                class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                             />
                             <span v-else>{{ cluster.name }}</span>
                         </TableData>
@@ -413,7 +429,8 @@ defineOptions({
                             <input
                                 v-if="editing"
                                 v-model="cluster.type"
-                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                                @click.stop
+                                class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                             />
                             <span v-else>{{ cluster.type }}</span>
                         </TableData>
@@ -441,7 +458,8 @@ defineOptions({
                             <input
                                 v-if="editing"
                                 v-model="lot.column"
-                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                                @click.stop
+                                class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                             />
                             <span v-else>{{ lot.column }}</span>
                         </TableData>
@@ -450,7 +468,8 @@ defineOptions({
                             <input
                                 v-if="editing"
                                 v-model="lot.row"
-                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                                @click.stop
+                                class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                             />
                             <span v-else>{{ lot.row }}</span>
                         </TableData>

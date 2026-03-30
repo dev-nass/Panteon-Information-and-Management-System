@@ -139,6 +139,51 @@ class LotManagementController extends Controller
             ->with('success', 'Lot created successfully.');
     }
 
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'phases' => 'required|array',
+            'phases.*.id' => 'required|exists:phases,id',
+            'phases.*.name' => 'required|string|max:255',
+            'phases.*.clusters' => 'array',
+            'phases.*.clusters.*.id' => 'required|exists:clusters,id',
+            'phases.*.clusters.*.name' => 'required|string|max:255',
+            'phases.*.clusters.*.type' => 'required|string|max:255',
+            'phases.*.clusters.*.lots' => 'array',
+            'phases.*.clusters.*.lots.*.id' => 'required|exists:lots,id',
+            'phases.*.clusters.*.lots.*.column' => 'required|string|max:255',
+            'phases.*.clusters.*.lots.*.row' => 'required|string|max:255',
+        ]);
+
+        foreach ($validated['phases'] as $phaseData) {
+            $phase = Phase::find($phaseData['id']);
+            $phase->update(['phase_name' => $phaseData['name']]);
+
+            if (isset($phaseData['clusters'])) {
+                foreach ($phaseData['clusters'] as $clusterData) {
+                    $cluster = Cluster::find($clusterData['id']);
+                    $cluster->update([
+                        'cluster_name' => $clusterData['name'],
+                        'cluster_type' => $clusterData['type'],
+                    ]);
+
+                    if (isset($clusterData['lots'])) {
+                        foreach ($clusterData['lots'] as $lotData) {
+                            $lot = Lot::find($lotData['id']);
+                            $lot->update([
+                                'column' => $lotData['column'],
+                                'row' => $lotData['row'],
+                            ]);
+                        }
+                    }
+                }
+            }
+        }
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Changes saved successfully.');
+    }
+
     /**
      * Description: Redirect to Burial Record Show by finding burial from lot
      */

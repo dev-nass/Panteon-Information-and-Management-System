@@ -8,7 +8,7 @@
     "features": [
         {
             "type": "Feature",
-            "properties": { "id": 1, "name": "PHASE-1A" },
+            "properties": { "id": 1, "phase_name": "1A" },
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
@@ -26,7 +26,7 @@
         },
         {
             "type": "Feature",
-            "properties": { "id": 2, "name": "PHASE-1B" },
+            "properties": { "id": 2, "phase_name": "1B" },
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
