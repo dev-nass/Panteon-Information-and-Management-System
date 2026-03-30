@@ -209,6 +209,65 @@ const goToCreate = () => {
     router.visit(route("clerk.lot_management.create"));
 };
 
+const deletePhase = (phaseId) => {
+    if (
+        confirm(
+            "Are you sure you want to delete this phase? This will also delete all clusters and lots within it."
+        )
+    ) {
+        router.delete(route("clerk.lot_management.delete.phase", phaseId), {
+            onSuccess: () => {
+                localPhases.value = localPhases.value.filter(
+                    (p) => p.id !== phaseId
+                );
+                originalData.value = JSON.parse(
+                    JSON.stringify(localPhases.value)
+                );
+            },
+        });
+    }
+};
+
+const deleteCluster = (clusterId) => {
+    if (
+        confirm(
+            "Are you sure you want to delete this cluster? This will also delete all lots within it."
+        )
+    ) {
+        router.delete(route("clerk.lot_management.delete.cluster", clusterId), {
+            onSuccess: () => {
+                for (const phase of localPhases.value) {
+                    phase.clusters = phase.clusters.filter(
+                        (c) => c.id !== clusterId
+                    );
+                }
+                originalData.value = JSON.parse(
+                    JSON.stringify(localPhases.value)
+                );
+            },
+        });
+    }
+};
+
+const deleteLot = (lotId) => {
+    if (confirm("Are you sure you want to delete this lot?")) {
+        router.delete(route("clerk.lot_management.delete.lot", lotId), {
+            onSuccess: () => {
+                for (const phase of localPhases.value) {
+                    for (const cluster of phase.clusters) {
+                        cluster.lots = cluster.lots.filter(
+                            (l) => l.id !== lotId
+                        );
+                    }
+                }
+                originalData.value = JSON.parse(
+                    JSON.stringify(localPhases.value)
+                );
+            },
+        });
+    }
+};
+
 onBeforeUnmount(() => {
     clearSearch();
 });
@@ -335,6 +394,7 @@ defineOptions({
                         <TableHeader>Name</TableHeader>
                         <TableHeader>Total Clusters</TableHeader>
                         <TableHeader>Location</TableHeader>
+                        <TableHeader v-if="editing">Actions</TableHeader>
                     </tr>
 
                     <tr v-else-if="activeTab === 'cluster'">
@@ -344,6 +404,7 @@ defineOptions({
                         <TableHeader>Total Lots</TableHeader>
                         <TableHeader>Type</TableHeader>
                         <TableHeader>Location</TableHeader>
+                        <TableHeader v-if="editing">Actions</TableHeader>
                     </tr>
 
                     <tr v-else>
@@ -353,6 +414,7 @@ defineOptions({
                         <TableHeader>Status</TableHeader>
                         <TableHeader>Burial Record</TableHeader>
                         <TableHeader>Location</TableHeader>
+                        <TableHeader v-if="editing">Actions</TableHeader>
                     </tr>
                 </thead>
 
@@ -400,6 +462,36 @@ defineOptions({
                             >
                                 Not Mapped
                             </span>
+                        </TableData>
+
+                        <TableData v-if="editing">
+                            <button
+                                @click.stop="deletePhase(phase.id)"
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-trash2-icon lucide-trash-2"
+                                >
+                                    <path d="M10 11v6" />
+                                    <path d="M14 11v6" />
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                    />
+                                    <path d="M3 6h18" />
+                                    <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    />
+                                </svg>
+                            </button>
                         </TableData>
                     </tr>
 
@@ -457,6 +549,36 @@ defineOptions({
                             >
                                 Not Mapped
                             </span>
+                        </TableData>
+
+                        <TableData v-if="editing">
+                            <button
+                                @click.stop="deleteCluster(cluster.id)"
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-trash2-icon lucide-trash-2"
+                                >
+                                    <path d="M10 11v6" />
+                                    <path d="M14 11v6" />
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                    />
+                                    <path d="M3 6h18" />
+                                    <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    />
+                                </svg>
+                            </button>
                         </TableData>
                     </tr>
 
@@ -522,6 +644,36 @@ defineOptions({
                             >
                                 Not Mapped
                             </span>
+                        </TableData>
+
+                        <TableData v-if="editing">
+                            <button
+                                @click.stop="deleteLot(lot.id)"
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-trash2-icon lucide-trash-2"
+                                >
+                                    <path d="M10 11v6" />
+                                    <path d="M14 11v6" />
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                    />
+                                    <path d="M3 6h18" />
+                                    <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    />
+                                </svg>
+                            </button>
                         </TableData>
                     </tr>
                 </tbody>

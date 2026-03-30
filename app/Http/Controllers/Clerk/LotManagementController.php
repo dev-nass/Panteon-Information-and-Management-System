@@ -187,6 +187,30 @@ class LotManagementController extends Controller
             ->with('success', 'Changes saved successfully.');
     }
 
+    public function deletePhase(Phase $phase)
+    {
+        $phase->delete();
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Phase deleted successfully.');
+    }
+
+    public function deleteCluster(Cluster $cluster)
+    {
+        $cluster->delete();
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Cluster deleted successfully.');
+    }
+
+    public function deleteLot(Lot $lot)
+    {
+        $lot->delete();
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Lot deleted successfully.');
+    }
+
     /**
      * Description: Redirect to Burial Record Show by finding burial from lot
      */
