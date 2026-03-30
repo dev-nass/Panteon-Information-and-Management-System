@@ -128,9 +128,12 @@ const filteredClusters = computed(() => {
 
 const filteredLots = computed(() => {
     if (!selectedCluster.value) return [];
+    console.log(selectedCluster.value);
 
-    return selectedCluster.value.lots.filter((l) =>
-        l.number.toLowerCase().includes(search.value.toLowerCase())
+    return selectedCluster.value.lots.filter(
+        (l) =>
+            l.column.toLowerCase().includes(search.value.toLowerCase()) ||
+            l.row.toLowerCase().includes(search.value.toLowerCase())
     );
 });
 
@@ -156,10 +159,10 @@ const goToLots = (cluster) => {
     activeTab.value = "lot";
 };
 
-const goToLotDetails = (lot) => {
-    if (editing.value) return;
-    router.visit(route("clerk.lots.show", lot.id));
-};
+// const goToLotDetails = (lot) => {
+//     if (editing.value) return;
+//     router.visit(route("clerk.lots.show", lot.id));
+// };
 
 const goBack = () => {
     if (activeTab.value === "lot") {
@@ -331,7 +334,8 @@ defineOptions({
 
                     <tr v-else>
                         <TableHeader>ID</TableHeader>
-                        <TableHeader>Lot Number</TableHeader>
+                        <TableHeader>Column</TableHeader>
+                        <TableHeader>Row</TableHeader>
                         <TableHeader>Status</TableHeader>
                         <TableHeader>Burial Record</TableHeader>
                         <TableHeader>Location</TableHeader>
@@ -430,17 +434,25 @@ defineOptions({
                         v-else
                         v-for="lot in filteredLots"
                         :key="lot.id"
-                        @click="goToLotDetails(lot)"
-                        class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
+                        class="transition bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
                     >
                         <TableData> {{ lot.id }} </TableData>
                         <TableData>
                             <input
                                 v-if="editing"
-                                v-model="lot.number"
+                                v-model="lot.column"
                                 class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
                             />
-                            <span v-else>{{ lot.number }}</span>
+                            <span v-else>{{ lot.column }}</span>
+                        </TableData>
+
+                        <TableData>
+                            <input
+                                v-if="editing"
+                                v-model="lot.row"
+                                class="w-full bg-transparent border-b border-green-500/30 focus:outline-none"
+                            />
+                            <span v-else>{{ lot.row }}</span>
                         </TableData>
 
                         <TableData

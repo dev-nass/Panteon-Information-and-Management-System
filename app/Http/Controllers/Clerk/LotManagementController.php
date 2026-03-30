@@ -36,7 +36,8 @@ class LotManagementController extends Controller
                         // lot
                         return [
                             'id' => $lot->id,
-                            'number' => $lot->column . '-' . $lot->row,
+                            'column' => $lot->column,
+                            'row' => $lot->row,
                             'status' => $isOccupied ? 'occupied' : 'available',
                         ];
                     });
@@ -105,7 +106,7 @@ class LotManagementController extends Controller
         $validated = $request->validate([
             'phase_id' => 'required|exists:phases,id',
             'name' => 'required|string|max:255',
-            'type' => 'required|string|max:255',
+            'type' => 'required|in:apartment,underground',
             'occupants' => 'required|integer|min:0',
         ]);
 
