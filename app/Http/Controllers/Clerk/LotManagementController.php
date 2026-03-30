@@ -123,17 +123,15 @@ class LotManagementController extends Controller
     {
         $validated = $request->validate([
             'cluster_id' => 'required|exists:clusters,id',
-            'number' => 'required|string|max:255',
+            'column' => 'required|string|max:255',
+            'row' => 'required|string|max:255',
             'status' => 'required|in:available,occupied',
         ]);
 
-        // Parse lot number (assuming format: column-row)
-        $parts = explode('-', $validated['number']);
-        
         Lot::create([
             'cluster_id' => $validated['cluster_id'],
-            'column' => $parts[0] ?? $validated['number'],
-            'row' => $parts[1] ?? '1',
+            'column' => $validated['column'],
+            'row' => $validated['row'],
         ]);
 
         return to_route('clerk.lot_management.index')

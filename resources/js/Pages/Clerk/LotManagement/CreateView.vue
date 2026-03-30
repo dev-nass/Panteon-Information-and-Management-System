@@ -25,7 +25,8 @@ const clusterForm = useForm({
 
 const lotForm = useForm({
     cluster_id: "",
-    number: "",
+    column: "",
+    row: "",
     status: "available",
 });
 
@@ -300,23 +301,44 @@ defineOptions({
                         </span>
                     </div>
 
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Lot Number
-                        </label>
-                        <Input
-                            v-model="lotForm.number"
-                            placeholder="Enter lot number"
-                            required
-                        />
-                        <span
-                            v-if="lotForm.errors.number"
-                            class="text-red-500 text-sm"
-                        >
-                            {{ lotForm.errors.number }}
-                        </span>
+                    <div class="grid grid-cols-2 gap-x-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Lot Column
+                            </label>
+                            <Input
+                                v-model="lotForm.column"
+                                placeholder="1, 2, 3..."
+                                required
+                            />
+                            <span
+                                v-if="lotForm.errors.column"
+                                class="text-red-500 text-sm"
+                            >
+                                {{ lotForm.errors.column }}
+                            </span>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Lot Row
+                            </label>
+                            <Input
+                                v-model="lotForm.row"
+                                placeholder="A, B, C..."
+                                required
+                            />
+                            <span
+                                v-if="lotForm.errors.row"
+                                class="text-red-500 text-sm"
+                            >
+                                {{ lotForm.errors.row }}
+                            </span>
+                        </div>
                     </div>
 
                     <div>
