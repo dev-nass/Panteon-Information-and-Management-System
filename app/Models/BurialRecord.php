@@ -11,6 +11,10 @@ class BurialRecord extends Model
     /** @use HasFactory<\Database\Factories\BurialRecordFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'lot_id'
+    ];
+
     public function deceasedRecord(): BelongsTo
     {
         return $this->belongsTo(DeceasedRecord::class);

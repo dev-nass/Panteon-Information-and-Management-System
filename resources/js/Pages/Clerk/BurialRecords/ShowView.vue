@@ -14,6 +14,9 @@ const props = defineProps({
     phases: { type: Array, required: true },
 });
 
+const page = usePage();
+const errors = computed(() => page.props.errors || {});
+
 const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
     useMap();
 const { fetchClusterByBurialId } = useSearch();
@@ -41,10 +44,17 @@ const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
 const localData = ref(JSON.parse(JSON.stringify(originalData.value)));
 console.log(localData.value);
 
+const selectedPhaseId = ref(null);
+const selectedClusterId = ref(null);
+const selectedLotId = ref(null);
+const originalLotId = ref(props.burial_record.data.lot?.lot?.id || null);
+
 watch(
-    localData,
-    (newVal) => {
-        hasChanges.value = !isEqual(newVal, originalData.value);
+    [localData, selectedLotId],
+    ([newData, newLotId]) => {
+        const dataChanged = !isEqual(newData, originalData.value);
+        const lotChanged = newLotId !== originalLotId.value;
+        hasChanges.value = dataChanged || lotChanged;
     },
     { deep: true }
 );
@@ -60,6 +70,7 @@ const discardChanges = () => {
 
 const confirmDiscard = () => {
     localData.value = JSON.parse(JSON.stringify(originalData.value));
+    selectedLotId.value = originalLotId.value;
     hasChanges.value = false;
     editing.value = false;
 
@@ -82,6 +93,19 @@ const redirectToClerkMap = () => {
     });
 };
 
+const deleteBurialRecord = () => {
+    if (confirm('Are you sure you want to delete this burial record? This action cannot be undone.')) {
+        router.delete(
+            route('clerk.burial_records.destroy', props.burial_record.data.burial.id),
+            {
+                onSuccess: () => {
+                    // Redirect handled by controller
+                },
+            }
+        );
+    }
+};
+
 const saveChanges = () => {
     router.post(
         route(
@@ -97,21 +121,19 @@ const saveChanges = () => {
                 originalData.value = JSON.parse(
                     JSON.stringify(localData.value)
                 );
+                originalLotId.value = selectedLotId.value;
                 hasChanges.value = false;
                 editing.value = false;
             },
+            preserveScroll: true,
         }
     );
 };
 
-const selectedPhaseId = ref(null);
-const selectedClusterId = ref(null);
-const selectedLotId = ref(null);
-
 // Initialize location selections based on current burial record
 const initializeLocationSelections = () => {
     const currentLotId = props.burial_record.data.lot?.lot?.id;
-    const currentClusterId = props.burial_record.data.cluster?.cluster?.id;
+    const currentClusterId = props.burial_record.data.lot?.cluster?.id;
 
     if (currentLotId && currentClusterId) {
         // Find the phase that contains this cluster
@@ -140,7 +162,7 @@ const availableLots = computed(() => {
     const cluster = availableClusters.value.find(
         (c) => c.id == selectedClusterId.value
     );
-    return cluster?.lots || [];
+    return cluster?.lots.filter(lot => !lot.is_occupied || lot.id == selectedLotId.value) || [];
 });
 
 const selectedLotColumn = computed(() => {
@@ -334,6 +356,27 @@ onBeforeUnmount(() => {
                     class="flex space-x-3 items-center justify-center"
                 >
                     <button
+                        @click="deleteBurialRecord"
+                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                        Delete
+                    </button>
+                    <button
                         @click="redirectToClerkMap"
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
@@ -415,6 +458,7 @@ onBeforeUnmount(() => {
                     label="First Name"
                     :modelValue="localData.deceased?.first_name"
                     :editing="editing"
+                    :error="errors['deceased.first_name']"
                     @update:modelValue="
                         (val) => (localData.deceased.first_name = val)
                     "
@@ -424,6 +468,7 @@ onBeforeUnmount(() => {
                     label="Middle Name"
                     :modelValue="localData.deceased?.middle_name"
                     :editing="editing"
+                    :error="errors['deceased.middle_name']"
                     @update:modelValue="
                         (val) => (localData.deceased.middle_name = val)
                     "
@@ -432,6 +477,7 @@ onBeforeUnmount(() => {
                     label="Last Name"
                     :modelValue="localData.deceased?.last_name"
                     :editing="editing"
+                    :error="errors['deceased.last_name']"
                     @update:modelValue="
                         (val) => (localData.deceased.last_name = val)
                     "
@@ -440,12 +486,14 @@ onBeforeUnmount(() => {
                     label="Age"
                     :modelValue="localData.deceased?.age"
                     :editing="editing"
+                    :error="errors['deceased.age']"
                     @update:modelValue="(val) => (localData.deceased.age = val)"
                 />
                 <Display
                     label="Date of Birth"
                     :modelValue="localData.deceased?.birth?.date"
                     :editing="editing"
+                    :error="errors['deceased.birth.date']"
                     @update:modelValue="
                         (val) => (localData.deceased.birth.date = val)
                     "
@@ -502,6 +550,7 @@ onBeforeUnmount(() => {
                     label="Precinct Number"
                     :modelValue="localData.deceased?.precinct_num"
                     :editing="editing"
+                    :error="errors['deceased.precinct_num']"
                     @update:modelValue="
                         (val) => (localData.deceased.precinct_num = val)
                     "
@@ -640,6 +689,9 @@ onBeforeUnmount(() => {
                     <select
                         v-if="editing"
                         v-model="selectedPhaseId"
+                        :class="{
+                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                        }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
                         <option value="">Select a phase</option>
@@ -669,6 +721,9 @@ onBeforeUnmount(() => {
                         v-if="editing"
                         v-model="selectedClusterId"
                         :disabled="!selectedPhaseId"
+                        :class="{
+                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                        }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                     >
                         <option value="">Select a cluster</option>
@@ -698,6 +753,9 @@ onBeforeUnmount(() => {
                         v-if="editing"
                         v-model="selectedLotId"
                         :disabled="!selectedClusterId"
+                        :class="{
+                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                        }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                     >
                         <option value="">Select a lot</option>
@@ -712,6 +770,12 @@ onBeforeUnmount(() => {
                     <p v-else class="text-gray-900 dark:text-gray-100">
                         {{ localData.lot?.lot?.properties?.column }} -
                         {{ localData.lot?.lot?.properties?.row || "N/A" }}
+                    </p>
+                    <p
+                        v-if="editing && errors['lot_id']"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ errors["lot_id"] }}
                     </p>
                 </div>
 

@@ -63,20 +63,24 @@ class BurialRecordController extends Controller
 
     public function show(BurialRecord $burial_record)
     {
-        $phases = Phase::with('clusters')->get()->map(function ($phase) {
+        $currentBurialRecordId = $burial_record->id;
+
+        $phases = Phase::with(['clusters.lots.burialRecords'])->get()->map(function ($phase) use ($currentBurialRecordId) {
             return [
                 'id' => $phase->id,
                 'name' => $phase->phase_name,
-                'clusters' => $phase->clusters->map(function ($cluster) {
+                'clusters' => $phase->clusters->map(function ($cluster) use ($currentBurialRecordId) {
                     return [
                         'id' => $cluster->id,
                         'name' => $cluster->cluster_name,
                         'cluster_type' => $cluster->cluster_type,
-                        'lots' => $cluster->lots->map(function ($lot) {
+                        'lots' => $cluster->lots->map(function ($lot) use ($currentBurialRecordId) {
+                            $isOccupied = $lot->burialRecords->where('id', '!=', $currentBurialRecordId)->isNotEmpty();
                             return [
                                 'id' => $lot->id,
                                 'column' => $lot->column,
                                 'row' => $lot->row,
+                                'is_occupied' => $isOccupied,
                             ];
                         }),
                     ];
@@ -154,7 +158,14 @@ class BurialRecordController extends Controller
             $burial_record->update(['lot_id' => $validated['lot_id']]);
         }
 
-        return to_route('clerk.burial_records.show', $burial_record->id)
-            ->with('success', 'Burial record updated successfully.');
+        return back()->with('success', 'Burial record updated successfully.');
+    }
+
+    public function destroy(BurialRecord $burial_record)
+    {
+        $burial_record->delete();
+
+        return to_route('clerk.burial_records.index')
+            ->with('success', 'Burial record deleted successfully.');
     }
 }
