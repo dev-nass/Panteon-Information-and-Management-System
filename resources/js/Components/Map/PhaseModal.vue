@@ -8,15 +8,19 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["viewOnTable"]);
+
+const totalClusters = computed(() => {
+    return props.feature?.clusters?.length || 0;
+});
 </script>
 
 <template>
     <div
-        id="hs-cluster-modal"
+        id="hs-phase-modal"
         class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm pointer-events-none"
         role="dialog"
         tabindex="-1"
-        aria-labelledby="hs-cluster-modal-label"
+        aria-labelledby="hs-phase-modal-label"
     >
         <div
             class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center"
@@ -29,16 +33,16 @@ const emit = defineEmits(["viewOnTable"]);
                     class="flex justify-between items-center py-3 px-4 border-b border-white/20 dark:border-white/10 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md"
                 >
                     <h3
-                        id="hs-cluster-modal-label"
+                        id="hs-phase-modal-label"
                         class="font-bold text-gray-800 dark:text-white"
                     >
-                        Cluster Details
+                        Phase Details
                     </h3>
 
                     <button
                         type="button"
                         class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
-                        data-hs-overlay="#hs-cluster-modal"
+                        data-hs-overlay="#hs-phase-modal"
                     >
                         <svg
                             class="shrink-0 size-4"
@@ -65,7 +69,7 @@ const emit = defineEmits(["viewOnTable"]);
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
                                     <div
-                                        class="flex items-center justify-center size-14 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                        class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -76,33 +80,30 @@ const emit = defineEmits(["viewOnTable"]);
                                             stroke="currentColor"
                                             stroke-width="2"
                                         >
-                                            <rect
-                                                x="3"
-                                                y="3"
-                                                width="18"
-                                                height="18"
-                                                rx="2"
+                                            <path
+                                                d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
                                             />
-                                            <path d="M3 9h18" />
-                                            <path d="M9 21V9" />
+                                            <polyline
+                                                points="9 22 9 12 15 12 15 22"
+                                            />
                                         </svg>
                                     </div>
 
                                     <div>
                                         <h3
-                                            class="text-lg font-semibold text-blue-600 dark:text-blue-400"
+                                            class="text-lg font-semibold text-green-600 dark:text-green-400"
                                         >
                                             {{
-                                                feature.properties?.name ||
-                                                "Unknown"
+                                                feature.properties
+                                                    ?.phase_name || "Unknown"
                                             }}
                                         </h3>
 
                                         <p
                                             class="text-xs text-gray-500 dark:text-gray-400"
                                         >
-                                            Cluster ID #{{
-                                                feature.properties?.cluster_id
+                                            Phase ID #{{
+                                                feature.properties?.id
                                             }}
                                         </p>
                                     </div>
@@ -113,10 +114,10 @@ const emit = defineEmits(["viewOnTable"]);
                                         @click="
                                             emit(
                                                 'viewOnTable',
-                                                feature.properties?.cluster_id
+                                                feature.properties?.id
                                             )
                                         "
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-blue-500/10 text-blue-400 border-transparent hover:bg-blue-500/20 hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
                                     >
                                         View on Table
                                     </button>
@@ -128,20 +129,13 @@ const emit = defineEmits(["viewOnTable"]);
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Phase
+                                        Phase Name
                                     </span>
                                     <div class="font-medium">
-                                        {{ feature.properties.phase }}
-                                    </div>
-                                </div>
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Cluster Name
-                                    </span>
-                                    <div class="font-medium">
-                                        {{ feature.properties?.name || "N/A" }}
+                                        {{
+                                            feature.properties?.phase_name ||
+                                            "N/A"
+                                        }}
                                     </div>
                                 </div>
 
@@ -149,10 +143,10 @@ const emit = defineEmits(["viewOnTable"]);
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Type
+                                        Total Clusters
                                     </span>
                                     <div class="font-medium">
-                                        {{ feature.properties?.type || "N/A" }}
+                                        {{ feature.properties?.total_clusters || 0 }}
                                     </div>
                                 </div>
 
@@ -163,10 +157,7 @@ const emit = defineEmits(["viewOnTable"]);
                                         Occupants
                                     </span>
                                     <div class="font-medium">
-                                        {{
-                                            feature.properties?.occupied_lots ||
-                                            0
-                                        }}
+                                        {{ feature.properties?.occupants || 0 }}
                                     </div>
                                 </div>
 
@@ -178,22 +169,10 @@ const emit = defineEmits(["viewOnTable"]);
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            feature.properties?.total_lots || 0
+                                            feature.properties
+                                                ?.total_capacity || 0
                                         }}
                                         lots
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Status
-                                    </span>
-                                    <div class="font-medium capitalize">
-                                        {{
-                                            feature.properties?.status || "N/A"
-                                        }}
                                     </div>
                                 </div>
                             </div>

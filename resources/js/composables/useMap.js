@@ -28,6 +28,10 @@ export function useMap() {
     const { isOnSearchMode } = useMapSearchStates();
     const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
+    /**
+     * Description: Initalize the map
+     * @param {*} mapContainerElem the instance of the map assigned to an HTML element
+     */
     const initializeMap = async (mapContainerElem) => {
         map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
@@ -56,6 +60,9 @@ export function useMap() {
         loadVisibleClusters(); // initial load
     };
 
+    /**
+     * Description: Initializes the map layers
+     */
     const initializeLayers = () => {
         if (!googleLayer.value) {
             googleLayer.value = L.tileLayer(
@@ -63,14 +70,17 @@ export function useMap() {
                 {
                     maxZoom: 30,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
-                }
+                },
             );
 
             googleLayer.value.addTo(map.value);
         }
     };
 
-    // properly destroys the map each render; used in View
+    /**
+     * Description: Properly destroys the map each render;
+     *              Used in Clerk/Map/index
+     */
     const cleanupMap = () => {
         if (map.value) {
             map.value.remove(); // Properly destroys map and removes all listeners
@@ -82,7 +92,9 @@ export function useMap() {
         // entranceLayer.value = L.layerGroup();
     };
 
-    // used if the zoom is too far
+    /**
+     * Description: Used if the zoom level is too far
+     */
     const cleanupLayers = () => {
         if (!map.value) return;
 
@@ -95,7 +107,7 @@ export function useMap() {
     };
 
     /**
-     * Description: Toggle map features on/off for filtering
+     * Description: Toggle map 'clusters' features on/off for filtering
      * @param {string} type - Type of feature to toggle ("all" or specific type)
      * @enum {string} type - "all", "apartment", 'underground'
      */
@@ -104,7 +116,7 @@ export function useMap() {
         if (type === "all") {
             // Toggle all types
             const allVisible = Array.from(
-                clusterVisibility.value.values()
+                clusterVisibility.value.values(),
             ).every((v) => v);
             const newState = !allVisible;
 
@@ -123,10 +135,13 @@ export function useMap() {
 
         // Update the state
         toggleMapFeaturesState.value = Array.from(
-            clusterVisibility.value.values()
+            clusterVisibility.value.values(),
         ).some((v) => v);
     };
 
+    /**
+     * Description: Toggle map 'phase' features on/off for filtering
+     */
     const togglePhaseVisibility = () => {
         phaseVisibility.value = !phaseVisibility.value;
 
@@ -142,8 +157,9 @@ export function useMap() {
     };
 
     /**
-     * Description: Update the visibility of the map based on clusterVisibility (true/false)
-     * and zoom level
+     * Description: Update the visibility of the map based on
+     *              clusterVisibility state (true/false)
+     *              and zoom level
      */
     const updateVisibility = () => {
         if (!map.value) return;
@@ -193,12 +209,6 @@ export function useMap() {
             }
         }
     };
-
-    // continuously calls the updateVisibility
-    // setInterval(() => {
-    //     console.log("updating...");
-    //     updateVisibility();
-    // }, RENDER_DEBOUNCE_MS);
 
     return {
         initializeMap,

@@ -49,7 +49,7 @@ class PanteonDataSeeder extends Seeder
             $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             DB::statement("INSERT INTO phases(phase_name, coordinates, created_at, updated_at) VALUES (?, ST_GeomFromGeoJSON(?), NOW(), NOW())", [
-                $feature['properties']['name'],
+                $feature['properties']['phase_name'],
                 $geometryJson,
             ]);
         }

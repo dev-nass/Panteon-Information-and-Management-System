@@ -29,6 +29,9 @@ class MapDataController extends Controller
         return BurialRecordResource::collection($burials);
     }
 
+    /**
+    * Description: Fetch all Phase Records within the database
+    */
     public function phaseRecords()
     {
         $phases = Phase::select(
@@ -44,6 +47,11 @@ class MapDataController extends Controller
         return PhaseResource::collection($phases);
     }
 
+    /**
+    *  Description: Fetch clusters within the specific bound
+    *               The ClusterResource then retrieve the
+    *               cluster -> lot -> burial_record -> deceased record
+    */
     // Fetch burial records within a bounding box
     public function partialBurialRecords(Request $request)
     {
@@ -99,7 +107,7 @@ class MapDataController extends Controller
                         $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                     },
                     'lots.burialRecords.deceasedRecord',
-                    'lots.burialRecords.user'
+                    'lots.burialRecords.user',
                 ]);
                 return $clusterModel;
             });
@@ -109,5 +117,5 @@ class MapDataController extends Controller
 
 
     // TODO: Create a method for fetching the Phases
-    // TODO: Create a method for fetching the Clusters 
+    // TODO: Create a method for fetching the Clusters
 }

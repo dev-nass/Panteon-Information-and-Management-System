@@ -17,10 +17,9 @@ class Lot extends Model
     ];
 
     protected $fillable = [
-        'phase_id',
-        'type',
-        'total_capacity',
-        'coordinates',
+        'cluster_id',
+        'column',
+        'row',
     ];
 
     public function cluster(): BelongsTo

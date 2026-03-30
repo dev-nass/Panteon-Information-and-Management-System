@@ -300,7 +300,7 @@ export function useFeatureProcessing() {
      */
     const attachLotPopup = (feature, layer) => {
         layer.on("click", function () {
-            window.openLotModal(feature, layer._leaflet_id);
+            window.openBurialRecordModal(feature, layer._leaflet_id);
         });
     };
 

@@ -12,6 +12,12 @@ class Cluster extends Model
     /** @use HasFactory<\Database\Factories\PhaseFactory> */
     use HasFactory;
 
+    protected $fillable = [
+        'phase_id',
+        'cluster_name',
+        'cluster_type',
+    ];
+
     public function phase(): BelongsTo
     {
         return $this->belongsTo(Phase::class);

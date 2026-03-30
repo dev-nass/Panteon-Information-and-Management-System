@@ -12,11 +12,11 @@ const emit = defineEmits(["viewOnTable"]);
 
 <template>
     <div
-        id="hs-cluster-modal"
+        id="hs-lot-modal"
         class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm pointer-events-none"
         role="dialog"
         tabindex="-1"
-        aria-labelledby="hs-cluster-modal-label"
+        aria-labelledby="hs-lot-modal-label"
     >
         <div
             class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center"
@@ -29,16 +29,16 @@ const emit = defineEmits(["viewOnTable"]);
                     class="flex justify-between items-center py-3 px-4 border-b border-white/20 dark:border-white/10 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md"
                 >
                     <h3
-                        id="hs-cluster-modal-label"
+                        id="hs-lot-modal-label"
                         class="font-bold text-gray-800 dark:text-white"
                     >
-                        Cluster Details
+                        Lot Details
                     </h3>
 
                     <button
                         type="button"
                         class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
-                        data-hs-overlay="#hs-cluster-modal"
+                        data-hs-overlay="#hs-lot-modal"
                     >
                         <svg
                             class="shrink-0 size-4"
@@ -65,7 +65,7 @@ const emit = defineEmits(["viewOnTable"]);
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
                                     <div
-                                        class="flex items-center justify-center size-14 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                        class="flex items-center justify-center size-14 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -79,30 +79,43 @@ const emit = defineEmits(["viewOnTable"]);
                                             <rect
                                                 x="3"
                                                 y="3"
-                                                width="18"
-                                                height="18"
-                                                rx="2"
+                                                width="7"
+                                                height="7"
                                             />
-                                            <path d="M3 9h18" />
-                                            <path d="M9 21V9" />
+                                            <rect
+                                                x="14"
+                                                y="3"
+                                                width="7"
+                                                height="7"
+                                            />
+                                            <rect
+                                                x="14"
+                                                y="14"
+                                                width="7"
+                                                height="7"
+                                            />
+                                            <rect
+                                                x="3"
+                                                y="14"
+                                                width="7"
+                                                height="7"
+                                            />
                                         </svg>
                                     </div>
 
                                     <div>
                                         <h3
-                                            class="text-lg font-semibold text-blue-600 dark:text-blue-400"
+                                            class="text-lg font-semibold text-amber-600 dark:text-amber-400"
                                         >
-                                            {{
-                                                feature.properties?.name ||
-                                                "Unknown"
-                                            }}
+                                            Lot {{ feature.properties?.column
+                                            }}{{ feature.properties?.row }}
                                         </h3>
 
                                         <p
                                             class="text-xs text-gray-500 dark:text-gray-400"
                                         >
-                                            Cluster ID #{{
-                                                feature.properties?.cluster_id
+                                            Lot ID #{{
+                                                feature.properties?.lot_id
                                             }}
                                         </p>
                                     </div>
@@ -113,10 +126,10 @@ const emit = defineEmits(["viewOnTable"]);
                                         @click="
                                             emit(
                                                 'viewOnTable',
-                                                feature.properties?.cluster_id
+                                                feature.properties?.lot_id
                                             )
                                         "
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-blue-500/10 text-blue-400 border-transparent hover:bg-blue-500/20 hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-300"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-amber-500/10 text-amber-400 border-transparent hover:bg-amber-500/20 hover:border-amber-500/40 hover:text-amber-600 dark:hover:text-amber-300"
                                     >
                                         View on Table
                                     </button>
@@ -130,57 +143,32 @@ const emit = defineEmits(["viewOnTable"]);
                                     >
                                         Phase
                                     </span>
-                                    <div class="font-medium">
+                                    <div class="font-medium capitalize">
                                         {{ feature.properties.phase }}
                                     </div>
                                 </div>
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Cluster Name
-                                    </span>
-                                    <div class="font-medium">
-                                        {{ feature.properties?.name || "N/A" }}
-                                    </div>
-                                </div>
 
                                 <div>
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Type
+                                        Cluster
                                     </span>
-                                    <div class="font-medium">
-                                        {{ feature.properties?.type || "N/A" }}
+                                    <div class="font-medium capitalize">
+                                        {{ feature.properties.cluster }}
                                     </div>
                                 </div>
-
                                 <div>
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Occupants
+                                        Location (Col/Row)
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            feature.properties?.occupied_lots ||
-                                            0
+                                            feature.properties?.column +
+                                            feature.properties?.row
                                         }}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <span
-                                        class="text-gray-500 dark:text-gray-400"
-                                    >
-                                        Total Capacity
-                                    </span>
-                                    <div class="font-medium">
-                                        {{
-                                            feature.properties?.total_lots || 0
-                                        }}
-                                        lots
                                     </div>
                                 </div>
 
@@ -193,6 +181,20 @@ const emit = defineEmits(["viewOnTable"]);
                                     <div class="font-medium capitalize">
                                         {{
                                             feature.properties?.status || "N/A"
+                                        }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Burial Records
+                                    </span>
+                                    <div class="font-medium">
+                                        {{
+                                            feature.properties?.burial_count ||
+                                            0
                                         }}
                                     </div>
                                 </div>
