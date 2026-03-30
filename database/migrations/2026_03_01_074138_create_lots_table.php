@@ -22,10 +22,10 @@ return new class extends Migration {
             $table->string('row')->comment('Level/Row number e.g., A, B, C...');
 
             // ✅ Geometry column
-            $table->geometry('coordinates', 4326);
+            $table->geometry('coordinates', 4326)->nullable();
 
             // ✅ Spatial index
-            $table->spatialIndex('coordinates');
+            // $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });

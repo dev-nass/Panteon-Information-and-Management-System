@@ -194,6 +194,10 @@ const redirectToClerkBurialRecordShow = (lotId) => {
     router.visit(route("clerk.lot_management.show", { lot: lotId }));
 };
 
+const goToCreate = () => {
+    router.visit(route("clerk.lot_management.create"));
+};
+
 onBeforeUnmount(() => {
     clearSearch();
 });
@@ -241,6 +245,12 @@ defineOptions({
                     </Button>
 
                     <template v-if="!editing">
+                        <Button
+                            @click="goToCreate"
+                            class="bg-white dark:bg-neutral-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-neutral-600"
+                        >
+                            Create
+                        </Button>
                         <Button
                             @click="editing = true"
                             class="bg-green-500/10 text-green-400 hover:bg-green-500/20"

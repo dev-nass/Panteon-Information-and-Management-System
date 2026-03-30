@@ -557,7 +557,8 @@ onBeforeUnmount(() => {
                     :modelValue="localData.cluster?.cluster?.properties?.phase"
                     :editing="editing"
                     @update:modelValue="
-                        (val) => (localData.cluster.cluster.properties.phase = val)
+                        (val) =>
+                            (localData.cluster.cluster.properties.phase = val)
                     "
                 />
                 <Display
@@ -565,7 +566,8 @@ onBeforeUnmount(() => {
                     :modelValue="localData.cluster?.cluster?.properties?.name"
                     :editing="editing"
                     @update:modelValue="
-                        (val) => (localData.cluster.cluster.properties.name = val)
+                        (val) =>
+                            (localData.cluster.cluster.properties.name = val)
                     "
                 />
                 <Display
@@ -573,7 +575,8 @@ onBeforeUnmount(() => {
                     :modelValue="localData.cluster?.cluster?.properties?.type"
                     :editing="editing"
                     @update:modelValue="
-                        (val) => (localData.cluster.cluster.properties.type = val)
+                        (val) =>
+                            (localData.cluster.cluster.properties.type = val)
                     "
                 />
                 <Display

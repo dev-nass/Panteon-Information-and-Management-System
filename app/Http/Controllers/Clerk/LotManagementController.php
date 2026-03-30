@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PhaseResource;
+use App\Models\Cluster;
 use App\Models\Lot;
 use App\Models\Phase;
 use Illuminate\Http\Request;
@@ -63,6 +64,80 @@ class LotManagementController extends Controller
         return Inertia::render('Clerk/LotManagement/IndexView', [
             'phases' => $phases,
         ]);
+    }
+
+    public function create()
+    {
+        $phases = Phase::with('clusters')->get()->map(function ($phase) {
+            return [
+                'id' => $phase->id,
+                'name' => $phase->phase_name,
+                'clusters' => $phase->clusters->map(function ($cluster) {
+                    return [
+                        'id' => $cluster->id,
+                        'name' => $cluster->cluster_name,
+                    ];
+                }),
+            ];
+        });
+
+        return Inertia::render('Clerk/LotManagement/CreateView', [
+            'phases' => $phases,
+        ]);
+    }
+
+    public function storePhase(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        Phase::create([
+            'phase_name' => $validated['name'],
+        ]);
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Phase created successfully.');
+    }
+
+    public function storeCluster(Request $request)
+    {
+        $validated = $request->validate([
+            'phase_id' => 'required|exists:phases,id',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
+            'occupants' => 'required|integer|min:0',
+        ]);
+
+        Cluster::create([
+            'phase_id' => $validated['phase_id'],
+            'cluster_name' => $validated['name'],
+            'cluster_type' => $validated['type'],
+        ]);
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Cluster created successfully.');
+    }
+
+    public function storeLot(Request $request)
+    {
+        $validated = $request->validate([
+            'cluster_id' => 'required|exists:clusters,id',
+            'number' => 'required|string|max:255',
+            'status' => 'required|in:available,occupied',
+        ]);
+
+        // Parse lot number (assuming format: column-row)
+        $parts = explode('-', $validated['number']);
+        
+        Lot::create([
+            'cluster_id' => $validated['cluster_id'],
+            'column' => $parts[0] ?? $validated['number'],
+            'row' => $parts[1] ?? '1',
+        ]);
+
+        return to_route('clerk.lot_management.index')
+            ->with('success', 'Lot created successfully.');
     }
 
     /**

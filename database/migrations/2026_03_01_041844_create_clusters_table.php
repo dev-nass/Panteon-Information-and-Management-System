@@ -15,16 +15,16 @@ return new class extends Migration {
             $table->id();
 
             $table->foreignIdFor(Phase::class)->constrained()->cascadeOnDelete();
-            $table->string('cluster_name')->unique();
+            $table->string('cluster_name');
             $table->enum('cluster_type', ['underground', 'apartment', 'columbarium']);
             $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
             $table->bigInteger('total_capacity')->nullable();
 
             // ✅ Geometry column
-            $table->geometry('coordinates', 4326);
+            $table->geometry('coordinates', 4326)->nullable();
 
             // ✅ Spatial index
-            $table->spatialIndex('coordinates');
+            // $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });
