@@ -386,6 +386,7 @@ defineOptions({
                         <TableData> {{ phase.clusters.length }} </TableData>
                         <TableData>
                             <button
+                                v-if="phase.isPhase_mapped"
                                 @click.stop="
                                     redirectToClerkMap(phase.id, 'phase')
                                 "
@@ -393,6 +394,12 @@ defineOptions({
                             >
                                 View on Map
                             </button>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 border border-red-500/30"
+                            >
+                                Not Mapped
+                            </span>
                         </TableData>
                     </tr>
 
@@ -436,6 +443,7 @@ defineOptions({
                         </TableData>
                         <TableData>
                             <button
+                                v-if="cluster.isCluster_mapped"
                                 @click.stop="
                                     redirectToClerkMap(cluster.id, 'cluster')
                                 "
@@ -443,6 +451,12 @@ defineOptions({
                             >
                                 View on Map
                             </button>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 border border-red-500/30"
+                            >
+                                Not Mapped
+                            </span>
                         </TableData>
                     </tr>
 
@@ -496,11 +510,18 @@ defineOptions({
 
                         <TableData>
                             <button
+                                v-if="lot.isLot_mapped"
                                 @click.stop="redirectToClerkMap(lot.id, 'lot')"
                                 class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                             >
                                 View on Map
                             </button>
+                            <span
+                                v-else
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 border border-red-500/30"
+                            >
+                                Not Mapped
+                            </span>
                         </TableData>
                     </tr>
                 </tbody>

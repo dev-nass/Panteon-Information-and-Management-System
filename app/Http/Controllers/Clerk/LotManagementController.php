@@ -39,6 +39,7 @@ class LotManagementController extends Controller
                             'column' => $lot->column,
                             'row' => $lot->row,
                             'status' => $isOccupied ? 'occupied' : 'available',
+                            'isLot_mapped' => !is_null($lot->coordinates),
                         ];
                     });
 
@@ -49,6 +50,7 @@ class LotManagementController extends Controller
                         'lots' => $lots,
                         'occupants' => $clusterOccupants,
                         'type' => $cluster->cluster_type,
+                        'isCluster_mapped' => !is_null($cluster->coordinates),
                     ];
                 });
 
@@ -59,6 +61,7 @@ class LotManagementController extends Controller
                     'total_capacity' => $totalCapacity,
                     'occupants' => $lotOccupants,
                     'clusters' => $clusters,
+                    'isPhase_mapped' => !is_null($phase->coordinates),
                 ];
             });
 
