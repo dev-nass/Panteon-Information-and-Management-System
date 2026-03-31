@@ -94,9 +94,16 @@ const redirectToClerkMap = () => {
 };
 
 const deleteBurialRecord = () => {
-    if (confirm('Are you sure you want to delete this burial record? This action cannot be undone.')) {
+    if (
+        confirm(
+            "Are you sure you want to delete this burial record? This action cannot be undone."
+        )
+    ) {
         router.delete(
-            route('clerk.burial_records.destroy', props.burial_record.data.burial.id),
+            route(
+                "clerk.burial_records.destroy",
+                props.burial_record.data.burial.id
+            ),
             {
                 onSuccess: () => {
                     // Redirect handled by controller
@@ -162,7 +169,11 @@ const availableLots = computed(() => {
     const cluster = availableClusters.value.find(
         (c) => c.id == selectedClusterId.value
     );
-    return cluster?.lots.filter(lot => !lot.is_occupied || lot.id == selectedLotId.value) || [];
+    return (
+        cluster?.lots.filter(
+            (lot) => !lot.is_occupied || lot.id == selectedLotId.value
+        ) || []
+    );
 });
 
 const selectedLotColumn = computed(() => {
@@ -356,27 +367,6 @@ onBeforeUnmount(() => {
                     class="flex space-x-3 items-center justify-center"
                 >
                     <button
-                        @click="deleteBurialRecord"
-                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M3 6h18" />
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                        </svg>
-                        Delete
-                    </button>
-                    <button
                         @click="redirectToClerkMap"
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
@@ -404,6 +394,28 @@ onBeforeUnmount(() => {
                             <path d="m15 5 4 4" />
                         </svg>
                         Edit
+                    </button>
+
+                    <button
+                        @click="deleteBurialRecord"
+                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                        Delete
                     </button>
                 </article>
                 <div class="flex gap-x-3">
@@ -690,7 +702,8 @@ onBeforeUnmount(() => {
                         v-if="editing"
                         v-model="selectedPhaseId"
                         :class="{
-                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                            'border-red-500 focus:ring-red-500':
+                                errors['lot_id'],
                         }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                     >
@@ -722,7 +735,8 @@ onBeforeUnmount(() => {
                         v-model="selectedClusterId"
                         :disabled="!selectedPhaseId"
                         :class="{
-                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                            'border-red-500 focus:ring-red-500':
+                                errors['lot_id'],
                         }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                     >
@@ -754,7 +768,8 @@ onBeforeUnmount(() => {
                         v-model="selectedLotId"
                         :disabled="!selectedClusterId"
                         :class="{
-                            'border-red-500 focus:ring-red-500': errors['lot_id'],
+                            'border-red-500 focus:ring-red-500':
+                                errors['lot_id'],
                         }"
                         class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                     >
