@@ -21,8 +21,8 @@ class PanteonDataSeeder extends Seeder
     {
         $this->seedPhases();
         $this->seedClusters();
-        $this->seedLots();
-        $this->deceasedRecords();
+        // $this->seedLots();
+        // $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -59,61 +59,61 @@ class PanteonDataSeeder extends Seeder
 
     private function seedClusters(): void
     {
-        $geoJsonPath_Underground = public_path('data/cluster_underground.geojson');
-        $geoJsonPath_Appartment = public_path('data/cluster_apartment.geojson');
+        $clusterFiles = [
+            'data/cluster_phase1a.geojson',
+            'data/cluster_phase1b.geojson',
+            'data/cluster_phase2.geojson',
+            'data/cluster_phase3.geojson',
+            'data/cluster_phase4.geojson',
+            'data/cluster_phase5.geojson',
+            'data/cluster_phase6.geojson',
+            'data/cluster_phase7.geojson',
+        ];
 
-        if (!file_exists($geoJsonPath_Underground) || !file_exists($geoJsonPath_Appartment)) {
-            $this->command->error("GeoJSON files not found");
-            return;
-        }
-
-        $geoJsonData_underground = json_decode(file_get_contents($geoJsonPath_Underground), true);
-        $geoJsonData_appartment = json_decode(file_get_contents($geoJsonPath_Appartment), true);
-
-        $allFeatures = [];
-
-        foreach ($geoJsonData_underground['features'] as $feature) {
-            $feature['properties']['cluster_type'] = 'underground';
-            $feature['properties']['total_capacity'] = 1;
-            $allFeatures[] = $feature;
-        }
-
-        foreach ($geoJsonData_appartment['features'] as $feature) {
-            $feature['properties']['cluster_type'] = 'apartment';
-            $feature['properties']['total_capacity'] = 371;
-            $allFeatures[] = $feature;
-        }
-
-        $this->command->info("Seeding lots from GeoJSON...");
+        $this->command->info("Seeding clusters from GeoJSON...");
 
         $counter = 0;
 
-        foreach ($allFeatures as $index => $feature) {
-            if (
-                !isset($feature['geometry'])
-                || !isset($feature['geometry']['coordinates'])
-                || empty($feature['geometry']['coordinates'])
-            ) {
-                $this->command->warn("Skipping LOT-{$index}: empty geometry");
+        foreach ($clusterFiles as $file) {
+            $geoJsonPath = public_path($file);
+
+            if (!file_exists($geoJsonPath)) {
+                $this->command->warn("File not found: {$file}");
                 continue;
             }
 
-            $attributes = $feature['properties'];
-            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
 
-            // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
-            DB::statement("
-            INSERT INTO clusters (phase_id, cluster_name, cluster_type, total_capacity, coordinates, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
-        ", [
-                $attributes['phase_id'],
-                $attributes['name'], // cluster_name
-                $attributes['cluster_type'],
-                $attributes['total_capacity'],
-                $geometryJson,
-            ]);
+            if (!isset($geoJsonData['features'])) {
+                $this->command->warn("Invalid GeoJSON format in {$file}");
+                continue;
+            }
 
-            $counter++;
+            foreach ($geoJsonData['features'] as $index => $feature) {
+                if (
+                    !isset($feature['geometry'])
+                    || !isset($feature['geometry']['coordinates'])
+                    || empty($feature['geometry']['coordinates'])
+                ) {
+                    $this->command->warn("Skipping cluster in {$file}: empty geometry");
+                    continue;
+                }
+
+                $attributes = $feature['properties'];
+                $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+                DB::statement("
+                    INSERT INTO clusters (phase_id, cluster_name, cluster_type, coordinates, created_at, updated_at)
+                    VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+                ", [
+                    $attributes['phase_id'],
+                    $attributes['name'],
+                    $attributes['type'],
+                    $geometryJson,
+                ]);
+
+                $counter++;
+            }
         }
 
         $this->command->info("Total clusters imported: {$counter}");
