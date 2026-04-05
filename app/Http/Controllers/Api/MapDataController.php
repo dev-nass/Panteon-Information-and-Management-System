@@ -30,8 +30,8 @@ class MapDataController extends Controller
     }
 
     /**
-    * Description: Fetch all Phase Records within the database
-    */
+     * Description: Fetch all Phase Records within the database
+     */
     public function phaseRecords()
     {
         $phases = Phase::select(
@@ -48,11 +48,11 @@ class MapDataController extends Controller
     }
 
     /**
-    *  Description: Fetch clusters within the specific bound
-    *               The ClusterResource then retrieve the
-    *               cluster -> lot -> burial_record -> deceased record
-    */
-    // Fetch burial records within a bounding box
+     *  Description: Fetch clusters within the specific bound
+     *               The ClusterResource then retrieve the
+     *               cluster -> lot -> burial_record -> deceased record
+     */
+    // TODO: How did the Ai manage to fix the n+1 issue here 
     public function partialBurialRecords(Request $request)
     {
         $validated = $request->validate([
@@ -63,7 +63,7 @@ class MapDataController extends Controller
             'limit' => 'nullable|integer|min:1|max:5000',
         ]);
 
-        $limit = $validated['limit'] ?? 5000;
+        $limit = $validated['limit'] ?? 1000;
 
         $clusterIds = DB::table('clusters')
             ->whereRaw(
@@ -95,22 +95,17 @@ class MapDataController extends Controller
             ->limit($limit)
             ->pluck('id');
 
-        $clusters = DB::table('clusters')
-            ->whereIn('id', $clusterIds)
-            ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->get()
-            ->map(function ($cluster) {
-                $clusterModel = Cluster::find($cluster->id);
-                $clusterModel->coordinates = $cluster->coordinates;
-                $clusterModel->load([
-                    'lots' => function ($query) {
-                        $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-                    },
-                    'lots.burialRecords.deceasedRecord',
-                    'lots.burialRecords.user',
-                ]);
-                return $clusterModel;
-            });
+        $clusters = Cluster::whereIn('id', $clusterIds)
+            ->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->with([
+                'phase:id,phase_name',
+                'lots' => function ($query) {
+                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                },
+                'lots.burialRecords.deceasedRecord',
+                'lots.burialRecords.user',
+            ])
+            ->get();
 
         return ClusterResource::collection($clusters);
     }
