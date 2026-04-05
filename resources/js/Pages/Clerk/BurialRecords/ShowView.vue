@@ -2,6 +2,7 @@
 import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import { has, isEqual } from "lodash";
+import { useToast } from "vue-toast-notification";
 
 import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -16,6 +17,7 @@ const props = defineProps({
 
 const page = usePage();
 const errors = computed(() => page.props.errors || {});
+const $toast = useToast();
 
 const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
     useMap();
@@ -107,7 +109,10 @@ const deleteBurialRecord = () => {
             ),
             {
                 onSuccess: () => {
-                    // Redirect handled by controller
+                    $toast.success("Burial record deleted successfully!");
+                },
+                onError: () => {
+                    $toast.error("Failed to delete burial record.");
                 },
             }
         );
@@ -132,6 +137,10 @@ const saveChanges = () => {
                 originalLotId.value = selectedLotId.value;
                 hasChanges.value = false;
                 editing.value = false;
+                $toast.success("Burial record updated successfully!");
+            },
+            onError: () => {
+                $toast.error("Failed to update burial record. Please check the form for errors.");
             },
             preserveScroll: true,
         }
@@ -704,22 +713,38 @@ onBeforeUnmount(() => {
                 <Display
                     label="Applicant First Name"
                     :modelValue="localData.deceased?.applicant?.first_name"
-                    :editing="false"
+                    :editing="editing"
+                    :error="errors['deceased.applicant.first_name']"
+                    @update:modelValue="
+                        (val) => (localData.deceased.applicant.first_name = val)
+                    "
                 />
                 <Display
                     label="Applicant Middle Name"
                     :modelValue="localData.deceased?.applicant?.middle_name"
-                    :editing="false"
+                    :editing="editing"
+                    :error="errors['deceased.applicant.middle_name']"
+                    @update:modelValue="
+                        (val) => (localData.deceased.applicant.middle_name = val)
+                    "
                 />
                 <Display
                     label="Applicant Last Name"
                     :modelValue="localData.deceased?.applicant?.last_name"
-                    :editing="false"
+                    :editing="editing"
+                    :error="errors['deceased.applicant.last_name']"
+                    @update:modelValue="
+                        (val) => (localData.deceased.applicant.last_name = val)
+                    "
                 />
                 <Display
                     label="Contact Number"
                     :modelValue="localData.deceased?.applicant?.contact_number"
-                    :editing="false"
+                    :editing="editing"
+                    :error="errors['deceased.applicant.contact_number']"
+                    @update:modelValue="
+                        (val) => (localData.deceased.applicant.contact_number = val)
+                    "
                 />
             </div>
 

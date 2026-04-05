@@ -232,6 +232,10 @@ class BurialRecordController extends Controller
             'deceased.family.mother_maiden' => 'nullable|string|max:255',
             'deceased.occupation.address' => 'nullable|string|max:255',
             'deceased.occupation.supervisor' => 'nullable|string|max:255',
+            'deceased.applicant.first_name' => 'required|string|max:255',
+            'deceased.applicant.middle_name' => 'nullable|string|max:255',
+            'deceased.applicant.last_name' => 'required|string|max:255',
+            'deceased.applicant.contact_number' => 'required|string|max:255',
             'lot_id' => 'nullable|exists:lots,id',
         ]);
 
@@ -265,6 +269,16 @@ class BurialRecordController extends Controller
 
         if (isset($validated['lot_id'])) {
             $burial_record->update(['lot_id' => $validated['lot_id']]);
+        }
+
+        $applicant = $deceasedRecord->applicant;
+        if ($applicant) {
+            $applicant->update([
+                'first_name' => $validated['deceased']['applicant']['first_name'],
+                'middle_name' => $validated['deceased']['applicant']['middle_name'] ?? null,
+                'last_name' => $validated['deceased']['applicant']['last_name'],
+                'contact_number' => $validated['deceased']['applicant']['contact_number'],
+            ]);
         }
 
         return back()->with('success', 'Burial record updated successfully.');
