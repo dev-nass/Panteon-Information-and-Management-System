@@ -42,4 +42,9 @@ class DeceasedRecord extends Model
     {
         return $this->hasMany(BurialRecord::class);
     }
+
+    public function applicant()
+    {
+        return $this->hasOne(Applicant::class);
+    }
 }

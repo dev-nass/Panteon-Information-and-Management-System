@@ -19,6 +19,7 @@ const tabs = [
     { key: "death", label: "Death Info" },
     { key: "disposition", label: "Disposition" },
     { key: "family", label: "Family & Company" },
+    { key: "applicant", label: "Applicant" },
     { key: "location", label: "Location" },
 ];
 
@@ -54,6 +55,12 @@ const form = useForm({
     mother_maiden_name: "",
     company_address: "",
     company_supervisor: "",
+    
+    // Applicant
+    applicant_first_name: "",
+    applicant_middle_name: "",
+    applicant_last_name: "",
+    applicant_contact_number: "",
 
     // Location
     lot_id: "",
@@ -488,6 +495,81 @@ defineOptions({
                             v-model="form.company_supervisor"
                             placeholder="Enter supervisor name"
                         />
+                    </div>
+                </div>
+
+                <!-- APPLICANT -->
+                <div
+                    v-if="activeTab === 'applicant'"
+                    class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Applicant First Name
+                        </label>
+                        <Input
+                            v-model="form.applicant_first_name"
+                            placeholder="Enter applicant first name"
+                            required
+                        />
+                        <span
+                            v-if="form.errors.applicant_first_name"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.applicant_first_name }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Applicant Middle Name
+                        </label>
+                        <Input
+                            v-model="form.applicant_middle_name"
+                            placeholder="Enter applicant middle name"
+                        />
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Applicant Last Name
+                        </label>
+                        <Input
+                            v-model="form.applicant_last_name"
+                            placeholder="Enter applicant last name"
+                            required
+                        />
+                        <span
+                            v-if="form.errors.applicant_last_name"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.applicant_last_name }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Contact Number
+                        </label>
+                        <Input
+                            v-model="form.applicant_contact_number"
+                            placeholder="Enter contact number"
+                            required
+                        />
+                        <span
+                            v-if="form.errors.applicant_contact_number"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.applicant_contact_number }}
+                        </span>
                     </div>
                 </div>
 

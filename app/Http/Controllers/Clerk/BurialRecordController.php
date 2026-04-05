@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Clerk;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
 use App\Http\Resources\DeceasedRecordResource;
+use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\Phase;
@@ -119,6 +120,10 @@ class BurialRecordController extends Controller
             'company_address' => 'nullable|string|max:255',
             'company_supervisor' => 'nullable|string|max:255',
             'lot_id' => 'required|exists:lots,id',
+            'applicant_first_name' => 'required|string|max:255',
+            'applicant_middle_name' => 'nullable|string|max:255',
+            'applicant_last_name' => 'required|string|max:255',
+            'applicant_contact_number' => 'required|string|max:255',
         ]);
 
         $deceasedRecord = DeceasedRecord::create([
@@ -151,6 +156,14 @@ class BurialRecordController extends Controller
         $burialRecord = BurialRecord::create([
             'deceased_record_id' => $deceasedRecord->id,
             'lot_id' => $validated['lot_id'],
+        ]);
+
+        Applicant::create([
+            'deceased_record_id' => $deceasedRecord->id,
+            'first_name' => $validated['applicant_first_name'],
+            'middle_name' => $validated['applicant_middle_name'] ?? null,
+            'last_name' => $validated['applicant_last_name'],
+            'contact_number' => $validated['applicant_contact_number'],
         ]);
 
         return to_route('clerk.burial_records.show', $burialRecord->id)
@@ -186,7 +199,7 @@ class BurialRecordController extends Controller
 
         return Inertia::render('Clerk/BurialRecords/ShowView', [
             'burial_record' => new BurialRecordResource(
-                $burial_record->load(['deceasedRecord', 'lot', 'user', 'lot.cluster'])
+                $burial_record->load(['deceasedRecord', 'deceasedRecord.applicant', 'lot', 'user', 'lot.cluster'])
             ),
             'phases' => $phases,
         ]);

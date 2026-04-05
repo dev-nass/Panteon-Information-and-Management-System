@@ -29,6 +29,7 @@ const tabs = [
     { key: "death", label: "Death Info" },
     { key: "disposition", label: "Disposition" },
     { key: "family", label: "Family & Company" },
+    { key: "applicant", label: "Applicant" },
     { key: "location", label: "Location" },
 ];
 
@@ -692,6 +693,33 @@ onBeforeUnmount(() => {
                         (val) =>
                             (localData.deceased.occupation.supervisor = val)
                     "
+                />
+            </div>
+
+            <!-- APPLICANT -->
+            <div
+                v-if="activeTab === 'applicant'"
+                class="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+                <Display
+                    label="Applicant First Name"
+                    :modelValue="localData.deceased?.applicant?.first_name"
+                    :editing="false"
+                />
+                <Display
+                    label="Applicant Middle Name"
+                    :modelValue="localData.deceased?.applicant?.middle_name"
+                    :editing="false"
+                />
+                <Display
+                    label="Applicant Last Name"
+                    :modelValue="localData.deceased?.applicant?.last_name"
+                    :editing="false"
+                />
+                <Display
+                    label="Contact Number"
+                    :modelValue="localData.deceased?.applicant?.contact_number"
+                    :editing="false"
                 />
             </div>
 

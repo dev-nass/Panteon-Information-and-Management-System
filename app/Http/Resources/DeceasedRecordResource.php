@@ -75,6 +75,10 @@ class DeceasedRecordResource extends JsonResource
 
             'precinct_num' => $this->precinct_num,
 
+            'applicant' => new ApplicantResource(
+                $this->whenLoaded('applicant')
+            ),
+
             'created_at' => $this->created_at?->toDateTimeString(),
         ];
     }
