@@ -368,6 +368,14 @@ onBeforeUnmount(() => {
                 >
                     <button
                         @click="redirectToClerkMap"
+                        :disabled="
+                            !burial_record.data.lot?.lot?.geometry?.coordinates?.length
+                        "
+                        :class="{
+                            'opacity-50 cursor-not-allowed disabled:hover:dark:bg-neutral-800':
+                                !burial_record.data.lot?.lot?.geometry
+                                    ?.coordinates?.length,
+                        }"
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
                         View on Map
