@@ -15,6 +15,9 @@ import { ZiggyVue } from "ziggy-js"; // laravel routes
 
 import NProgress from "nprogress"; // progress indicator
 
+import ToastPlugin from "vue-toast-notification";
+import "vue-toast-notification/dist/theme-bootstrap.css";
+
 createInertiaApp({
     progress: {
         // The delay after which the progress bar will appear, in milliseconds...
@@ -34,6 +37,7 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(ToastPlugin)
             .mount(el);
 
         // Initialize AOS

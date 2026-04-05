@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
@@ -9,6 +10,8 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 const props = defineProps({
     phases: Array,
 });
+
+const toast = useToast();
 
 const activeTab = ref("personal");
 const tabs = [
@@ -33,25 +36,25 @@ const form = useForm({
     address: "",
     lgbtq: "",
     precinct_num: "",
-    
+
     // Death Info
     death_date: "",
     death_cause: "",
     death_place: "",
-    
+
     // Disposition
     corpse_disposal: "",
     cremation_place: "",
     cremation_date: "",
     burial_place: "",
     burial_date: "",
-    
+
     // Family & Company
     father_name: "",
     mother_maiden_name: "",
     company_address: "",
     company_supervisor: "",
-    
+
     // Location
     lot_id: "",
 });
@@ -75,13 +78,20 @@ const handlePhaseChange = (phaseId) => {
 const handleClusterChange = (clusterId) => {
     selectedClusterId.value = clusterId;
     const cluster = availableClusters.value.find((c) => c.id == clusterId);
-    availableLots.value = cluster?.lots?.filter(lot => !lot.is_occupied) || [];
+    availableLots.value =
+        cluster?.lots?.filter((lot) => !lot.is_occupied) || [];
     form.lot_id = "";
 };
 
 const submitForm = () => {
     form.post(route("clerk.burial_records.store"), {
-        onSuccess: () => form.reset(),
+        onSuccess: () => {
+            form.reset();
+            toast.success("Burial record created successfully!");
+        },
+        onError: (errors) => {
+            toast.error("Please fix the validation errors before submitting.");
+        },
     });
 };
 
@@ -224,11 +234,7 @@ defineOptions({
                         >
                             Date of Birth
                         </label>
-                        <Input
-                            v-model="form.birth_date"
-                            type="date"
-                            required
-                        />
+                        <Input v-model="form.birth_date" type="date" required />
                         <span
                             v-if="form.errors.birth_date"
                             class="text-red-500 text-sm"
@@ -303,10 +309,7 @@ defineOptions({
                         >
                             Part of LGBTQ
                         </label>
-                        <Input
-                            v-model="form.lgbtq"
-                            placeholder="Yes/No"
-                        />
+                        <Input v-model="form.lgbtq" placeholder="Yes/No" />
                     </div>
 
                     <div>
@@ -340,11 +343,7 @@ defineOptions({
                         >
                             Date of Death
                         </label>
-                        <Input
-                            v-model="form.death_date"
-                            type="date"
-                            required
-                        />
+                        <Input v-model="form.death_date" type="date" required />
                         <span
                             v-if="form.errors.death_date"
                             class="text-red-500 text-sm"
@@ -413,10 +412,7 @@ defineOptions({
                         >
                             Cremation Date
                         </label>
-                        <Input
-                            v-model="form.cremation_date"
-                            type="date"
-                        />
+                        <Input v-model="form.cremation_date" type="date" />
                     </div>
 
                     <div>
@@ -437,10 +433,7 @@ defineOptions({
                         >
                             Date of Depository
                         </label>
-                        <Input
-                            v-model="form.burial_date"
-                            type="date"
-                        />
+                        <Input v-model="form.burial_date" type="date" />
                     </div>
                 </div>
 

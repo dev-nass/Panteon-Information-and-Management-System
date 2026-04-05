@@ -88,7 +88,11 @@ defineOptions({
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                     >
                                         <Link
-                                            :href="route('clerk.burial_records.create')"
+                                            :href="
+                                                route(
+                                                    'clerk.burial_records.create'
+                                                )
+                                            "
                                             class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
                                         >
                                             Create
@@ -279,7 +283,7 @@ defineOptions({
                                 class="divide-y divide-gray-200 dark:divide-neutral-700"
                             >
                                 <tr
-                                    v-if="burial_records.datad"
+                                    v-if="burial_records.data"
                                     v-for="record in burial_records.data"
                                     :key="record.id"
                                     class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
@@ -319,8 +323,14 @@ defineOptions({
                                 </tr>
 
                                 <tr v-else>
-                                    <td colspan="6" class="px-6 py-8 text-center">
-                                        <span class="text-sm text-gray-500 dark:text-neutral-400">No data found</span>
+                                    <td
+                                        colspan="6"
+                                        class="px-6 py-8 text-center"
+                                    >
+                                        <span
+                                            class="text-sm text-gray-500 dark:text-neutral-400"
+                                            >No data found</span
+                                        >
                                     </td>
                                 </tr>
                             </tbody>
