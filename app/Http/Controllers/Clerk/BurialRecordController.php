@@ -61,6 +61,102 @@ class BurialRecordController extends Controller
         ]);
     }
 
+    public function create()
+    {
+        $phases = Phase::with(['clusters.lots.burialRecords'])->get()->map(function ($phase) {
+            return [
+                'id' => $phase->id,
+                'name' => $phase->phase_name,
+                'clusters' => $phase->clusters->map(function ($cluster) {
+                    return [
+                        'id' => $cluster->id,
+                        'name' => $cluster->cluster_name,
+                        'cluster_type' => $cluster->cluster_type,
+                        'lots' => $cluster->lots->map(function ($lot) {
+                            $isOccupied = $lot->burialRecords->isNotEmpty();
+                            return [
+                                'id' => $lot->id,
+                                'column' => $lot->column,
+                                'row' => $lot->row,
+                                'is_occupied' => $isOccupied,
+                            ];
+                        }),
+                    ];
+                }),
+            ];
+        });
+
+        return Inertia::render('Clerk/BurialRecords/CreateView', [
+            'phases' => $phases,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'age' => 'nullable|integer',
+            'birth_date' => 'nullable|date',
+            'civil_status' => 'nullable|string|max:255',
+            'religion' => 'nullable|string|max:255',
+            'nationality' => 'nullable|string|max:255',
+            'occupation_name' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'lgbtq' => 'nullable|string|max:255',
+            'precinct_num' => 'required|integer',
+            'death_date' => 'required|date',
+            'death_cause' => 'nullable|string|max:255',
+            'death_place' => 'nullable|string|max:255',
+            'corpse_disposal' => 'nullable|string|max:255',
+            'cremation_place' => 'nullable|string|max:255',
+            'cremation_date' => 'nullable|date',
+            'burial_place' => 'nullable|string|max:255',
+            'burial_date' => 'nullable|date',
+            'father_name' => 'nullable|string|max:255',
+            'mother_maiden_name' => 'nullable|string|max:255',
+            'company_address' => 'nullable|string|max:255',
+            'company_supervisor' => 'nullable|string|max:255',
+            'lot_id' => 'required|exists:lots,id',
+        ]);
+
+        $deceasedRecord = DeceasedRecord::create([
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
+            'age' => $validated['age'] ?? null,
+            'date_of_birth' => $validated['birth_date'] ?? null,
+            'civil_status' => $validated['civil_status'] ?? null,
+            'religion' => $validated['religion'] ?? null,
+            'nationality' => $validated['nationality'] ?? null,
+            'occupation' => $validated['occupation_name'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'lgbtq' => $validated['lgbtq'] ?? null,
+            'precinct_num' => $validated['precinct_num'],
+            'date_of_death' => $validated['death_date'],
+            'cause_of_death' => $validated['death_cause'] ?? null,
+            'place_of_death' => $validated['death_place'] ?? null,
+            'corpse_disposal' => $validated['corpse_disposal'] ?? null,
+            'cremation_place' => $validated['cremation_place'] ?? null,
+            'cremation_date' => $validated['cremation_date'] ?? null,
+            'burial_place' => $validated['burial_place'] ?? null,
+            'date_of_depository' => $validated['burial_date'] ?? null,
+            'father_name' => $validated['father_name'] ?? null,
+            'mother_maiden_name' => $validated['mother_maiden_name'] ?? null,
+            'company_address' => $validated['company_address'] ?? null,
+            'company_supervisor' => $validated['company_supervisor'] ?? null,
+        ]);
+
+        $burialRecord = BurialRecord::create([
+            'deceased_record_id' => $deceasedRecord->id,
+            'lot_id' => $validated['lot_id'],
+        ]);
+
+        return to_route('clerk.burial_records.show', $burialRecord->id)
+            ->with('success', 'Burial record created successfully.');
+    }
+
     public function show(BurialRecord $burial_record)
     {
         $currentBurialRecordId = $burial_record->id;

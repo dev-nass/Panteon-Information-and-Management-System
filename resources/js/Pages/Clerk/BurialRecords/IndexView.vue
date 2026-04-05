@@ -88,6 +88,7 @@ defineOptions({
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                     >
                                         <Link
+                                            :href="route('clerk.burial_records.create')"
                                             class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
                                         >
                                             Create
