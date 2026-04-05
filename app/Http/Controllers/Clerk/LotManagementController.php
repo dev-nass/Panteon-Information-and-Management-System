@@ -132,6 +132,18 @@ class LotManagementController extends Controller
             'status' => 'required|in:available,occupied',
         ]);
 
+        $existingLot = Lot::where('cluster_id', $validated['cluster_id'])
+            ->where('row', $validated['row'])
+            ->where('column', $validated['column'])
+            ->first();
+
+        if ($existingLot) {
+            return back()->withErrors([
+                'row' => 'A lot with this row and column already exists in this cluster.',
+                'column' => 'A lot with this row and column already exists in this cluster.',
+            ]);
+        }
+
         Lot::create([
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],

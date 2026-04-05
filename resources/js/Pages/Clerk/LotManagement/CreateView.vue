@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
@@ -9,6 +10,8 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 const props = defineProps({
     phases: Array,
 });
+
+const toast = useToast();
 
 const activeTab = ref("phase");
 
@@ -44,19 +47,37 @@ const handlePhaseChange = (phaseId) => {
 
 const submitPhase = () => {
     phaseForm.post(route("clerk.lot_management.store.phase"), {
-        onSuccess: () => phaseForm.reset(),
+        onSuccess: () => {
+            phaseForm.reset();
+            toast.success("Phase created successfully!");
+        },
+        onError: () => {
+            toast.error("Please fix the validation errors before submitting.");
+        },
     });
 };
 
 const submitCluster = () => {
     clusterForm.post(route("clerk.lot_management.store.cluster"), {
-        onSuccess: () => clusterForm.reset(),
+        onSuccess: () => {
+            clusterForm.reset();
+            toast.success("Cluster created successfully!");
+        },
+        onError: () => {
+            toast.error("Please fix the validation errors before submitting.");
+        },
     });
 };
 
 const submitLot = () => {
     lotForm.post(route("clerk.lot_management.store.lot"), {
-        onSuccess: () => lotForm.reset(),
+        onSuccess: () => {
+            lotForm.reset();
+            toast.success("Lot created successfully!");
+        },
+        onError: () => {
+            toast.error("Please fix the validation errors before submitting.");
+        },
     });
 };
 
