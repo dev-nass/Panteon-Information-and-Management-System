@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
+use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
 use Illuminate\Support\Facades\Route;
@@ -33,9 +34,7 @@ Route::prefix('clerk')
     ->name('clerk.')
     ->group(function () {
 
-        Route::get('dashboard', function () {
-            return Inertia::render('Clerk/DashboardView');
-        })->name('dashboard');
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         Route::get('/generate-report', function () {
             return Inertia::render('Clerk/GenerateReport/IndexView');

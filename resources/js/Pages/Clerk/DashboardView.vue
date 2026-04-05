@@ -6,17 +6,30 @@ import StatCard from "@/Components/Dashboard/StatCard.vue";
 import BarChart from "@/Components/Charts/BarChart.vue";
 import DoughnutChart from "@/Components/Charts/DoughnutChart.vue";
 
-import { ref } from "vue";
+import { ref, computed } from "vue";
+import { router } from "@inertiajs/vue3";
 
-const activeTab = ref("today");
+const props = defineProps({
+    stats: { type: Object, required: true },
+    disposal_stats: { type: Object, required: true },
+    activity_data: { type: Object, required: true },
+    current_filter: { type: String, default: 'monthly' },
+});
+
+const activeTab = ref(props.current_filter);
+
+const changeFilter = (filter) => {
+    activeTab.value = filter;
+    router.get(route('clerk.dashboard'), { filter }, { preserveState: true });
+};
 
 /* BAR CHART DATA */
-const performanceData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
+const performanceData = computed(() => ({
+    labels: props.activity_data.labels,
     datasets: [
         {
-            label: "Activity",
-            data: [10, 15, 32, 40, 21, 18, 30, 37],
+            label: "Burial Records",
+            data: props.activity_data.values,
             backgroundColor: "rgba(34,197,94,0.15)",
             borderColor: "rgba(34,197,94,0.7)",
             borderWidth: 2,
@@ -24,7 +37,7 @@ const performanceData = {
             fill: true,
         },
     ],
-};
+}));
 
 const performanceOptions = {
     responsive: true,
@@ -33,21 +46,28 @@ const performanceOptions = {
 };
 
 /* DOUGHNUT DATA */
-const attendanceData = {
-    labels: ["Burial", "Cremation", "Reserved", "Available"],
-    datasets: [
-        {
-            data: [60, 15, 10, 15],
-            backgroundColor: [
-                "rgba(34,197,94,0.8)",
-                "rgba(234,179,8,0.7)",
-                "rgba(99,102,241,0.7)",
-                "rgba(239,68,68,0.7)",
-            ],
-            borderWidth: 0,
-        },
-    ],
-};
+const attendanceData = computed(() => {
+    const burial = props.disposal_stats.burial || 0;
+    const cremation = props.disposal_stats.cremation || 0;
+    const occupied = props.stats.occupied_lots || 0;
+    const available = props.stats.available_lots || 0;
+
+    return {
+        labels: ["Burial", "Cremation", "Occupied Lots", "Available Lots"],
+        datasets: [
+            {
+                data: [burial, cremation, occupied, available],
+                backgroundColor: [
+                    "rgba(34,197,94,0.8)",
+                    "rgba(234,179,8,0.7)",
+                    "rgba(99,102,241,0.7)",
+                    "rgba(239,68,68,0.7)",
+                ],
+                borderWidth: 0,
+            },
+        ],
+    };
+});
 
 const attendanceOptions = {
     responsive: true,
@@ -78,7 +98,7 @@ defineOptions({
             <button
                 v-for="tab in ['today', 'weekly', 'monthly', 'yearly']"
                 :key="tab"
-                @click="activeTab = tab"
+                @click="changeFilter(tab)"
                 class="px-4 py-2 rounded-lg text-sm font-medium transition"
                 :class="
                     activeTab === tab
@@ -92,13 +112,25 @@ defineOptions({
 
         <!-- STAT CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard title="Total Earning" value="$19,280" change="+12%" />
+            <StatCard
+                title="Total Burial Records"
+                :value="stats.total_burial_records.toString()"
+            />
 
-            <StatCard title="Total Spending" value="$10,534" change="-15%" />
+            <StatCard
+                title="Total Lots"
+                :value="stats.total_lots.toString()"
+            />
 
-            <StatCard title="Total Orders" value="5,480" change="+3%" />
+            <StatCard
+                title="Occupied Lots"
+                :value="stats.occupied_lots.toString()"
+            />
 
-            <StatCard title="Visitors" value="380K" change="+6%" />
+            <StatCard
+                title="Available Lots"
+                :value="stats.available_lots.toString()"
+            />
         </div>
 
         <!-- MAIN DASHBOARD GRID -->
@@ -108,7 +140,17 @@ defineOptions({
                 <!-- MONTHLY ACTIVITY -->
                 <div class="dashboard-card">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-semibold">Monthly Activity</h3>
+                        <h3 class="font-semibold">
+                            {{
+                                activeTab === 'today'
+                                    ? 'Today Activity'
+                                    : activeTab === 'weekly'
+                                      ? 'Weekly Activity'
+                                      : activeTab === 'yearly'
+                                        ? 'Yearly Activity'
+                                        : 'Monthly Activity'
+                            }}
+                        </h3>
                     </div>
 
                     <div class="h-80">
@@ -124,7 +166,7 @@ defineOptions({
             <div class="space-y-6">
                 <!-- REPORT CHART -->
                 <div class="dashboard-card">
-                    <h3 class="mb-4 font-semibold">Earning Reports</h3>
+                    <h3 class="mb-4 font-semibold">Statistics Overview</h3>
 
                     <div class="h-64">
                         <DoughnutChart
