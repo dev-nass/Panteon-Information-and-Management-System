@@ -132,7 +132,7 @@ class BurialRecordController extends Controller
             'nationality' => $validated['nationality'] ?? null,
             'occupation' => $validated['occupation_name'] ?? null,
             'address' => $validated['address'] ?? null,
-            'lgbtq' => $validated['lgbtq'] ?? null,
+            'part_of_LGBTQ' => $validated['lgbtq'] ?? null,
             'precinct_num' => $validated['precinct_num'],
             'date_of_death' => $validated['death_date'],
             'cause_of_death' => $validated['death_cause'] ?? null,
@@ -145,7 +145,7 @@ class BurialRecordController extends Controller
             'father_name' => $validated['father_name'] ?? null,
             'mother_maiden_name' => $validated['mother_maiden_name'] ?? null,
             'company_address' => $validated['company_address'] ?? null,
-            'company_supervisor' => $validated['company_supervisor'] ?? null,
+            'company_supervisor_name' => $validated['company_supervisor'] ?? null,
         ]);
 
         $burialRecord = BurialRecord::create([
@@ -234,7 +234,7 @@ class BurialRecordController extends Controller
             'nationality' => $validated['deceased']['nationality'] ?? null,
             'occupation' => $validated['deceased']['occupation']['name'] ?? null,
             'address' => $validated['deceased']['address'] ?? null,
-            'lgbtq' => $validated['deceased']['lgbtq'] ?? null,
+            'part_of_LGBTQ' => $validated['deceased']['lgbtq'] ?? null,
             'precinct_num' => $validated['deceased']['precinct_num'] ?? null,
             'date_of_death' => $validated['deceased']['death']['date'] ?? null,
             'cause_of_death' => $validated['deceased']['death']['cause'] ?? null,
@@ -247,7 +247,7 @@ class BurialRecordController extends Controller
             'father_name' => $validated['deceased']['family']['father'] ?? null,
             'mother_maiden_name' => $validated['deceased']['family']['mother_maiden'] ?? null,
             'company_address' => $validated['deceased']['occupation']['address'] ?? null,
-            'company_supervisor' => $validated['deceased']['occupation']['supervisor'] ?? null,
+            'company_supervisor_name' => $validated['deceased']['occupation']['supervisor'] ?? null,
         ]);
 
         if (isset($validated['lot_id'])) {

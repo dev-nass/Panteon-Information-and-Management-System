@@ -12,7 +12,9 @@ class BurialRecord extends Model
     use HasFactory;
 
     protected $fillable = [
-        'lot_id'
+        'deceased_record_id',
+        'lot_id',
+        'user_id',
     ];
 
     public function deceasedRecord(): BelongsTo

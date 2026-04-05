@@ -39,7 +39,7 @@ const emits = defineEmits(["update:modelValue"]);
         <!-- Input -->
         <input
             class="flex-1 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
-            type="text"
+            :type="type || 'text'"
             :placeholder="placeholder"
             :value="modelValue"
             @input="emits('update:modelValue', $event.target.value)"
