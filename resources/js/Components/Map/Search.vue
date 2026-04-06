@@ -23,6 +23,8 @@ const props = defineProps({
     },
 });
 
+console.log(props.suggestions);
+
 const emit = defineEmits([
     "update:modelValue",
     "select-suggestion",
@@ -124,7 +126,8 @@ const clearSearch = () => {
                 >
                     <p class="font-medium">{{ suggestion.deceased_name }}</p>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                        Cluster {{ suggestion.cluster_name }} - Lot
+                        Phase {{ suggestion.phase_name }} - Cluster
+                        {{ suggestion.cluster_name }} - Lot
                         {{ suggestion.lot_location }}
                     </p>
                 </div>
