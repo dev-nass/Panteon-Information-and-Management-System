@@ -65,7 +65,7 @@ class MapDataController extends Controller
 
         $limit = $validated['limit'] ?? 1000;
 
-        // Only fetch clusters without lots/burial records
+        // Only fetch clusters without lots/burial records but with counts
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->whereRaw(
                 "MBRContains(
@@ -94,6 +94,16 @@ class MapDataController extends Controller
                 ]
             )
             ->with('phase:id,phase_name')
+            ->withCount([
+                'lots as total_lots',
+                'lots as occupied_lots' => function ($query) {
+                    $query->whereExists(function ($subQuery) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('burial_records')
+                            ->whereColumn('burial_records.lot_id', 'lots.id');
+                    });
+                }
+            ])
             ->limit($limit)
             ->get();
 

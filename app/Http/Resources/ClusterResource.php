@@ -4,20 +4,35 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class ClusterResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $totalLots = $this->whenLoaded('lots', function () {
-            return $this->lots->count();
-        }, 0);
+        $lotsLoaded = $this->relationLoaded('lots');
 
-        $occupiedLots = $this->whenLoaded('lots', function () {
-            return $this->lots->filter(function ($lot) {
+        if ($lotsLoaded) {
+            // Calculate from loaded relationship
+            $totalLots = $this->lots->count();
+            $occupiedLots = $this->lots->filter(function ($lot) {
                 return $lot->relationLoaded('burialRecords') && $lot->burialRecords->count() > 0;
             })->count();
-        }, 0);
+        } else {
+            // Use withCount attributes if available, otherwise query database
+            $totalLots = $this->total_lots ?? DB::table('lots')
+                ->where('cluster_id', $this->id)
+                ->count();
+            
+            $occupiedLots = $this->occupied_lots ?? DB::table('lots')
+                ->where('cluster_id', $this->id)
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('burial_records')
+                        ->whereColumn('burial_records.lot_id', 'lots.id');
+                })
+                ->count();
+        }
 
         $status = $occupiedLots === 0 ? 'available' : ($occupiedLots === $totalLots ? 'occupied' : 'partial');
 

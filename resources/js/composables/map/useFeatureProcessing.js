@@ -298,7 +298,7 @@ export function useFeatureProcessing() {
     /**
      * @param feature is the actual cluster rendered as polygon
      * @param layer
-     * Description: attach modal as popUp
+     * Description: attach modal as popUp; the modal will fetch burial data based on the clicked cluster's cluster_id
      */
     const attachLotPopup = (feature, layer) => {
         layer.on("click", function () {
