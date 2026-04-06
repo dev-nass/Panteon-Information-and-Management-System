@@ -120,13 +120,14 @@ window.openLotDetailsModal = function (feature) {
     HSOverlay.open("#hs-lot-modal");
 };
 
+const clusterIdForModal = ref(null);
+
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
  */
-window.openBurialRecordModal = function (feature) {
-    modalFeature.value = feature;
-    // console.log("Modal feature", modalFeature.value.lots);
+window.openBurialRecordModal = function (clusterId) {
+    clusterIdForModal.value = clusterId;
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
@@ -176,7 +177,7 @@ onBeforeUnmount(() => {
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
         <BurialRecordModal
-            :feature="modalFeature"
+            :cluster-id="clusterIdForModal"
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
         />
         <PhaseModal

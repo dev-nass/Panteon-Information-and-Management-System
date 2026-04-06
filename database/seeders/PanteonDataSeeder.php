@@ -21,8 +21,8 @@ class PanteonDataSeeder extends Seeder
     {
         $this->seedPhases();
         $this->seedClusters();
-        // $this->seedLots();
-        // $this->deceasedRecords();
+        $this->seedLots();
+        $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -125,85 +125,131 @@ class PanteonDataSeeder extends Seeder
 
     private function seedLots(): void
     {
-        $geoJsonPath_Lots = public_path('data/lots.geojson');
+        $lotsDirectory = public_path('data/lots');
 
-        if (!file_exists($geoJsonPath_Lots)) {
-            $this->command->error("GeoJSON files not found");
+        if (!is_dir($lotsDirectory)) {
+            $this->command->error("Lots directory not found at {$lotsDirectory}");
             return;
         }
 
-        $geoJsonData_Lots = json_decode(file_get_contents($geoJsonPath_Lots), true);
+        $lotFiles = glob($lotsDirectory . '/*.geojson');
 
-        if (!$geoJsonData_Lots['features']) {
-            $this->command->error("Invalid GeoJSON format: 'features' key not found.");
+        if (empty($lotFiles)) {
+            $this->command->error("No GeoJSON files found in lots directory");
             return;
         }
 
-        $this->command->info("Seeding lots from GeoJSON...");
+        $this->command->info("Seeding lots from GeoJSON files...");
 
         $counter = 0;
 
-        foreach ($geoJsonData_Lots['features'] as $index => $feature) {
-            if (
-                !isset($feature['geometry'])
-                || !isset($feature['geometry']['coordinates'])
-                || empty($feature['geometry']['coordinates'])
-            ) {
-                $this->command->warn("Skipping LOT-{$index} NAME-{$feature['row']}{$feature['column']}: empty geometry");
+        foreach ($lotFiles as $file) {
+            $geoJsonData = json_decode(file_get_contents($file), true);
+
+            if (!isset($geoJsonData['features'])) {
+                $this->command->warn("Invalid GeoJSON format in " . basename($file));
                 continue;
             }
 
-            $attributes = $feature['properties'];
-            $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            foreach ($geoJsonData['features'] as $feature) {
+                if (
+                    !isset($feature['geometry'])
+                    || !isset($feature['geometry']['coordinates'])
+                    || empty($feature['geometry']['coordinates'])
+                ) {
+                    continue;
+                }
 
-            // Use PDO binding instead of DB::raw string interpolation to avoid SQL injection / quote issues
-            DB::statement("
-            INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
-            VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
-            ", [
-                $attributes['row'],
-                $attributes['column'], // cluster_name
-                $attributes['cluster_id'],
-                $geometryJson,
-            ]);
+                $attributes = $feature['properties'];
+                $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            $counter++;
+                DB::statement("
+                    INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
+                    VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+                ", [
+                    $attributes['row'] ?? null,
+                    $attributes['id'] ?? null,
+                    $attributes['cluster_id'],
+                    $geometryJson,
+                ]);
+
+                $counter++;
+            }
         }
 
         $this->command->info("Total lots imported: {$counter}");
     }
 
     /**
-     * Description: Only use this function for testing (without the actual data from Panteon);
-     *   Mainly responsible for assigining each deceased record to teir own lot
+     * Description: Assigns one deceased record per available lot
+     * Optimized version using bulk inserts
      */
-    // FIX: Optimize this further, it take 2mins at least seed
     private function deceasedRecords(): void
     {
-        $deceasedCollection = DeceasedRecord::all();
-        $deceasedIndex = 0;
-        $totalDeceased = $deceasedCollection->count();
+        $this->command->info("Assigning deceased records to lots...");
 
-        $lots = Lot::withCount('burialRecords')->get();
+        $totalDeceased = DeceasedRecord::count();
+        
+        if ($totalDeceased === 0) {
+            $this->command->warn("No deceased records found. Please seed deceased records first.");
+            return;
+        }
 
-        foreach ($lots as $lot) {
-            if ($deceasedIndex >= $totalDeceased) {
+        // Get all available lots (not occupied)
+        $availableLots = Lot::whereDoesntHave('burialRecords')
+            ->orderBy('cluster_id')
+            ->orderBy('row')
+            ->orderBy('column')
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($availableLots)) {
+            $this->command->warn("No available lots found.");
+            return;
+        }
+
+        $this->command->info("Available lots: " . count($availableLots));
+        $this->command->info("Total deceased records: {$totalDeceased}");
+
+        $assignedCount = 0;
+        $lotIndex = 0;
+        $burialRecordsToInsert = [];
+
+        // Get deceased records that don't have burial records yet
+        $unassignedDeceased = DeceasedRecord::whereDoesntHave('burialRecords')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($unassignedDeceased as $deceased) {
+            if ($lotIndex >= count($availableLots)) {
+                $this->command->warn("No more available lots. Stopping assignment.");
                 break;
             }
 
-            if ($lot->burial_records_count > 0) {
-                continue;
+            $burialRecordsToInsert[] = [
+                'deceased_record_id' => $deceased->id,
+                'lot_id' => $availableLots[$lotIndex],
+                'user_id' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+
+            $lotIndex++;
+            $assignedCount++;
+
+            // Bulk insert every 100 records for better performance
+            if (count($burialRecordsToInsert) >= 100) {
+                DB::table('burial_records')->insert($burialRecordsToInsert);
+                $burialRecordsToInsert = [];
+                $this->command->info("Assigned {$assignedCount} deceased records...");
             }
-
-            $deceased = $deceasedCollection[$deceasedIndex];
-
-            $lot->burialRecords()->create(
-                BurialRecord::factory()->make([
-                    'deceased_record_id' => $deceased->id,
-                ])->toArray()
-            );
-
-            $deceasedIndex++;
         }
+
+        // Insert remaining records
+        if (!empty($burialRecordsToInsert)) {
+            DB::table('burial_records')->insert($burialRecordsToInsert);
+        }
+
+        $this->command->info("Total deceased records assigned: {$assignedCount}");
     }
 }

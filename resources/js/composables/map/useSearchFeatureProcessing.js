@@ -90,7 +90,8 @@ export function useSearchFeatureProcessing() {
     const attachBurialRecordClusterPopup = (feature, layer) => {
         // console.log(feature);
         layer.on("click", function () {
-            window.openBurialRecordModal(feature, layer._leaflet_id);
+            const clusterId = feature.cluster.properties.cluster_id;
+            window.openBurialRecordModal(clusterId, layer._leaflet_id);
         });
     };
 

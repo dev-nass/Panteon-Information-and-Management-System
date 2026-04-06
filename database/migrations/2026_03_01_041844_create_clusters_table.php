@@ -21,10 +21,10 @@ return new class extends Migration {
             $table->bigInteger('total_capacity')->nullable();
 
             // ✅ Geometry column
-            $table->geometry('coordinates', 4326)->nullable();
+            $table->geometry('coordinates', 4326);
 
             // ✅ Spatial index
-            // $table->spatialIndex('coordinates');
+            $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });

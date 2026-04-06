@@ -17,6 +17,7 @@ Route::controller(MapDataController::class)->group(function () {
     Route::get('/data/burials', 'burialRecords')->name('api.map.burials');
     Route::get('/data/phases', 'phaseRecords')->name('api.map.phases');
     Route::get('/data/partial-burials', 'partialBurialRecords')->name('api.map.partial.burials');
+    Route::get('/data/cluster/{clusterId}/burials', 'clusterBurialRecords')->name('api.map.cluster.burials');
 });
 
 Route::controller(MapSearchDataController::class)->group(function () {

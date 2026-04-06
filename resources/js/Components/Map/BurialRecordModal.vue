@@ -4,9 +4,11 @@ import { ref, computed, watch } from "vue";
 import { route } from "ziggy-js";
 
 const props = defineProps({
-    feature: { type: Object, default: null },
+    clusterId: { type: Number, default: null },
 });
 
+const feature = ref(null);
+const isLoading = ref(false);
 const searchTerm = ref("");
 const selectedBurial = ref(null);
 // Pagination state
@@ -15,19 +17,38 @@ const currentPage = ref(1);
 
 const emit = defineEmits(["viewPath"]);
 
-// Reset state whenever feature changes (new lot clicked)
+// Fetch cluster data when clusterId changes
 watch(
-    () => props.feature,
-    () => {
+    () => props.clusterId,
+    async (newClusterId) => {
+        if (!newClusterId) {
+            feature.value = null;
+            return;
+        }
+
         searchTerm.value = "";
         selectedBurial.value = null;
-    }
+        isLoading.value = true;
+
+        try {
+            const response = await fetch(
+                route("api.map.cluster.burials", { clusterId: newClusterId })
+            );
+            const data = await response.json();
+            feature.value = data.data;
+        } catch (error) {
+            console.error("Error fetching cluster burial records:", error);
+        } finally {
+            isLoading.value = false;
+        }
+    },
+    { immediate: true }
 );
 
 const filteredBurials = computed(() => {
-    if (!props.feature?.lots) return [];
+    if (!feature.value?.lots) return [];
 
-    const allBurials = props.feature.lots.flatMap((lot) =>
+    const allBurials = feature.value.lots.flatMap((lot) =>
         (lot.burial_records || []).map((burial) => ({
             ...burial,
             lot: lot.lot,
@@ -48,7 +69,7 @@ const filteredBurials = computed(() => {
 
 // Pagination
 // Reset page when search term or feature changes
-watch([searchTerm, () => props.feature], () => {
+watch([searchTerm, () => feature.value], () => {
     currentPage.value = 1;
 });
 
@@ -110,8 +131,29 @@ const paginatedBurials = computed(() => {
                 <div
                     class="p-4 overflow-y-auto space-y-4 text-gray-700 dark:text-gray-300"
                 >
+                    <!-- LOADING SKELETON -->
+                    <template v-if="isLoading">
+                        <div class="animate-pulse space-y-4">
+                            <!-- Skeleton Search -->
+                            <div class="h-10 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg"></div>
+                            
+                            <!-- Skeleton Info -->
+                            <div class="space-y-2">
+                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-3/4"></div>
+                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"></div>
+                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-2/3"></div>
+                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"></div>
+                            </div>
+
+                            <!-- Skeleton Grid -->
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                                <div v-for="i in 6" :key="i" class="h-20 bg-gray-300/50 dark:bg-gray-700/50 rounded-xl"></div>
+                            </div>
+                        </div>
+                    </template>
+
                     <!-- LIST VIEW -->
-                    <template v-if="feature && !selectedBurial">
+                    <template v-else-if="feature && !selectedBurial">
                         <!-- Search -->
                         <input
                             v-model="searchTerm"
@@ -123,20 +165,20 @@ const paginatedBurials = computed(() => {
                         <div class="text-sm space-y-1">
                             <p>
                                 <strong>Cluster:</strong>
-                                {{ feature.cluster.properties.name }}
+                                {{ feature.cluster?.properties?.name }}
                             </p>
                             <p>
                                 <strong>Type:</strong>
-                                {{ feature.cluster.properties.type }}
+                                {{ feature.cluster?.properties?.type }}
                             </p>
                             <p>
                                 <strong>Occupants:</strong>
-                                {{ feature.cluster.properties.total_lots }} /
-                                {{ feature.cluster.properties.occupied_lots }}
+                                {{ feature.cluster?.properties?.total_lots }} /
+                                {{ feature.cluster?.properties?.occupied_lots }}
                             </p>
                             <p>
                                 <strong>Status:</strong>
-                                {{ feature.cluster.properties.status }}
+                                {{ feature.cluster?.properties?.status }}
                             </p>
                         </div>
 

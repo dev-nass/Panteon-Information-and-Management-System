@@ -65,7 +65,8 @@ class MapDataController extends Controller
 
         $limit = $validated['limit'] ?? 1000;
 
-        $clusterIds = DB::table('clusters')
+        // Only fetch clusters without lots/burial records
+        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->whereRaw(
                 "MBRContains(
                 ST_GeomFromText(CONCAT(
@@ -92,22 +93,56 @@ class MapDataController extends Controller
                     $validated['minLat'],
                 ]
             )
+            ->with('phase:id,phase_name')
             ->limit($limit)
-            ->pluck('id');
-
-        $clusters = Cluster::whereIn('id', $clusterIds)
-            ->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->with([
-                'phase:id,phase_name',
-                'lots' => function ($query) {
-                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-                },
-                'lots.burialRecords.deceasedRecord',
-                'lots.burialRecords.user',
-            ])
             ->get();
 
         return ClusterResource::collection($clusters);
+    }
+
+    /**
+     * Fetch lots and burial records for a specific cluster
+     */
+    public function clusterBurialRecords(Request $request, $clusterId)
+    {
+        $validated = $request->validate([
+            'limit' => 'nullable|integer|min:1|max:5000',
+        ]);
+
+        $limit = $validated['limit'] ?? 1000;
+
+        // Get lot IDs with burial records within the limit
+        $lotIds = DB::table('lots')
+            ->where('cluster_id', $clusterId)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('burial_records')
+                    ->whereColumn('burial_records.lot_id', 'lots.id');
+            })
+            ->limit($limit)
+            ->pluck('id');
+
+        $cluster = Cluster::where('id', $clusterId)
+            ->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->with([
+                'phase:id,phase_name',
+                'lots' => function ($query) use ($lotIds) {
+                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                        ->whereIn('id', $lotIds);
+                },
+                'lots.burialRecords' => function ($query) {
+                    $query->select('id', 'deceased_record_id', 'lot_id', 'user_id');
+                },
+                'lots.burialRecords.deceasedRecord:id,first_name,middle_name,last_name,date_of_birth,date_of_death',
+                'lots.burialRecords.user:id,name',
+            ])
+            ->first();
+
+        if (!$cluster) {
+            return response()->json(['message' => 'Cluster not found'], 404);
+        }
+
+        return new ClusterResource($cluster);
     }
 
 

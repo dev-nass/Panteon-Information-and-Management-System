@@ -1,0 +1,28 @@
+{
+"type": "FeatureCollection",
+"name": "cltr-id-64-d-row",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976013742661806, 14.304831207883238 ] } },
+{ "type": "Feature", "properties": { "id": 2, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976014163232321, 14.304826317520913 ] } },
+{ "type": "Feature", "properties": { "id": 3, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976006769796328, 14.304811797503751 ] } },
+{ "type": "Feature", "properties": { "id": 4, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976010525795175, 14.304812158081775 ] } },
+{ "type": "Feature", "properties": { "id": 5, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976015424204633, 14.304812493694907 ] } },
+{ "type": "Feature", "properties": { "id": 6, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976019778346398, 14.304812877252775 ] } },
+{ "type": "Feature", "properties": { "id": 7, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976024231445891, 14.304813116976437 ] } },
+{ "type": "Feature", "properties": { "id": 8, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976028832982067, 14.304813452589572 ] } },
+{ "type": "Feature", "properties": { "id": 9, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976033385039329, 14.304813979981635 ] } },
+{ "type": "Feature", "properties": { "id": 10, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976037937096621, 14.304814219705303 ] } },
+{ "type": "Feature", "properties": { "id": 11, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976047486521097, 14.304814938876296 ] } },
+{ "type": "Feature", "properties": { "id": 12, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976057184382256, 14.304815897770954 ] } },
+{ "type": "Feature", "properties": { "id": 13, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976067673905533, 14.304817048444535 ] } },
+{ "type": "Feature", "properties": { "id": 14, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976078559259889, 14.304817623781323 ] } },
+{ "type": "Feature", "properties": { "id": 15, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976090928980796, 14.304818223090473 ] } },
+{ "type": "Feature", "properties": { "id": 16, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976103001828349, 14.304819181985115 ] } },
+{ "type": "Feature", "properties": { "id": 17, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976116361126884, 14.304820044990288 ] } },
+{ "type": "Feature", "properties": { "id": 18, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.97613367873609, 14.304821291553317 ] } },
+{ "type": "Feature", "properties": { "id": 19, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976147928654512, 14.304822442226872 ] } },
+{ "type": "Feature", "properties": { "id": 20, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.97617083737758, 14.304824168237189 ] } },
+{ "type": "Feature", "properties": { "id": 21, "cluster_id": "64", "column": null, "row": "D" }, "geometry": { "type": "Point", "coordinates": [ 120.976183381013655, 14.304825102919642 ] } }
+]
+}

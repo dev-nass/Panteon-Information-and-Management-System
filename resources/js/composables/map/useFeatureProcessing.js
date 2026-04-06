@@ -1,6 +1,8 @@
 import { useMapStates } from "@/stores/useMapStates";
 import { geoJson } from "leaflet";
 import { join } from "lodash";
+import axios from "axios";
+import { route } from "ziggy-js";
 
 export function useFeatureProcessing() {
     const {
@@ -300,7 +302,8 @@ export function useFeatureProcessing() {
      */
     const attachLotPopup = (feature, layer) => {
         layer.on("click", function () {
-            window.openBurialRecordModal(feature, layer._leaflet_id);
+            const clusterId = feature.cluster.properties.cluster_id;
+            window.openBurialRecordModal(clusterId, layer._leaflet_id);
         });
     };
 
