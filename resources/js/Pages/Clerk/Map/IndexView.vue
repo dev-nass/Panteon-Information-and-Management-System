@@ -121,13 +121,22 @@ window.openLotDetailsModal = function (feature) {
 };
 
 const clusterIdForModal = ref(null);
+const featureForModal = ref(null);
 
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
  */
-window.openBurialRecordModal = function (clusterId) {
-    clusterIdForModal.value = clusterId;
+window.openBurialRecordModal = function (clusterIdOrFeature) {
+    // If it's a number, it's a clusterId (normal mode)
+    if (typeof clusterIdOrFeature === 'number') {
+        clusterIdForModal.value = clusterIdOrFeature;
+        featureForModal.value = null;
+    } else {
+        // Otherwise it's a feature object (search mode)
+        featureForModal.value = clusterIdOrFeature;
+        clusterIdForModal.value = null;
+    }
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
@@ -178,6 +187,7 @@ onBeforeUnmount(() => {
         <!-- <Teleport to="body"> -->
         <BurialRecordModal
             :cluster-id="clusterIdForModal"
+            :feature="featureForModal"
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
         />
         <PhaseModal

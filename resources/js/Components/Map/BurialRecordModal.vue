@@ -5,9 +5,10 @@ import { route } from "ziggy-js";
 
 const props = defineProps({
     clusterId: { type: Number, default: null },
+    feature: { type: Object, default: null },
 });
 
-const feature = ref(null);
+const fetchedFeature = ref(null);
 const isLoading = ref(false);
 const searchTerm = ref("");
 const selectedBurial = ref(null);
@@ -17,12 +18,20 @@ const currentPage = ref(1);
 
 const emit = defineEmits(["viewPath"]);
 
-// Fetch cluster data when clusterId changes
+// Use feature prop if provided (search mode), otherwise fetch by clusterId
+const activeFeature = computed(() => props.feature || fetchedFeature.value);
+
+// Fetch cluster data when clusterId changes (only if feature is not provided)
 watch(
     () => props.clusterId,
     async (newClusterId) => {
+        // Don't fetch if feature is already provided (search mode)
+        if (props.feature) {
+            return;
+        }
+
         if (!newClusterId) {
-            feature.value = null;
+            fetchedFeature.value = null;
             return;
         }
 
@@ -35,7 +44,7 @@ watch(
                 route("api.map.cluster.burials", { clusterId: newClusterId })
             );
             const data = await response.json();
-            feature.value = data.data;
+            fetchedFeature.value = data.data;
         } catch (error) {
             console.error("Error fetching cluster burial records:", error);
         } finally {
@@ -45,10 +54,19 @@ watch(
     { immediate: true }
 );
 
-const filteredBurials = computed(() => {
-    if (!feature.value?.lots) return [];
+// Reset state when feature prop changes
+watch(
+    () => props.feature,
+    () => {
+        searchTerm.value = "";
+        selectedBurial.value = null;
+    }
+);
 
-    const allBurials = feature.value.lots.flatMap((lot) =>
+const filteredBurials = computed(() => {
+    if (!activeFeature.value?.lots) return [];
+
+    const allBurials = activeFeature.value.lots.flatMap((lot) =>
         (lot.burial_records || []).map((burial) => ({
             ...burial,
             lot: lot.lot,
@@ -69,7 +87,7 @@ const filteredBurials = computed(() => {
 
 // Pagination
 // Reset page when search term or feature changes
-watch([searchTerm, () => feature.value], () => {
+watch([searchTerm, activeFeature], () => {
     currentPage.value = 1;
 });
 
@@ -153,7 +171,7 @@ const paginatedBurials = computed(() => {
                     </template>
 
                     <!-- LIST VIEW -->
-                    <template v-else-if="feature && !selectedBurial">
+                    <template v-else-if="activeFeature && !selectedBurial">
                         <!-- Search -->
                         <input
                             v-model="searchTerm"
@@ -165,20 +183,20 @@ const paginatedBurials = computed(() => {
                         <div class="text-sm space-y-1">
                             <p>
                                 <strong>Cluster:</strong>
-                                {{ feature.cluster?.properties?.name }}
+                                {{ activeFeature.cluster?.properties?.name }}
                             </p>
                             <p>
                                 <strong>Type:</strong>
-                                {{ feature.cluster?.properties?.type }}
+                                {{ activeFeature.cluster?.properties?.type }}
                             </p>
                             <p>
                                 <strong>Occupants:</strong>
-                                {{ feature.cluster?.properties?.total_lots }} /
-                                {{ feature.cluster?.properties?.occupied_lots }}
+                                {{ activeFeature.cluster?.properties?.total_lots }} /
+                                {{ activeFeature.cluster?.properties?.occupied_lots }}
                             </p>
                             <p>
                                 <strong>Status:</strong>
-                                {{ feature.cluster?.properties?.status }}
+                                {{ activeFeature.cluster?.properties?.status }}
                             </p>
                         </div>
 
