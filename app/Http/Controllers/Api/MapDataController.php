@@ -137,7 +137,7 @@ class MapDataController extends Controller
             ->with([
                 'phase:id,phase_name',
                 'lots' => function ($query) use ($lotIds) {
-                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                    $query->select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
                         ->whereIn('id', $lotIds);
                 },
                 'lots.burialRecords' => function ($query) {

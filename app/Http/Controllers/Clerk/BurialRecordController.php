@@ -10,6 +10,7 @@ use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\Phase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BurialRecordController extends Controller
@@ -174,32 +175,58 @@ class BurialRecordController extends Controller
     {
         $currentBurialRecordId = $burial_record->id;
 
-        $phases = Phase::with(['clusters.lots.burialRecords'])->get()->map(function ($phase) use ($currentBurialRecordId) {
-            return [
-                'id' => $phase->id,
-                'name' => $phase->phase_name,
-                'clusters' => $phase->clusters->map(function ($cluster) use ($currentBurialRecordId) {
-                    return [
-                        'id' => $cluster->id,
-                        'name' => $cluster->cluster_name,
-                        'cluster_type' => $cluster->cluster_type,
-                        'lots' => $cluster->lots->map(function ($lot) use ($currentBurialRecordId) {
-                            $isOccupied = $lot->burialRecords->where('id', '!=', $currentBurialRecordId)->isNotEmpty();
-                            return [
-                                'id' => $lot->id,
-                                'column' => $lot->column,
-                                'row' => $lot->row,
-                                'is_occupied' => $isOccupied,
-                            ];
-                        }),
-                    ];
-                }),
-            ];
-        });
+        // for the update of burial record
+        $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->with([
+                'clusters' => function ($query) {
+                    $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                },
+                'clusters.lots' => function ($query) {
+                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                },
+                'clusters.lots.burialRecords'
+            ])
+            ->get()
+            ->map(function ($phase) use ($currentBurialRecordId) {
+                return [
+                    'id' => $phase->id,
+                    'name' => $phase->phase_name,
+                    'coordinates' => $phase->coordinates,
+                    'clusters' => $phase->clusters->map(function ($cluster) use ($currentBurialRecordId) {
+                        return [
+                            'id' => $cluster->id,
+                            'name' => $cluster->cluster_name,
+                            'cluster_type' => $cluster->cluster_type,
+                            'coordinates' => $cluster->coordinates,
+                            'lots' => $cluster->lots->map(function ($lot) use ($currentBurialRecordId) {
+                                $isOccupied = $lot->burialRecords->where('id', '!=', $currentBurialRecordId)->isNotEmpty();
+                                return [
+                                    'id' => $lot->id,
+                                    'column' => $lot->column,
+                                    'row' => $lot->row,
+                                    'coordinates' => $lot->coordinates,
+                                    'is_occupied' => $isOccupied,
+                                ];
+                            }),
+                        ];
+                    }),
+                ];
+            });
 
         return Inertia::render('Clerk/BurialRecords/ShowView', [
             'burial_record' => new BurialRecordResource(
-                $burial_record->load(['deceasedRecord', 'deceasedRecord.applicant', 'lot', 'user', 'lot.cluster'])
+                $burial_record->load([
+                    'deceasedRecord',
+                    'deceasedRecord.applicant',
+                    'lot' => function ($query) {
+                        $query->select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                    },
+                    'lot.cluster' => function ($query) {
+                        $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                    },
+                    'lot.cluster.phase:id,phase_name',
+                    'user'
+                ])
             ),
             'phases' => $phases,
         ]);
