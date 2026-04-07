@@ -278,7 +278,7 @@ defineOptions({
 </script>
 
 <template>
-    <div class="max-w-[85rem] px-4 py-10 mx-auto">
+    <div class="max-w-340 px-4 py-10 mx-auto">
         <div
             class="bg-white dark:bg-neutral-800 rounded-xl shadow overflow-hidden"
         >

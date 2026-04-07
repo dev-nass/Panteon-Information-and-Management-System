@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
     <Teleport to="body">
         <div
             id="hs-cookies"
-            class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
             role="dialog"
             tabindex="-1"
             aria-labelledby="hs-cookies-label"
