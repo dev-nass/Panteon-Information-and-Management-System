@@ -621,6 +621,7 @@ defineOptions({
 
                         <TableData>
                             <button
+                                v-if="lot.status == 'occupied'"
                                 @click.stop="
                                     redirectToClerkBurialRecordShow(lot.id)
                                 "
@@ -628,6 +629,10 @@ defineOptions({
                             >
                                 View Details
                             </button>
+
+                            <span v-else class="text-neutral-600">
+                                ———————
+                            </span>
                         </TableData>
 
                         <TableData>
