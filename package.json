@@ -26,6 +26,7 @@
         "embla-carousel": "^8.6.0",
         "embla-carousel-vue": "^8.6.0",
         "leaflet": "^1.9.4",
+        "leaflet-draw": "^1.0.4",
         "lodash": "^4.17.23",
         "nprogress": "^0.2.0",
         "preline": "^4.0.1",

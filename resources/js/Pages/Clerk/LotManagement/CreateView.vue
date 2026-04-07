@@ -6,6 +6,7 @@ import { useToast } from "vue-toast-notification";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
+import LotPlottingModal from "@/Components/Map/LotPlottingModal.vue";
 
 const props = defineProps({
     phases: Array,
@@ -14,6 +15,7 @@ const props = defineProps({
 const toast = useToast();
 
 const activeTab = ref("phase");
+const showPlottingModal = ref(false);
 
 const phaseForm = useForm({
     name: "",
@@ -31,6 +33,7 @@ const lotForm = useForm({
     column: "",
     row: "",
     status: "available",
+    coordinates: null,
 });
 
 const selectedPhase = ref(null);
@@ -81,6 +84,23 @@ const submitLot = () => {
     });
 };
 
+const openPlottingModal = () => {
+    if (!lotForm.cluster_id) {
+        toast.error('Please select a cluster first');
+        return;
+    }
+    showPlottingModal.value = true;
+};
+
+const handleCoordinatesSet = (coords) => {
+    lotForm.coordinates = JSON.stringify(coords);
+    toast.success('Coordinates set successfully!');
+};
+
+const closePlottingModal = () => {
+    showPlottingModal.value = false;
+};
+
 const goBack = () => {
     router.visit(route("clerk.lot_management.index"));
 };
@@ -91,7 +111,7 @@ defineOptions({
 </script>
 
 <template>
-    <div class="max-w-[55rem] px-4 py-10 mx-auto">
+    <div class="max-w-220 px-4 py-10 mx-auto">
         <div
             class="bg-white dark:bg-neutral-800 rounded-xl shadow overflow-hidden"
         >
@@ -362,6 +382,33 @@ defineOptions({
                         </div>
                     </div>
 
+                    <!-- Coordinates Section -->
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Coordinates
+                        </label>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="openPlottingModal"
+                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
+                            >
+                                📍 {{ lotForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                            </button>
+                        </div>
+                        <div v-if="lotForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                            ✓ Coordinates set
+                        </div>
+                        <span
+                            v-if="lotForm.errors.coordinates"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ lotForm.errors.coordinates }}
+                        </span>
+                    </div>
+
                     <div>
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -394,5 +441,14 @@ defineOptions({
                 </form>
             </div>
         </div>
+
+        <!-- Lot Plotting Modal -->
+        <LotPlottingModal
+            v-if="showPlottingModal"
+            :cluster-id="lotForm.cluster_id"
+            :phases="phases"
+            @coordinates-set="handleCoordinatesSet"
+            @close="closePlottingModal"
+        />
     </div>
 </template>

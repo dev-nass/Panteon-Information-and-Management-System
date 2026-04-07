@@ -20,11 +20,11 @@ return new class extends Migration {
             $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
             $table->bigInteger('total_capacity')->nullable();
 
-            // ✅ Geometry column (temporarily nullable)
-            $table->geometry('coordinates', 4326)->nullable();
+            // ✅ Geometry column
+            $table->geometry('coordinates', 4326);
 
-            // ✅ Spatial index (commented out - requires NOT NULL)
-            // $table->spatialIndex('coordinates');
+            // ✅ Spatial index
+            $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });

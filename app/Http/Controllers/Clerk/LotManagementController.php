@@ -8,6 +8,7 @@ use App\Models\Cluster;
 use App\Models\Lot;
 use App\Models\Phase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class LotManagementController extends Controller
@@ -72,18 +73,26 @@ class LotManagementController extends Controller
 
     public function create()
     {
-        $phases = Phase::with('clusters')->get()->map(function ($phase) {
-            return [
-                'id' => $phase->id,
-                'name' => $phase->phase_name,
-                'clusters' => $phase->clusters->map(function ($cluster) {
-                    return [
-                        'id' => $cluster->id,
-                        'name' => $cluster->cluster_name,
-                    ];
-                }),
-            ];
-        });
+        $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->with(['clusters' => function ($query) {
+                $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+            }])
+            ->get()
+            ->map(function ($phase) {
+                return [
+                    'id' => $phase->id,
+                    'name' => $phase->phase_name,
+                    'coordinates' => $phase->coordinates,
+                    'clusters' => $phase->clusters->map(function ($cluster) {
+                        return [
+                            'id' => $cluster->id,
+                            'name' => $cluster->cluster_name,
+                            'type' => $cluster->cluster_type,
+                            'coordinates' => $cluster->coordinates,
+                        ];
+                    }),
+                ];
+            });
 
         return Inertia::render('Clerk/LotManagement/CreateView', [
             'phases' => $phases,
@@ -130,6 +139,7 @@ class LotManagementController extends Controller
             'column' => 'required|string|max:255',
             'row' => 'required|string|max:255',
             'status' => 'required|in:available,occupied',
+            'coordinates' => 'required|json',
         ]);
 
         $existingLot = Lot::where('cluster_id', $validated['cluster_id'])
@@ -148,6 +158,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
