@@ -122,12 +122,14 @@ class LotManagementController extends Controller
             'name' => 'required|string|max:255',
             'type' => 'required|in:apartment,underground',
             'occupants' => 'required|integer|min:0',
+            'coordinates' => 'required|json',
         ]);
 
         Cluster::create([
             'phase_id' => $validated['phase_id'],
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
