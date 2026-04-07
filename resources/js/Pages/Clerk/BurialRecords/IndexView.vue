@@ -1,5 +1,5 @@
 <script setup>
-import { useSearchBurialRecords } from "@/composables/useSearchBurialRecords";
+import { useSearchBurialRecords } from "@/composables/burial_records/useSearchBurialRecords";
 
 import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";

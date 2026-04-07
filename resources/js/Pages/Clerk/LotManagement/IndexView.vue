@@ -8,7 +8,7 @@ import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
 
-import { useSearch } from "@/composables/map/useSearch";
+import { useSearch } from "@/composables/map/search/useSearch";
 
 // Props (you will pass these from backend)
 const props = defineProps({
