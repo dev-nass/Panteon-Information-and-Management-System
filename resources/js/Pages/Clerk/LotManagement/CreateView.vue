@@ -6,6 +6,7 @@ import { useToast } from "vue-toast-notification";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
+import PhaseePlottingModal from "@/Components/Map/PhaseePlottingModal.vue";
 import LotPlottingModal from "@/Components/Map/LotPlottingModal.vue";
 
 const props = defineProps({
@@ -15,10 +16,12 @@ const props = defineProps({
 const toast = useToast();
 
 const activeTab = ref("phase");
-const showPlottingModal = ref(false);
+const showPhaseModal = ref(false);
+const showLotModal = ref(false);
 
 const phaseForm = useForm({
     name: "",
+    coordinates: null,
 });
 
 const clusterForm = useForm({
@@ -60,6 +63,15 @@ const submitPhase = () => {
     });
 };
 
+const openPhaseModal = () => {
+    showPhaseModal.value = true;
+};
+
+const handlePhaseCoordinatesSet = (coords) => {
+    phaseForm.coordinates = JSON.stringify(coords);
+    toast.success('Coordinates set successfully!');
+};
+
 const submitCluster = () => {
     clusterForm.post(route("clerk.lot_management.store.cluster"), {
         onSuccess: () => {
@@ -89,7 +101,7 @@ const openPlottingModal = () => {
         toast.error('Please select a cluster first');
         return;
     }
-    showPlottingModal.value = true;
+    showLotModal.value = true;
 };
 
 const handleCoordinatesSet = (coords) => {
@@ -97,8 +109,12 @@ const handleCoordinatesSet = (coords) => {
     toast.success('Coordinates set successfully!');
 };
 
-const closePlottingModal = () => {
-    showPlottingModal.value = false;
+const closePhaseModal = () => {
+    showPhaseModal.value = false;
+};
+
+const closeLotModal = () => {
+    showLotModal.value = false;
 };
 
 const goBack = () => {
@@ -175,6 +191,33 @@ defineOptions({
                             class="text-red-500 text-sm"
                         >
                             {{ phaseForm.errors.name }}
+                        </span>
+                    </div>
+
+                    <!-- Coordinates Section -->
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Coordinates
+                        </label>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="openPhaseModal"
+                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
+                            >
+                                📍 {{ phaseForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                            </button>
+                        </div>
+                        <div v-if="phaseForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                            ✓ Coordinates set
+                        </div>
+                        <span
+                            v-if="phaseForm.errors.coordinates"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ phaseForm.errors.coordinates }}
                         </span>
                     </div>
 
@@ -442,13 +485,20 @@ defineOptions({
             </div>
         </div>
 
+        <!-- Phase Plotting Modal -->
+        <PhaseePlottingModal
+            v-if="showPhaseModal"
+            @coordinates-set="handlePhaseCoordinatesSet"
+            @close="closePhaseModal"
+        />
+
         <!-- Lot Plotting Modal -->
         <LotPlottingModal
-            v-if="showPlottingModal"
+            v-if="showLotModal"
             :cluster-id="lotForm.cluster_id"
             :phases="phases"
             @coordinates-set="handleCoordinatesSet"
-            @close="closePlottingModal"
+            @close="closeLotModal"
         />
     </div>
 </template>

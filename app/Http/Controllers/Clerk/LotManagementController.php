@@ -103,10 +103,12 @@ class LotManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'coordinates' => 'required|json',
         ]);
 
         Phase::create([
             'phase_name' => $validated['name'],
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
