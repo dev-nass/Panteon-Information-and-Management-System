@@ -74,9 +74,11 @@ class LotManagementController extends Controller
     public function create()
     {
         $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->with(['clusters' => function ($query) {
-                $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-            }])
+            ->with([
+                'clusters' => function ($query) {
+                    $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                }
+            ])
             ->get()
             ->map(function ($phase) {
                 return [
@@ -121,7 +123,7 @@ class LotManagementController extends Controller
             'phase_id' => 'required|exists:phases,id',
             'name' => 'required|string|max:255',
             'type' => 'required|in:apartment,underground',
-            'occupants' => 'required|integer|min:0',
+            'occupants' => 'required|integer|min:5',
             'coordinates' => 'required|json',
         ]);
 

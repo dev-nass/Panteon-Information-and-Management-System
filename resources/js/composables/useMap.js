@@ -89,7 +89,8 @@ export function useMap() {
 
         // Clear layer references
         googleLayer.value = null;
-        // entranceLayer.value = L.layerGroup();
+        phaseLayerGroup.value = null;
+        clusterLayers.value.clear();
     };
 
     /**
