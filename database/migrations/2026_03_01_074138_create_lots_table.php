@@ -21,11 +21,11 @@ return new class extends Migration {
             $table->string('column')->comment('Position/Column letter e.g., 1, 2, 3...');
             $table->string('row')->comment('Level/Row number e.g., A, B, C...');
 
-            // ✅ Geometry column
-            $table->geometry('coordinates', 4326);
+            // ✅ Geometry column (temporarily nullable)
+            $table->geometry('coordinates', 4326)->nullable();
 
-            // ✅ Spatial index
-            $table->spatialIndex('coordinates');
+            // ✅ Spatial index (commented out - requires NOT NULL)
+            // $table->spatialIndex('coordinates');
 
             $table->timestamps();
         });

@@ -17,11 +17,11 @@ return new class extends Migration {
             $table->string('phase_name');
             // $table->string('description')->nullable();
 
-            // ✅ Geometry column
-            $table->geometry('coordinates', 4326);
+            // ✅ Geometry column (temporarily nullable)
+            $table->geometry('coordinates', 4326)->nullable();
 
-            // ✅ Spatial index
-            $table->spatialIndex('coordinates');
+            // ✅ Spatial index (commented out - requires NOT NULL)
+            // $table->spatialIndex('coordinates');
 
             // $table->bigInteger('total_capacity')->nullable();
             // $table->enum('status', ['active', 'inactive', 'archived'])->default('active');
