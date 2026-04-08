@@ -31,18 +31,19 @@ class LotManagementController extends Controller
 
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->withCount('lots')
+            ->withCount(['lots as occupied_lots' => function ($query) {
+                $query->whereHas('burialRecords');
+            }])
             ->with('phase:id,phase_name')
             ->get()
             ->map(function ($cluster) {
-                $occupants = $cluster->lots()->whereHas('burialRecords')->count();
-
                 return [
                     'id' => $cluster->id,
                     'phase_id' => $cluster->phase_id,
                     'phase_name' => $cluster->phase->phase_name,
                     'name' => $cluster->cluster_name,
                     'type' => $cluster->cluster_type,
-                    'occupants' => $occupants,
+                    'occupants' => $cluster->occupied_lots,
                     'total_lots' => $cluster->lots_count,
                     'coordinates' => $cluster->coordinates,
                     'isCluster_mapped' => !is_null($cluster->coordinates),
@@ -50,7 +51,7 @@ class LotManagementController extends Controller
             });
 
         $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->with(['cluster.phase:id,phase_name', 'burialRecords:id,lot_id'])
+            ->with(['cluster:id,cluster_name,phase_id', 'cluster.phase:id,phase_name', 'burialRecords:id,lot_id'])
             ->get()
             ->map(function ($lot) {
                 $isOccupied = $lot->burialRecords->isNotEmpty();
