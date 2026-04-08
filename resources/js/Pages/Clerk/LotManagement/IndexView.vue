@@ -79,6 +79,11 @@ const goToCreate = () => {
     router.visit(route(routes[activeTab.value], params));
 };
 
+// Setup window functions for map navigation
+window.fetchPhase = fetchPhase;
+window.fetchCluster = fetchCluster;
+window.fetchLot = fetchLot;
+
 onBeforeUnmount(() => {
     clearSearch();
 });
