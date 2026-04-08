@@ -179,31 +179,13 @@ class LotManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'coordinates' => 'nullable|string',
+            'coordinates' => 'nullable|json',
         ]);
 
-        DB::beginTransaction();
-        try {
-            // Decode if it's double-encoded
-            $coords = $validated['coordinates'];
-            if (is_string($coords)) {
-                // Check if it's already a valid JSON string
-                $decoded = json_decode($coords, true);
-                if ($decoded) {
-                    $coords = json_encode($decoded);
-                }
-            }
-            
-            DB::update(
-                "UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
-                [$validated['name'], $coords, $phase->id]
-            );
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            \Log::error('Phase update failed', ['error' => $e->getMessage(), 'data' => $validated]);
-            return back()->withErrors(['error' => 'Failed to update phase coordinates.']);
-        }
+        DB::update(
+            "UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            [$validated['name'], $validated['coordinates'], $phase->id]
+        );
 
         return back()->with('success', 'Phase updated successfully.');
     }
@@ -216,17 +198,10 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
-        DB::beginTransaction();
-        try {
-            DB::update(
-                "UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
-                [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
-            );
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to update cluster coordinates.']);
-        }
+        DB::update(
+            "UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
+        );
 
         return back()->with('success', 'Cluster updated successfully.');
     }
@@ -239,17 +214,10 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
-        DB::beginTransaction();
-        try {
-            DB::update(
-                "UPDATE lots SET column = ?, row = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
-                [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
-            );
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to update lot coordinates.']);
-        }
+        DB::update(
+            "UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
+        );
 
         return back()->with('success', 'Lot updated successfully.');
     }
