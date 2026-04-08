@@ -63,20 +63,15 @@ const goBack = () => {
 };
 
 const goToCreate = () => {
-    const routes = {
-        phase: "clerk.lot_management.create.phase",
-        cluster: "clerk.lot_management.create.cluster",
-        lot: "clerk.lot_management.create.lot",
-    };
+    const params = { type: activeTab.value };
     
-    const params = {};
     if (activeTab.value === "cluster" && selectedPhase.value) {
         params.phase_id = selectedPhase.value.id;
     } else if (activeTab.value === "lot" && selectedCluster.value) {
         params.cluster_id = selectedCluster.value.id;
     }
     
-    router.visit(route(routes[activeTab.value], params));
+    router.visit(route("clerk.lot_management.create", params));
 };
 
 // Setup window functions for map navigation

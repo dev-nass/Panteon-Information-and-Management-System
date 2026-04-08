@@ -34,8 +34,12 @@ class LotManagementController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $type = $request->query('type', 'phase');
+        $phaseId = $request->query('phase_id');
+        $clusterId = $request->query('cluster_id');
+
         $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->with([
                 'clusters' => function ($query) {
@@ -61,6 +65,9 @@ class LotManagementController extends Controller
 
         return Inertia::render('Clerk/LotManagement/CreateView', [
             'phases' => $phases,
+            'type' => $type,
+            'phase_id' => $phaseId,
+            'cluster_id' => $clusterId,
         ]);
     }
 
