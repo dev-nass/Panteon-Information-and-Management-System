@@ -62,6 +62,8 @@ Route::prefix('clerk')
         Route::controller(LotManagementController::class)->group(function () {
             Route::get('/lot-management', 'index')->name('lot_management.index');
             Route::get('/lot-management/create', 'create')->name('lot_management.create');
+            Route::get('/lot-management/phase/{phaseId}/clusters', 'getClusters')->name('lot_management.clusters');
+            Route::get('/lot-management/cluster/{clusterId}/lots', 'getLots')->name('lot_management.lots');
             Route::post('/lot-management/phase', 'storePhase')->name('lot_management.store.phase');
             Route::post('/lot-management/cluster', 'storeCluster')->name('lot_management.store.cluster');
             Route::post('/lot-management/lot', 'storeLot')->name('lot_management.store.lot');

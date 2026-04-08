@@ -29,50 +29,8 @@ class LotManagementController extends Controller
                 ];
             });
 
-        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->withCount('lots')
-            ->withCount(['lots as occupied_lots' => function ($query) {
-                $query->whereHas('burialRecords');
-            }])
-            ->with('phase:id,phase_name')
-            ->get()
-            ->map(function ($cluster) {
-                return [
-                    'id' => $cluster->id,
-                    'phase_id' => $cluster->phase_id,
-                    'phase_name' => $cluster->phase->phase_name,
-                    'name' => $cluster->cluster_name,
-                    'type' => $cluster->cluster_type,
-                    'occupants' => $cluster->occupied_lots,
-                    'total_lots' => $cluster->lots_count,
-                    'coordinates' => $cluster->coordinates,
-                    'isCluster_mapped' => !is_null($cluster->coordinates),
-                ];
-            });
-
-        $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->with(['cluster:id,cluster_name,phase_id', 'cluster.phase:id,phase_name', 'burialRecords:id,lot_id'])
-            ->get()
-            ->map(function ($lot) {
-                $isOccupied = $lot->burialRecords->isNotEmpty();
-
-                return [
-                    'id' => $lot->id,
-                    'cluster_id' => $lot->cluster_id,
-                    'cluster_name' => $lot->cluster->cluster_name,
-                    'phase_name' => $lot->cluster->phase->phase_name,
-                    'column' => $lot->column,
-                    'row' => $lot->row,
-                    'status' => $isOccupied ? 'occupied' : 'available',
-                    'coordinates' => $lot->coordinates,
-                    'isLot_mapped' => !is_null($lot->coordinates),
-                ];
-            });
-
         return Inertia::render('Clerk/LotManagement/IndexView', [
             'phases' => $phases,
-            'clusters' => $clusters,
-            'lots' => $lots,
         ]);
     }
 
@@ -245,6 +203,60 @@ class LotManagementController extends Controller
 
         return to_route('clerk.lot_management.index')
             ->with('success', 'Lot deleted successfully.');
+    }
+
+    /**
+     * Get clusters by phase ID
+     */
+    public function getClusters($phaseId)
+    {
+        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->where('phase_id', $phaseId)
+            ->withCount('lots')
+            ->withCount(['lots as occupied_lots' => function ($query) {
+                $query->whereHas('burialRecords');
+            }])
+            ->get()
+            ->map(function ($cluster) {
+                return [
+                    'id' => $cluster->id,
+                    'phase_id' => $cluster->phase_id,
+                    'name' => $cluster->cluster_name,
+                    'type' => $cluster->cluster_type,
+                    'occupants' => $cluster->occupied_lots,
+                    'total_lots' => $cluster->lots_count,
+                    'coordinates' => $cluster->coordinates,
+                    'isCluster_mapped' => !is_null($cluster->coordinates),
+                ];
+            });
+
+        return response()->json($clusters);
+    }
+
+    /**
+     * Get lots by cluster ID
+     */
+    public function getLots($clusterId)
+    {
+        $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->where('cluster_id', $clusterId)
+            ->with('burialRecords:id,lot_id')
+            ->get()
+            ->map(function ($lot) {
+                $isOccupied = $lot->burialRecords->isNotEmpty();
+
+                return [
+                    'id' => $lot->id,
+                    'cluster_id' => $lot->cluster_id,
+                    'column' => $lot->column,
+                    'row' => $lot->row,
+                    'status' => $isOccupied ? 'occupied' : 'available',
+                    'coordinates' => $lot->coordinates,
+                    'isLot_mapped' => !is_null($lot->coordinates),
+                ];
+            });
+
+        return response()->json($lots);
     }
 
     /**
