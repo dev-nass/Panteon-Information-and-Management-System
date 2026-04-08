@@ -221,7 +221,7 @@ export function useFeatureProcessing() {
     };
 
     /**
-     * Description: Attach click handler for phases
+     * Description: Adds visual label for each phase polygon
      */
     const onEachPhaseFeature = (feature, layer) => {
         // Get the center of the polygon

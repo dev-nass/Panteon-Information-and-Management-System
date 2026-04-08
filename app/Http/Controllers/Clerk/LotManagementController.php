@@ -187,7 +187,7 @@ class LotManagementController extends Controller
             [$validated['name'], $validated['coordinates'], $phase->id]
         );
 
-        return back()->with('success', 'Phase updated successfully.');
+        return to_route('clerk.lot_management.index')->with('success', 'Phase updated successfully.');
     }
 
     public function updateCluster(Request $request, Cluster $cluster)
@@ -203,7 +203,7 @@ class LotManagementController extends Controller
             [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
         );
 
-        return back()->with('success', 'Cluster updated successfully.');
+        return to_route('clerk.lot_management.index')->with('success', 'Cluster updated successfully.');
     }
 
     public function updateLot(Request $request, Lot $lot)
@@ -219,7 +219,7 @@ class LotManagementController extends Controller
             [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
         );
 
-        return back()->with('success', 'Lot updated successfully.');
+        return to_route('clerk.lot_management.index')->with('success', 'Lot updated successfully.');
     }
 
     public function deletePhase(Phase $phase)

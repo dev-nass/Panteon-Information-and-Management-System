@@ -1,9 +1,9 @@
 <script setup>
-import { onMounted, onBeforeUnmount, watch } from 'vue';
-import { useEditClusterPlot } from '@/composables/lot_management/useEditClusterPlot';
-import PlottingModalWrapper from './PlottingModalWrapper.vue';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import { onMounted, onBeforeUnmount, watch } from "vue";
+import { useEditClusterPlot } from "@/composables/lot_management/edit/useEditClusterPlot";
+import PlottingModalWrapper from "./PlottingModalWrapper.vue";
+import "leaflet/dist/leaflet.css";
+import "leaflet-draw/dist/leaflet.draw.css";
 
 const props = defineProps({
     phaseId: { type: [Number, String], default: null },
@@ -11,13 +11,14 @@ const props = defineProps({
     existingCoordinates: { type: [String, Object], default: null },
 });
 
-const emit = defineEmits(['coordinatesSet', 'close']);
+const emit = defineEmits(["coordinatesSet", "close"]);
 
-const { coordinates, initializeMap, loadPhase, cleanupMap, getCoordinates } = useEditClusterPlot();
+const { coordinates, initializeMap, loadPhase, cleanupMap, getCoordinates } =
+    useEditClusterPlot();
 
 onMounted(() => {
-    initializeMap('cluster-edit-map', props.existingCoordinates);
-    
+    initializeMap("cluster-edit-map", props.existingCoordinates);
+
     if (props.phaseId) {
         loadPhase(props.phaseId, props.phases);
     }
@@ -30,18 +31,21 @@ onBeforeUnmount(() => {
 const saveCoordinates = () => {
     const coords = getCoordinates();
     if (!coords) {
-        alert('Please draw a polygon on the map first');
+        alert("Please draw a polygon on the map first");
         return;
     }
-    emit('coordinatesSet', coords);
-    emit('close');
+    emit("coordinatesSet", coords);
+    emit("close");
 };
 
-watch(() => props.phaseId, (newPhaseId) => {
-    if (newPhaseId) {
-        loadPhase(newPhaseId, props.phases);
+watch(
+    () => props.phaseId,
+    (newPhaseId) => {
+        if (newPhaseId) {
+            loadPhase(newPhaseId, props.phases);
+        }
     }
-});
+);
 </script>
 
 <template>
@@ -50,7 +54,13 @@ watch(() => props.phaseId, (newPhaseId) => {
         instruction="📐 Edit the cluster boundary by dragging the vertices or use the polygon tool to redraw."
         map-id="cluster-edit-map"
         :coordinates="coordinates"
-        :coordinate-label="coordinates ? `Cluster boundary set (${coordinates.coordinates[0].length - 1} points)` : null"
+        :coordinate-label="
+            coordinates
+                ? `Cluster boundary set (${
+                      coordinates.coordinates[0].length - 1
+                  } points)`
+                : null
+        "
         @save="saveCoordinates"
         @close="emit('close')"
     />

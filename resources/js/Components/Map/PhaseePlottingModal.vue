@@ -1,20 +1,16 @@
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
-import { useCreatePlotPhase } from '@/composables/lot_management/useCreatePlotPhase';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import { onMounted, onBeforeUnmount } from "vue";
+import { useCreatePlotPhase } from "@/composables/lot_management/create/useCreatePlotPhase";
+import "leaflet/dist/leaflet.css";
+import "leaflet-draw/dist/leaflet.draw.css";
 
-const emit = defineEmits(['coordinatesSet', 'close']);
+const emit = defineEmits(["coordinatesSet", "close"]);
 
-const { 
-    coordinates, 
-    initializeMap, 
-    cleanupMap, 
-    getCoordinates 
-} = useCreatePlotPhase();
+const { coordinates, initializeMap, cleanupMap, getCoordinates } =
+    useCreatePlotPhase();
 
 onMounted(() => {
-    initializeMap('phase-plotting-map');
+    initializeMap("phase-plotting-map");
 });
 
 onBeforeUnmount(() => {
@@ -24,15 +20,15 @@ onBeforeUnmount(() => {
 const saveCoordinates = () => {
     const coords = getCoordinates();
     if (!coords) {
-        alert('Please draw a polygon on the map first');
+        alert("Please draw a polygon on the map first");
         return;
     }
-    emit('coordinatesSet', coords);
+    emit("coordinatesSet", coords);
     closeModal();
 };
 
 const closeModal = () => {
-    emit('close');
+    emit("close");
 };
 </script>
 
@@ -43,10 +39,16 @@ const closeModal = () => {
         role="dialog"
         tabindex="-1"
     >
-        <div class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-100 ease-out transition-all sm:max-w-4xl sm:w-full m-3 sm:mx-auto">
-            <div class="flex flex-col bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 shadow-lg rounded-xl">
+        <div
+            class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-100 ease-out transition-all sm:max-w-4xl sm:w-full m-3 sm:mx-auto"
+        >
+            <div
+                class="flex flex-col bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 shadow-lg rounded-xl"
+            >
                 <!-- Header -->
-                <div class="flex justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-neutral-700">
+                <div
+                    class="flex justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-neutral-700"
+                >
                     <h3 class="font-bold text-gray-800 dark:text-white">
                         Plot Phase Boundary
                     </h3>
@@ -55,7 +57,14 @@ const closeModal = () => {
                         @click="closeModal"
                         class="size-8 inline-flex justify-center items-center rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
                     >
-                        <svg class="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg
+                            class="shrink-0 size-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
                             <path d="M18 6 6 18" />
                             <path d="m6 6 12 12" />
                         </svg>
@@ -65,19 +74,33 @@ const closeModal = () => {
                 <!-- Body -->
                 <div class="p-4">
                     <div class="mb-3 text-sm text-gray-600 dark:text-gray-400">
-                        <p>📐 Click the polygon tool and draw the phase boundary on the map.</p>
+                        <p>
+                            📐 Click the polygon tool and draw the phase
+                            boundary on the map.
+                        </p>
                     </div>
-                    
-                    <!-- Map Container -->
-                    <div id="phase-plotting-map" class="w-full h-[500px] rounded-lg border border-gray-300 dark:border-neutral-600"></div>
 
-                    <div v-if="coordinates" class="mt-3 text-sm text-green-600 dark:text-green-400">
-                        ✓ Phase boundary set ({{ coordinates.coordinates[0].length - 1 }} points)
+                    <!-- Map Container -->
+                    <div
+                        id="phase-plotting-map"
+                        class="w-full h-[500px] rounded-lg border border-gray-300 dark:border-neutral-600"
+                    ></div>
+
+                    <div
+                        v-if="coordinates"
+                        class="mt-3 text-sm text-green-600 dark:text-green-400"
+                    >
+                        ✓ Phase boundary set ({{
+                            coordinates.coordinates[0].length - 1
+                        }}
+                        points)
                     </div>
                 </div>
 
                 <!-- Footer -->
-                <div class="flex justify-end items-center gap-x-2 py-3 px-4 border-t border-gray-200 dark:border-neutral-700">
+                <div
+                    class="flex justify-end items-center gap-x-2 py-3 px-4 border-t border-gray-200 dark:border-neutral-700"
+                >
                     <button
                         type="button"
                         @click="closeModal"

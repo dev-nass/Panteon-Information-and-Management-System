@@ -20,7 +20,7 @@ const props = defineProps({
     lots: Array,
 });
 
-console.log(props.phases, props.clusters, props.lots);
+// console.log(props.phases, props.clusters, props.lots);
 
 const { fetchPhase, fetchCluster, fetchLot, clearSearch } = useSearch();
 
@@ -40,6 +40,31 @@ const editingItem = ref(null);
 const localPhases = ref([...props.phases]);
 const localClusters = ref([...props.clusters]);
 const localLots = ref([...props.lots]);
+
+// Watch for prop changes and update local copies
+watch(
+    () => props.phases,
+    (newPhases) => {
+        localPhases.value = [...newPhases];
+    },
+    { deep: true }
+);
+
+watch(
+    () => props.clusters,
+    (newClusters) => {
+        localClusters.value = [...newClusters];
+    },
+    { deep: true }
+);
+
+watch(
+    () => props.lots,
+    (newLots) => {
+        localLots.value = [...newLots];
+    },
+    { deep: true }
+);
 
 const startEditRow = (row, type) => {
     editingRow.value = { ...row };
@@ -90,30 +115,17 @@ const openLotCoordinateModal = (lot) => {
 };
 
 const handlePhaseCoordinatesSet = (coords) => {
-    console.log('Coordinates received from modal:', coords);
-    console.log('Coordinates stringified:', JSON.stringify(coords));
-    
     if (editingItem.value) {
-        const payload = {
-            name: editingItem.value.name,
-            coordinates: JSON.stringify(coords),
-        };
-        
-        console.log('Sending payload:', payload);
-        
         router.put(
             route("clerk.lot_management.update.phase", editingItem.value.id),
-            payload,
+            {
+                name: editingItem.value.name,
+                coordinates: JSON.stringify(coords),
+            },
             {
                 preserveScroll: true,
-                onSuccess: (page) => {
-                    console.log('Update successful');
-                    // Update local state with fresh data from backend
-                    localPhases.value = page.props.phases;
+                onSuccess: () => {
                     closePhaseModal();
-                },
-                onError: (errors) => {
-                    console.error('Update failed:', errors);
                 },
             }
         );
@@ -131,8 +143,7 @@ const handleClusterCoordinatesSet = (coords) => {
             },
             {
                 preserveScroll: true,
-                onSuccess: (page) => {
-                    localClusters.value = page.props.clusters;
+                onSuccess: () => {
                     closeClusterModal();
                 },
             }
@@ -151,8 +162,7 @@ const handleLotCoordinatesSet = (coords) => {
             },
             {
                 preserveScroll: true,
-                onSuccess: (page) => {
-                    localLots.value = page.props.lots;
+                onSuccess: () => {
                     closeLotModal();
                 },
             }
@@ -195,32 +205,37 @@ const handleViewPhaseOnTable = (phaseId) => {
     if (phase) {
         selectedPhase.value = phase;
         selectedCluster.value = null;
-        activeTab.value = "cluster";
+        activeTab.value = "phase";
     }
 };
 
 const handleViewClusterOnTable = (clusterId) => {
-    for (const phase of localPhases.value) {
-        const cluster = phase.clusters.find((c) => c.id === clusterId);
-        if (cluster) {
+    const cluster = localClusters.value.find((c) => c.id === clusterId);
+    if (cluster) {
+        const phase = localPhases.value.find((p) => p.id === cluster.phase_id);
+        if (phase) {
             selectedPhase.value = phase;
             selectedCluster.value = cluster;
-            activeTab.value = "lot";
-            break;
+            activeTab.value = "cluster";
         }
     }
 };
 
 const handleViewLotOnTable = (lotId) => {
-    for (const phase of localPhases.value) {
-        for (const cluster of phase.clusters) {
-            const lot = cluster.lots.find((l) => l.id === lotId);
-            if (lot) {
+    const lot = localLots.value.find((l) => l.id === lotId);
+    if (lot) {
+        const cluster = localClusters.value.find(
+            (c) => c.id === lot.cluster_id
+        );
+        if (cluster) {
+            const phase = localPhases.value.find(
+                (p) => p.id === cluster.phase_id
+            );
+            if (phase) {
                 selectedPhase.value = phase;
                 selectedCluster.value = cluster;
                 activeTab.value = "lot";
-                search.value = lot.number;
-                return;
+                search.value = `${lot.column}${lot.row}`;
             }
         }
     }
@@ -231,7 +246,7 @@ window.handleViewClusterOnTable = handleViewClusterOnTable;
 window.handleViewLotOnTable = handleViewLotOnTable;
 
 // =========================
-// FILTERED DATA
+// FILTERED DATA WHEN ON SEARCH
 // =========================
 const filteredPhases = computed(() =>
     localPhases.value.filter((p) =>
@@ -256,7 +271,8 @@ const filteredLots = computed(() => {
         (l) =>
             l.cluster_id === selectedCluster.value.id &&
             (l.column.toLowerCase().includes(search.value.toLowerCase()) ||
-                l.row.toLowerCase().includes(search.value.toLowerCase()))
+                l.row.toLowerCase().includes(search.value.toLowerCase()) ||
+                `${l.column}${l.row}`.toLowerCase().includes(search.value.toLowerCase()))
     );
 });
 
@@ -507,19 +523,25 @@ defineOptions({
                                 @click.stop="openPhaseCoordinateModal(phase)"
                                 class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                             >
-                                {{ phase.isPhase_mapped ? 'Edit' : 'Add' }}
+                                {{ phase.isPhase_mapped ? "Edit" : "Add" }}
                             </button>
                             <button
                                 v-else-if="phase.isPhase_mapped"
-                                @click.stop="redirectToClerkMap(phase.id, 'phase')"
+                                @click.stop="
+                                    redirectToClerkMap(phase.id, 'phase')
+                                "
                                 class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                             >
                                 View on Map
                             </button>
-                            <span v-else class="text-gray-500 dark:text-gray-600">Not Mapped</span>
+                            <span
+                                v-else
+                                class="text-gray-500 dark:text-gray-600"
+                                >Not Mapped</span
+                            >
                         </TableData>
 
-                        <TableData >
+                        <TableData>
                             <div
                                 v-if="editingRow?.id === phase.id"
                                 class="flex gap-2"
@@ -616,22 +638,30 @@ defineOptions({
                         <TableData>
                             <button
                                 v-if="editingRow?.id === cluster.id"
-                                @click.stop="openClusterCoordinateModal(cluster)"
+                                @click.stop="
+                                    openClusterCoordinateModal(cluster)
+                                "
                                 class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                             >
-                                {{ cluster.isCluster_mapped ? 'Edit' : 'Add' }}
+                                {{ cluster.isCluster_mapped ? "Edit" : "Add" }}
                             </button>
                             <button
                                 v-else-if="cluster.isCluster_mapped"
-                                @click.stop="redirectToClerkMap(cluster.id, 'cluster')"
+                                @click.stop="
+                                    redirectToClerkMap(cluster.id, 'cluster')
+                                "
                                 class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                             >
                                 View on Map
                             </button>
-                            <span v-else class="text-gray-500 dark:text-gray-600">Not Mapped</span>
+                            <span
+                                v-else
+                                class="text-gray-500 dark:text-gray-600"
+                                >Not Mapped</span
+                            >
                         </TableData>
 
-                        <TableData >
+                        <TableData>
                             <div
                                 v-if="editingRow?.id === cluster.id"
                                 class="flex gap-2"
@@ -748,7 +778,7 @@ defineOptions({
                                 @click.stop="openLotCoordinateModal(lot)"
                                 class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                             >
-                                {{ lot.isLot_mapped ? 'Edit' : 'Add' }}
+                                {{ lot.isLot_mapped ? "Edit" : "Add" }}
                             </button>
                             <button
                                 v-else-if="lot.isLot_mapped"
@@ -757,10 +787,14 @@ defineOptions({
                             >
                                 View on Map
                             </button>
-                            <span v-else class="text-gray-500 dark:text-gray-600">Not Mapped</span>
+                            <span
+                                v-else
+                                class="text-gray-500 dark:text-gray-600"
+                                >Not Mapped</span
+                            >
                         </TableData>
 
-                        <TableData >
+                        <TableData>
                             <div
                                 v-if="editingRow?.id === lot.id"
                                 class="flex gap-2"
