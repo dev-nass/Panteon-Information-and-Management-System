@@ -13,93 +13,59 @@ use Illuminate\Support\Facades\DB;
 
 class LotManagementController extends Controller
 {
-
     /**
-     * Description: Fetch phase by phase_id
+     * Get clusters by phase ID
      */
-    public function phase()
+    public function getClusters($phaseId)
     {
-        $phaseId = request('phase_id');
+        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->where('phase_id', $phaseId)
+            ->withCount('lots')
+            ->withCount([
+                'lots as occupied_lots' => function ($query) {
+                    $query->whereHas('burialRecords');
+                }
+            ])
+            ->get()
+            ->map(function ($cluster) {
+                return [
+                    'id' => $cluster->id,
+                    'phase_id' => $cluster->phase_id,
+                    'name' => $cluster->cluster_name,
+                    'type' => $cluster->cluster_type,
+                    'occupants' => $cluster->occupied_lots,
+                    'total_lots' => $cluster->lots_count,
+                    'coordinates' => $cluster->coordinates,
+                    'isCluster_mapped' => !is_null($cluster->coordinates),
+                ];
+            });
 
-        if (!$phaseId) {
-            return PhaseResource::collection([]);
-        }
-
-        $phase = DB::table('phases')
-            ->where('id', $phaseId)
-            ->select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->first();
-
-        if (!$phase) {
-            return PhaseResource::collection([]);
-        }
-
-        $phaseModel = Phase::find($phase->id);
-        $phaseModel->coordinates = $phase->coordinates;
-
-        return PhaseResource::collection([$phaseModel]);
+        return response()->json($clusters);
     }
 
     /**
-     * Description: Fetch cluster by cluster_id
+     * Get lots by cluster ID
      */
-    public function cluster()
+    public function getLots($clusterId)
     {
-        $clusterId = request('cluster_id');
+        $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->where('cluster_id', $clusterId)
+            ->with('burialRecords:id,lot_id')
+            ->get()
+            ->map(function ($lot) {
+                $isOccupied = $lot->burialRecords->isNotEmpty();
 
-        if (!$clusterId) {
-            return ClusterResource::collection([]);
-        }
+                return [
+                    'id' => $lot->id,
+                    'cluster_id' => $lot->cluster_id,
+                    'column' => $lot->column,
+                    'row' => $lot->row,
+                    'status' => $isOccupied ? 'occupied' : 'available',
+                    'coordinates' => $lot->coordinates,
+                    'isLot_mapped' => !is_null($lot->coordinates),
+                ];
+            });
 
-        $cluster = DB::table('clusters')
-            ->where('id', $clusterId)
-            ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->first();
-
-        if (!$cluster) {
-            return ClusterResource::collection([]);
-        }
-
-        $clusterModel = Cluster::find($cluster->id);
-        $clusterModel->coordinates = $cluster->coordinates;
-        $clusterModel->load([
-            'lots' => function ($query) {
-                $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-            },
-            'lots.burialRecords.deceasedRecord',
-            'lots.burialRecords.user'
-        ]);
-
-        return ClusterResource::collection([$clusterModel]);
-    }
-
-    /**
-     * Description: Fetch lot by lot_id
-     */
-    public function lot()
-    {
-        $lotId = request('lot_id');
-
-        if (!$lotId) {
-            return LotResource::collection([]);
-        }
-
-        $lot = DB::table('lots')
-            ->where('id', $lotId)
-            ->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
-            ->first();
-
-        if (!$lot) {
-            return LotResource::collection([]);
-        }
-
-        $lotModel = Lot::find($lot->id);
-        $lotModel->coordinates = $lot->coordinates;
-        $lotModel->load([
-            'burialRecords.deceasedRecord',
-            'burialRecords.user'
-        ]);
-
-        return LotResource::collection([$lotModel]);
+        return response()->json($lots);
     }
 }

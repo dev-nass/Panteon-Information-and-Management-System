@@ -27,7 +27,7 @@ const fetchClusters = async () => {
     loading.value = true;
     try {
         const response = await fetch(
-            route("clerk.lot_management.clusters", props.phaseId)
+            route("api.lot.management.clusters", props.phaseId)
         );
         const data = await response.json();
         clusters.value = data;

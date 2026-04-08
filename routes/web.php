@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\LotManagementController;
+use App\Http\Controllers\Api\LotManagementSearchController;
 use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,10 +25,15 @@ Route::controller(MapSearchDataController::class)->group(function () {
     Route::get('/data-search/burials', 'search')->name('api.map.search');
 });
 
-Route::controller(ApiLotManagement::class)->group(function () {
+Route::controller(LotManagementSearchController::class)->group(function () {
     Route::get('/data/phase', 'phase')->name('api.lot.management.phase');
     Route::get('/data/cluster', 'cluster')->name('api.lot.management.cluster');
     Route::get('/data/lot', 'lot')->name('api.lot.management.lot');
+});
+
+Route::controller(ApiLotManagement::class)->group(function () {
+    Route::get('/data/phase/{phaseId}/clusters', 'getClusters')->name('api.lot.management.clusters');
+    Route::get('/data/cluster/{clusterId}/lots', 'getLots')->name('api.lot.management.lots');
 });
 
 
@@ -62,8 +68,6 @@ Route::prefix('clerk')
         Route::controller(LotManagementController::class)->group(function () {
             Route::get('/lot-management', 'index')->name('lot_management.index');
             Route::get('/lot-management/create', 'create')->name('lot_management.create');
-            Route::get('/lot-management/phase/{phaseId}/clusters', 'getClusters')->name('lot_management.clusters');
-            Route::get('/lot-management/cluster/{clusterId}/lots', 'getLots')->name('lot_management.lots');
             Route::post('/lot-management/phase', 'storePhase')->name('lot_management.store.phase');
             Route::post('/lot-management/cluster', 'storeCluster')->name('lot_management.store.cluster');
             Route::post('/lot-management/lot', 'storeLot')->name('lot_management.store.lot');

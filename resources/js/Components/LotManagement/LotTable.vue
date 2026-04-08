@@ -21,11 +21,11 @@ const fetchLots = async () => {
         lots.value = [];
         return;
     }
-    
+
     loading.value = true;
     try {
         const response = await fetch(
-            route("clerk.lot_management.lots", props.clusterId)
+            route("api.lot.management.lots", props.clusterId)
         );
         const data = await response.json();
         lots.value = data;
@@ -89,6 +89,7 @@ const handleLotCoordinatesSet = (coords) => {
             onSuccess: () => {
                 showLotModal.value = false;
                 editingItem.value = null;
+                editingRow.value = false;
                 fetchLots();
             },
         }
@@ -123,13 +124,27 @@ const redirectToClerkBurialRecordShow = (lotId) => {
     <div v-if="loading" class="p-8">
         <div class="animate-pulse space-y-4">
             <div v-for="i in 5" :key="i" class="flex gap-4">
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-16"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded flex-1"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-16"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded flex-1"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
             </div>
         </div>
     </div>
@@ -175,7 +190,9 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                 </TableData>
                 <TableData
                     :isHighlighted="true"
-                    :highlightColor="lot.status === 'available' ? 'green' : 'red'"
+                    :highlightColor="
+                        lot.status === 'available' ? 'green' : 'red'
+                    "
                 >
                     {{ lot.status }}
                 </TableData>
@@ -247,9 +264,13 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                             >
                                 <path d="M10 11v6" />
                                 <path d="M14 11v6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                />
                                 <path d="M3 6h18" />
-                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <path
+                                    d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
                             </svg>
                         </button>
                     </div>
