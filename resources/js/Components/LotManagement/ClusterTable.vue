@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { router } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
 import ClusterEditModal from "@/Components/Map/ClusterEditModal.vue";
@@ -12,6 +13,7 @@ const props = defineProps({
 
 const emit = defineEmits(["select-cluster"]);
 
+const toast = useToast();
 const clusters = ref([]);
 const loading = ref(false);
 const editingRow = ref(null);
@@ -23,7 +25,7 @@ const fetchClusters = async () => {
         clusters.value = [];
         return;
     }
-    
+
     loading.value = true;
     try {
         const response = await fetch(
@@ -56,6 +58,7 @@ const cancelEditRow = () => {
 };
 
 const saveEditRow = () => {
+    const clusterName = editingRow.value.name;
     router.put(
         route("clerk.lot_management.update.cluster", editingRow.value.id),
         editingRow.value,
@@ -63,6 +66,12 @@ const saveEditRow = () => {
             onSuccess: () => {
                 cancelEditRow();
                 fetchClusters();
+                toast.success(
+                    `Cluster "${clusterName}" updated successfully!`,
+                    {
+                        duration: 3000,
+                    }
+                );
             },
         }
     );
@@ -120,13 +129,27 @@ const redirectToClerkMap = (id) => {
     <div v-if="loading" class="p-8">
         <div class="animate-pulse space-y-4">
             <div v-for="i in 5" :key="i" class="flex gap-4">
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-16"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded flex-1"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
-                <div class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-16"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded flex-1"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-24"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
+                <div
+                    class="h-12 bg-gray-200 dark:bg-neutral-700 rounded w-32"
+                ></div>
             </div>
         </div>
     </div>
@@ -193,7 +216,10 @@ const redirectToClerkMap = (id) => {
                     >
                 </TableData>
                 <TableData>
-                    <div v-if="editingRow?.id === cluster.id" class="flex gap-2">
+                    <div
+                        v-if="editingRow?.id === cluster.id"
+                        class="flex gap-2"
+                    >
                         <button
                             @click.stop="saveEditRow"
                             class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
@@ -231,9 +257,13 @@ const redirectToClerkMap = (id) => {
                             >
                                 <path d="M10 11v6" />
                                 <path d="M14 11v6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                />
                                 <path d="M3 6h18" />
-                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <path
+                                    d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
                             </svg>
                         </button>
                     </div>

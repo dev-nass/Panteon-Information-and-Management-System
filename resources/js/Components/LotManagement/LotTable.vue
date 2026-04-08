@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { router } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
 import LotEditModal from "@/Components/Map/LotEditModal.vue";
@@ -10,6 +11,7 @@ const props = defineProps({
     search: String,
 });
 
+const toast = useToast();
 const lots = ref([]);
 const loading = ref(false);
 const editingRow = ref(null);
@@ -59,6 +61,7 @@ const cancelEditRow = () => {
 };
 
 const saveEditRow = () => {
+    const lotLabel = `${editingRow.value.column}${editingRow.value.row}`;
     router.put(
         route("clerk.lot_management.update.lot", editingRow.value.id),
         editingRow.value,
@@ -66,6 +69,9 @@ const saveEditRow = () => {
             onSuccess: () => {
                 cancelEditRow();
                 fetchLots();
+                toast.success(`Lot "${lotLabel}" updated successfully!`, {
+                    duration: 3000,
+                });
             },
         }
     );

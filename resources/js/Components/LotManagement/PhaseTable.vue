@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from "vue";
 import { router } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
 import PhaseEditModal from "@/Components/Map/PhaseEditModal.vue";
@@ -12,6 +13,7 @@ const props = defineProps({
 
 const emit = defineEmits(["select-phase"]);
 
+const toast = useToast();
 const editingRow = ref(null);
 const showPhaseModal = ref(false);
 const editingItem = ref(null);
@@ -25,11 +27,17 @@ const cancelEditRow = () => {
 };
 
 const saveEditRow = () => {
+    const phaseName = editingRow.value.name;
     router.put(
         route("clerk.lot_management.update.phase", editingRow.value.id),
         editingRow.value,
         {
-            onSuccess: () => cancelEditRow(),
+            onSuccess: () => {
+                cancelEditRow();
+                toast.success(`Phase "${phaseName}" updated successfully!`, {
+                    duration: 3000,
+                });
+            },
         }
     );
 };
@@ -165,9 +173,13 @@ const redirectToClerkMap = (id) => {
                             >
                                 <path d="M10 11v6" />
                                 <path d="M14 11v6" />
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                />
                                 <path d="M3 6h18" />
-                                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <path
+                                    d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                />
                             </svg>
                         </button>
                     </div>
