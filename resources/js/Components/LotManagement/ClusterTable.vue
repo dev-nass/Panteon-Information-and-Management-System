@@ -19,6 +19,24 @@ const loading = ref(false);
 const editingRow = ref(null);
 const showClusterModal = ref(false);
 const editingItem = ref(null);
+const currentPage = ref(1);
+const perPage = ref(10);
+
+const paginatedClusters = computed(() => {
+    const start = (currentPage.value - 1) * perPage.value;
+    const end = start + perPage.value;
+    return filteredClusters.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredClusters.value.length / perPage.value);
+});
+
+const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page;
+    }
+};
 
 const fetchClusters = async () => {
     if (!props.phaseId) {
@@ -42,6 +60,14 @@ const fetchClusters = async () => {
 };
 
 watch(() => props.phaseId, fetchClusters, { immediate: true });
+
+// Reset to page 1 when search changes
+watch(
+    () => props.search,
+    () => {
+        currentPage.value = 1;
+    }
+);
 
 const filteredClusters = computed(() =>
     clusters.value.filter((c) =>
@@ -170,7 +196,7 @@ const redirectToClerkMap = (id) => {
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
             <tr
-                v-for="cluster in filteredClusters"
+                v-for="cluster in paginatedClusters"
                 :key="cluster.id"
                 @click="emit('select-cluster', cluster)"
                 class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
@@ -271,6 +297,57 @@ const redirectToClerkMap = (id) => {
             </tr>
         </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div
+        v-if="!loading && filteredClusters.length > 0"
+        class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between"
+    >
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+            Showing {{ (currentPage - 1) * perPage + 1 }} to
+            {{ Math.min(currentPage * perPage, filteredClusters.length) }} of
+            {{ filteredClusters.length }} clusters
+        </div>
+        <div class="flex gap-2">
+            <button
+                @click="goToPage(currentPage - 1)"
+                :disabled="currentPage === 1"
+                class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
+                :class="
+                    currentPage === 1
+                        ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
+            >
+                Previous
+            </button>
+            <button
+                v-for="page in totalPages"
+                :key="page"
+                @click="goToPage(page)"
+                class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
+                :class="
+                    currentPage === page
+                        ? 'bg-green-500 text-white border-green-500'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
+            >
+                {{ page }}
+            </button>
+            <button
+                @click="goToPage(currentPage + 1)"
+                :disabled="currentPage === totalPages"
+                class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
+                :class="
+                    currentPage === totalPages
+                        ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
+            >
+                Next
+            </button>
+        </div>
+    </div>
 
     <ClusterEditModal
         v-if="showClusterModal"
