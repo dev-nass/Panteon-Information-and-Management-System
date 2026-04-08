@@ -14,60 +14,64 @@ use Inertia\Inertia;
 class LotManagementController extends Controller
 {
 
-    /**
-     * Description: For the table view of the Lot Management page
-     */
     public function index()
     {
-        $phases = Phase::with(['clusters.lots.burialRecords'])->get()
+        $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->withCount('clusters')
+            ->get()
             ->map(function ($phase) {
-                $totalCapacity = 0;
-                $lotOccupants = 0;
-
-                $clusters = $phase->clusters->map(function ($cluster) use (&$totalCapacity, &$lotOccupants) {
-                    $clusterOccupants = 0;
-                    $lots = $cluster->lots->map(function ($lot) use (&$totalCapacity, &$lotOccupants, &$clusterOccupants) {
-                        $totalCapacity++;
-                        $isOccupied = $lot->burialRecords->isNotEmpty();
-                        if ($isOccupied) {
-                            $lotOccupants++;
-                            $clusterOccupants++;
-                        }
-
-                        // lot
-                        return [
-                            'id' => $lot->id,
-                            'column' => $lot->column,
-                            'row' => $lot->row,
-                            'status' => $isOccupied ? 'occupied' : 'available',
-                            'isLot_mapped' => !is_null($lot->coordinates),
-                        ];
-                    });
-
-                    // cluster
-                    return [
-                        'id' => $cluster->id,
-                        'name' => $cluster->cluster_name,
-                        'lots' => $lots,
-                        'occupants' => $clusterOccupants,
-                        'type' => $cluster->cluster_type,
-                        'isCluster_mapped' => !is_null($cluster->coordinates),
-                    ];
-                });
-
-                // phase
                 return [
                     'id' => $phase->id,
                     'name' => $phase->phase_name,
-                    'total_capacity' => $totalCapacity,
-                    'occupants' => $lotOccupants,
-                    'clusters' => $clusters,
+                    'total_clusters' => $phase->clusters_count,
+                    'coordinates' => $phase->coordinates,
                     'isPhase_mapped' => !is_null($phase->coordinates),
+                ];
+            });
+
+        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->withCount('lots')
+            ->with('phase:id,phase_name')
+            ->get()
+            ->map(function ($cluster) {
+                $occupants = $cluster->lots()->whereHas('burialRecords')->count();
+
+                return [
+                    'id' => $cluster->id,
+                    'phase_id' => $cluster->phase_id,
+                    'phase_name' => $cluster->phase->phase_name,
+                    'name' => $cluster->cluster_name,
+                    'type' => $cluster->cluster_type,
+                    'occupants' => $occupants,
+                    'total_lots' => $cluster->lots_count,
+                    'coordinates' => $cluster->coordinates,
+                    'isCluster_mapped' => !is_null($cluster->coordinates),
+                ];
+            });
+
+        $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+            ->with(['cluster.phase:id,phase_name', 'burialRecords:id,lot_id'])
+            ->get()
+            ->map(function ($lot) {
+                $isOccupied = $lot->burialRecords->isNotEmpty();
+
+                return [
+                    'id' => $lot->id,
+                    'cluster_id' => $lot->cluster_id,
+                    'cluster_name' => $lot->cluster->cluster_name,
+                    'phase_name' => $lot->cluster->phase->phase_name,
+                    'column' => $lot->column,
+                    'row' => $lot->row,
+                    'status' => $isOccupied ? 'occupied' : 'available',
+                    'coordinates' => $lot->coordinates,
+                    'isLot_mapped' => !is_null($lot->coordinates),
                 ];
             });
 
         return Inertia::render('Clerk/LotManagement/IndexView', [
             'phases' => $phases,
+            'clusters' => $clusters,
+            'lots' => $lots,
         ]);
     }
 
@@ -171,49 +175,83 @@ class LotManagementController extends Controller
             ->with('success', 'Lot created successfully.');
     }
 
-    public function update(Request $request)
+    public function updatePhase(Request $request, Phase $phase)
     {
         $validated = $request->validate([
-            'phases' => 'required|array',
-            'phases.*.id' => 'required|exists:phases,id',
-            'phases.*.name' => 'required|string|max:255',
-            'phases.*.clusters' => 'array',
-            'phases.*.clusters.*.id' => 'required|exists:clusters,id',
-            'phases.*.clusters.*.name' => 'required|string|max:255',
-            'phases.*.clusters.*.type' => 'required|string|max:255',
-            'phases.*.clusters.*.lots' => 'array',
-            'phases.*.clusters.*.lots.*.id' => 'required|exists:lots,id',
-            'phases.*.clusters.*.lots.*.column' => 'required|string|max:255',
-            'phases.*.clusters.*.lots.*.row' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
+            'coordinates' => 'nullable|string',
         ]);
 
-        foreach ($validated['phases'] as $phaseData) {
-            $phase = Phase::find($phaseData['id']);
-            $phase->update(['phase_name' => $phaseData['name']]);
-
-            if (isset($phaseData['clusters'])) {
-                foreach ($phaseData['clusters'] as $clusterData) {
-                    $cluster = Cluster::find($clusterData['id']);
-                    $cluster->update([
-                        'cluster_name' => $clusterData['name'],
-                        'cluster_type' => $clusterData['type'],
-                    ]);
-
-                    if (isset($clusterData['lots'])) {
-                        foreach ($clusterData['lots'] as $lotData) {
-                            $lot = Lot::find($lotData['id']);
-                            $lot->update([
-                                'column' => $lotData['column'],
-                                'row' => $lotData['row'],
-                            ]);
-                        }
-                    }
+        DB::beginTransaction();
+        try {
+            // Decode if it's double-encoded
+            $coords = $validated['coordinates'];
+            if (is_string($coords)) {
+                // Check if it's already a valid JSON string
+                $decoded = json_decode($coords, true);
+                if ($decoded) {
+                    $coords = json_encode($decoded);
                 }
             }
+            
+            DB::update(
+                "UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+                [$validated['name'], $coords, $phase->id]
+            );
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Phase update failed', ['error' => $e->getMessage(), 'data' => $validated]);
+            return back()->withErrors(['error' => 'Failed to update phase coordinates.']);
         }
 
-        return to_route('clerk.lot_management.index')
-            ->with('success', 'Changes saved successfully.');
+        return back()->with('success', 'Phase updated successfully.');
+    }
+
+    public function updateCluster(Request $request, Cluster $cluster)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:apartment,underground',
+            'coordinates' => 'nullable|json',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            DB::update(
+                "UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+                [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
+            );
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update cluster coordinates.']);
+        }
+
+        return back()->with('success', 'Cluster updated successfully.');
+    }
+
+    public function updateLot(Request $request, Lot $lot)
+    {
+        $validated = $request->validate([
+            'column' => 'required|string|max:255',
+            'row' => 'required|string|max:255',
+            'coordinates' => 'nullable|json',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            DB::update(
+                "UPDATE lots SET column = ?, row = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+                [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
+            );
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update lot coordinates.']);
+        }
+
+        return back()->with('success', 'Lot updated successfully.');
     }
 
     public function deletePhase(Phase $phase)

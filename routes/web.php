@@ -65,7 +65,9 @@ Route::prefix('clerk')
             Route::post('/lot-management/phase', 'storePhase')->name('lot_management.store.phase');
             Route::post('/lot-management/cluster', 'storeCluster')->name('lot_management.store.cluster');
             Route::post('/lot-management/lot', 'storeLot')->name('lot_management.store.lot');
-            Route::post('/lot-management/update', 'update')->name('lot_management.update');
+            Route::put('/lot-management/phase/{phase}', 'updatePhase')->name('lot_management.update.phase');
+            Route::put('/lot-management/cluster/{cluster}', 'updateCluster')->name('lot_management.update.cluster');
+            Route::put('/lot-management/lot/{lot}', 'updateLot')->name('lot_management.update.lot');
             Route::delete('/lot-management/phase/{phase}', 'deletePhase')->name('lot_management.delete.phase');
             Route::delete('/lot-management/cluster/{cluster}', 'deleteCluster')->name('lot_management.delete.cluster');
             Route::delete('/lot-management/lot/{lot}', 'deleteLot')->name('lot_management.delete.lot');

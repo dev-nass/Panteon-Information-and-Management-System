@@ -1,0 +1,154 @@
+import L from "leaflet";
+import "leaflet-draw";
+import { ref } from "vue";
+
+const LAT = 14.3052681;
+const LONG = 120.9758;
+const ZOOM_LVL = 18;
+
+export function useEditPhasePlot() {
+    const map = ref(null);
+    const drawnItems = ref(null);
+    const drawControl = ref(null);
+    const coordinates = ref(null);
+    const existingLayer = ref(null);
+
+    const initializeMap = (mapContainerElem, existingCoordinates = null) => {
+        map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
+
+        L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+            maxZoom: 22,
+            subdomains: ["mt0", "mt1", "mt2", "mt3"],
+            attribution: "&copy; Google Maps",
+        }).addTo(map.value);
+
+        drawnItems.value = new L.FeatureGroup();
+        map.value.addLayer(drawnItems.value);
+
+        drawControl.value = new L.Control.Draw({
+            draw: {
+                polygon: false,
+                rectangle: false,
+                circle: false,
+                marker: false,
+                polyline: false,
+                circlemarker: false,
+            },
+            edit: {
+                featureGroup: drawnItems.value,
+                remove: true,
+            },
+        });
+
+        map.value.addControl(drawControl.value);
+
+        map.value.on(L.Draw.Event.CREATED, function (e) {
+            const layer = e.layer;
+
+            drawnItems.value.clearLayers();
+            drawnItems.value.addLayer(layer);
+
+            const latlngs = layer.getLatLngs()[0];
+            const coords = latlngs.map((latlng) => [latlng.lng, latlng.lat]);
+            coords.push(coords[0]);
+
+            coordinates.value = {
+                type: "Polygon",
+                coordinates: [coords],
+            };
+        });
+
+        map.value.on(L.Draw.Event.EDITED, function (e) {
+            const layers = e.layers;
+            layers.eachLayer(function (layer) {
+                const latlngs = layer.getLatLngs()[0];
+                const coords = latlngs.map((latlng) => [
+                    latlng.lng,
+                    latlng.lat,
+                ]);
+                coords.push(coords[0]);
+
+                coordinates.value = {
+                    type: "Polygon",
+                    coordinates: [coords],
+                };
+            });
+        });
+
+        map.value.on(L.Draw.Event.DELETED, function () {
+            coordinates.value = null;
+        });
+
+        if (existingCoordinates) {
+            loadExistingCoordinates(existingCoordinates);
+        }
+    };
+
+    const loadExistingCoordinates = (coords) => {
+        if (!map.value || !coords) return;
+
+        try {
+            let geojson = coords;
+
+            if (typeof geojson === "string") {
+                geojson = JSON.parse(geojson);
+            }
+
+            const feature = {
+                type: "Feature",
+                geometry: geojson,
+                properties: {},
+            };
+
+            const layer = L.geoJSON(feature, {
+                style: {
+                    color: "#3b82f6",
+                    fillColor: "#3b82f6",
+                    fillOpacity: 0.3,
+                    weight: 2,
+                },
+            });
+
+            layer.eachLayer((l) => {
+                drawnItems.value.addLayer(l);
+            });
+
+            coordinates.value = geojson;
+
+            const bounds = layer.getBounds();
+            if (bounds.isValid()) {
+                map.value.fitBounds(bounds, { padding: [50, 50] });
+            }
+        } catch (error) {
+            console.error("Error loading existing coordinates:", error);
+        }
+    };
+
+    const cleanupMap = () => {
+        if (map.value) {
+            map.value.remove();
+            map.value = null;
+        }
+        coordinates.value = null;
+    };
+
+    const getCoordinates = () => {
+        return coordinates.value;
+    };
+
+    const clearCoordinates = () => {
+        if (drawnItems.value) {
+            drawnItems.value.clearLayers();
+        }
+        coordinates.value = null;
+    };
+
+    return {
+        map,
+        coordinates,
+        initializeMap,
+        cleanupMap,
+        getCoordinates,
+        clearCoordinates,
+    };
+}
