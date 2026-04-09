@@ -20,6 +20,7 @@ class BurialRecordController extends Controller
     {
 
         $search = request('search');
+        $filter = request('filter', 'all');
 
         $allowedSorts = [
             'id',
@@ -34,7 +35,6 @@ class BurialRecordController extends Controller
 
         $sortDirection = request('sort_direction', 'desc');
 
-        // FIXME: Asdasd
         // TODO: understand this again
         $query = BurialRecord::query()
             ->with(['deceasedRecord', 'lot', 'user'])
@@ -46,6 +46,12 @@ class BurialRecordController extends Controller
                         ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
                         ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
                 });
+            })
+            ->when($filter === 'buried', function ($q) {
+                $q->whereNotNull('deceased_records.date_of_depository');
+            })
+            ->when($filter === 'pending', function ($q) {
+                $q->whereNull('deceased_records.date_of_depository');
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
@@ -59,7 +65,7 @@ class BurialRecordController extends Controller
                 $query->paginate(25)->withQueryString()
             ),
 
-            'filters' => request()->only(['search', 'sort_field', 'sort_direction']),
+            'filters' => request()->only(['search', 'sort_field', 'sort_direction', 'filter']),
         ]);
     }
 

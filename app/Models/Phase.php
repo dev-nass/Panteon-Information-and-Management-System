@@ -13,6 +13,7 @@ class Phase extends Model
 
     protected $fillable = [
         'phase_name',
+        'coordinates',
     ];
 
     public function clusters(): HasMany

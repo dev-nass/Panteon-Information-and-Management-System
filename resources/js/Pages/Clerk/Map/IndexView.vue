@@ -25,7 +25,7 @@ import Switch from "@/Components/Switch.vue";
 import { useMapStates } from "@/stores/useMapStates";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 
-import { useSearch } from "@/composables/map/useSearch";
+import { useSearch } from "@/composables/map/search/useSearch";
 
 // states
 const {
@@ -129,7 +129,7 @@ const featureForModal = ref(null);
  */
 window.openBurialRecordModal = function (clusterIdOrFeature) {
     // If it's a number, it's a clusterId (normal mode)
-    if (typeof clusterIdOrFeature === 'number') {
+    if (typeof clusterIdOrFeature === "number") {
         clusterIdForModal.value = clusterIdOrFeature;
         featureForModal.value = null;
     } else {

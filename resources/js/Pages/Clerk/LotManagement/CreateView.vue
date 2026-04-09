@@ -6,6 +6,9 @@ import { useToast } from "vue-toast-notification";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
+import PhaseePlottingModal from "@/Components/Map/PhaseePlottingModal.vue";
+import ClusterPlottingModal from "@/Components/Map/ClusterPlottingModal.vue";
+import LotPlottingModal from "@/Components/Map/LotPlottingModal.vue";
 
 const props = defineProps({
     phases: Array,
@@ -14,9 +17,13 @@ const props = defineProps({
 const toast = useToast();
 
 const activeTab = ref("phase");
+const showPhaseModal = ref(false);
+const showClusterModal = ref(false);
+const showLotModal = ref(false);
 
 const phaseForm = useForm({
     name: "",
+    coordinates: null,
 });
 
 const clusterForm = useForm({
@@ -24,6 +31,7 @@ const clusterForm = useForm({
     name: "",
     type: "",
     occupants: 0,
+    coordinates: null,
 });
 
 const lotForm = useForm({
@@ -31,6 +39,7 @@ const lotForm = useForm({
     column: "",
     row: "",
     status: "available",
+    coordinates: null,
 });
 
 const selectedPhase = ref(null);
@@ -57,6 +66,15 @@ const submitPhase = () => {
     });
 };
 
+const openPhaseModal = () => {
+    showPhaseModal.value = true;
+};
+
+const handlePhaseCoordinatesSet = (coords) => {
+    phaseForm.coordinates = JSON.stringify(coords);
+    toast.success('Coordinates set successfully!');
+};
+
 const submitCluster = () => {
     clusterForm.post(route("clerk.lot_management.store.cluster"), {
         onSuccess: () => {
@@ -67,6 +85,19 @@ const submitCluster = () => {
             toast.error("Please fix the validation errors before submitting.");
         },
     });
+};
+
+const openClusterModal = () => {
+    if (!clusterForm.phase_id) {
+        toast.error('Please select a phase first');
+        return;
+    }
+    showClusterModal.value = true;
+};
+
+const handleClusterCoordinatesSet = (coords) => {
+    clusterForm.coordinates = JSON.stringify(coords);
+    toast.success('Coordinates set successfully!');
 };
 
 const submitLot = () => {
@@ -81,6 +112,31 @@ const submitLot = () => {
     });
 };
 
+const openPlottingModal = () => {
+    if (!lotForm.cluster_id) {
+        toast.error('Please select a cluster first');
+        return;
+    }
+    showLotModal.value = true;
+};
+
+const handleCoordinatesSet = (coords) => {
+    lotForm.coordinates = JSON.stringify(coords);
+    toast.success('Coordinates set successfully!');
+};
+
+const closePhaseModal = () => {
+    showPhaseModal.value = false;
+};
+
+const closeClusterModal = () => {
+    showClusterModal.value = false;
+};
+
+const closeLotModal = () => {
+    showLotModal.value = false;
+};
+
 const goBack = () => {
     router.visit(route("clerk.lot_management.index"));
 };
@@ -91,7 +147,7 @@ defineOptions({
 </script>
 
 <template>
-    <div class="max-w-[55rem] px-4 py-10 mx-auto">
+    <div class="max-w-220 px-4 py-10 mx-auto">
         <div
             class="bg-white dark:bg-neutral-800 rounded-xl shadow overflow-hidden"
         >
@@ -155,6 +211,33 @@ defineOptions({
                             class="text-red-500 text-sm"
                         >
                             {{ phaseForm.errors.name }}
+                        </span>
+                    </div>
+
+                    <!-- Coordinates Section -->
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Coordinates
+                        </label>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="openPhaseModal"
+                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
+                            >
+                                📍 {{ phaseForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                            </button>
+                        </div>
+                        <div v-if="phaseForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                            ✓ Coordinates set
+                        </div>
+                        <span
+                            v-if="phaseForm.errors.coordinates"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ phaseForm.errors.coordinates }}
                         </span>
                     </div>
 
@@ -256,6 +339,33 @@ defineOptions({
                             class="text-red-500 text-sm"
                         >
                             {{ clusterForm.errors.occupants }}
+                        </span>
+                    </div>
+
+                    <!-- Coordinates Section -->
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Coordinates
+                        </label>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="openClusterModal"
+                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
+                            >
+                                📍 {{ clusterForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                            </button>
+                        </div>
+                        <div v-if="clusterForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                            ✓ Coordinates set
+                        </div>
+                        <span
+                            v-if="clusterForm.errors.coordinates"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ clusterForm.errors.coordinates }}
                         </span>
                     </div>
 
@@ -362,6 +472,33 @@ defineOptions({
                         </div>
                     </div>
 
+                    <!-- Coordinates Section -->
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Coordinates
+                        </label>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                @click="openPlottingModal"
+                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
+                            >
+                                📍 {{ lotForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                            </button>
+                        </div>
+                        <div v-if="lotForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                            ✓ Coordinates set
+                        </div>
+                        <span
+                            v-if="lotForm.errors.coordinates"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ lotForm.errors.coordinates }}
+                        </span>
+                    </div>
+
                     <div>
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -394,5 +531,30 @@ defineOptions({
                 </form>
             </div>
         </div>
+
+        <!-- Phase Plotting Modal -->
+        <PhaseePlottingModal
+            v-if="showPhaseModal"
+            @coordinates-set="handlePhaseCoordinatesSet"
+            @close="closePhaseModal"
+        />
+
+        <!-- Cluster Plotting Modal -->
+        <ClusterPlottingModal
+            v-if="showClusterModal"
+            :phase-id="clusterForm.phase_id"
+            :phases="phases"
+            @coordinates-set="handleClusterCoordinatesSet"
+            @close="closeClusterModal"
+        />
+
+        <!-- Lot Plotting Modal -->
+        <LotPlottingModal
+            v-if="showLotModal"
+            :cluster-id="lotForm.cluster_id"
+            :phases="phases"
+            @coordinates-set="handleCoordinatesSet"
+            @close="closeLotModal"
+        />
     </div>
 </template>

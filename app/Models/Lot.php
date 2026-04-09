@@ -20,6 +20,7 @@ class Lot extends Model
         'cluster_id',
         'column',
         'row',
+        'coordinates'
     ];
 
     public function cluster(): BelongsTo

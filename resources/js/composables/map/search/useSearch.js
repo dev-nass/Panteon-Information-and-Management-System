@@ -2,7 +2,7 @@ import { debounce } from "lodash";
 import { route } from "ziggy-js";
 
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useSearchFeatureProcessing } from "@/composables/map/useSearchFeatureProcessing"; // adjust path as needed
+import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing"; // adjust path as needed
 
 export function useSearch() {
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =

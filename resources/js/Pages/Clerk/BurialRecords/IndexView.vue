@@ -1,5 +1,5 @@
 <script setup>
-import { useSearchBurialRecords } from "@/composables/useSearchBurialRecords";
+import { useSearchBurialRecords } from "@/composables/burial_records/useSearchBurialRecords";
 
 import { Link, router } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
@@ -27,6 +27,26 @@ console.log(props.burial_records);
 
 const { search } = useSearchBurialRecords("clerk.burial_records.index");
 
+const applyFilter = (filterValue) => {
+    router.get(
+        route("clerk.burial_records.index"),
+        {
+            search: props.filters.search,
+            filter: filterValue,
+            sort_field: props.filters.sort_field,
+            sort_direction: props.filters.sort_direction,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+};
+
+/**
+ * Description:
+ * @param {field}
+ */
 const sort = (field) => {
     let direction = "asc";
 
@@ -41,6 +61,7 @@ const sort = (field) => {
         route("clerk.burial_records.index"),
         {
             search: props.filters.search,
+            filter: props.filters.filter,
             sort_field: field,
             sort_direction: direction,
         },
@@ -66,9 +87,9 @@ defineOptions({
 
 <template>
     <!-- Table Section -->
-    <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
+    <div class="max-w-340 px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <!-- Card -->
-        <div class="flex flex-col" data-aos="zoom-out">
+        <div class="flex flex-col">
             <div class="-m-1.5 overflow-x-auto">
                 <div class="p-1.5 min-w-full inline-block align-middle">
                     <div
@@ -151,7 +172,7 @@ defineOptions({
                                             <span
                                                 class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                             >
-                                                1
+                                                {{ filters.filter === 'buried' ? 'Buried' : filters.filter === 'pending' ? 'Pending' : 'All' }}
                                             </span>
                                         </Button>
 
@@ -165,14 +186,17 @@ defineOptions({
                                                 class="divide-y divide-gray-200 dark:divide-neutral-800"
                                             >
                                                 <label
-                                                    for="hs-as-filters-dropdown-all"
-                                                    class="flex items-center py-2.5 px-3"
+                                                    for="filter-all"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
                                                 >
                                                     <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-all"
-                                                        checked
+                                                        type="radio"
+                                                        name="filter"
+                                                        value="all"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="filter-all"
+                                                        :checked="!filters.filter || filters.filter === 'all'"
+                                                        @change="applyFilter('all')"
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
@@ -181,28 +205,36 @@ defineOptions({
                                                 </label>
 
                                                 <label
-                                                    for="hs-as-filters-dropdown-published"
-                                                    class="flex items-center py-2.5 px-3"
+                                                    for="filter-buried"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
                                                 >
                                                     <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-published"
+                                                        type="radio"
+                                                        name="filter"
+                                                        value="buried"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="filter-buried"
+                                                        :checked="filters.filter === 'buried'"
+                                                        @change="applyFilter('buried')"
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Published</span
+                                                        >Buried</span
                                                     >
                                                 </label>
 
                                                 <label
-                                                    for="hs-as-filters-dropdown-pending"
-                                                    class="flex items-center py-2.5 px-3"
+                                                    for="filter-pending"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
                                                 >
                                                     <input
-                                                        type="checkbox"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-sm shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                                        id="hs-as-filters-dropdown-pending"
+                                                        type="radio"
+                                                        name="filter"
+                                                        value="pending"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="filter-pending"
+                                                        :checked="filters.filter === 'pending'"
+                                                        @change="applyFilter('pending')"
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"

@@ -8,7 +8,7 @@ import Display from "@/Components/Display.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 import { useMap } from "@/composables/useMap";
-import { useSearch } from "@/composables/map/useSearch";
+import { useSearch } from "@/composables/map/search/useSearch";
 
 const props = defineProps({
     burial_record: { type: Object, required: true },
@@ -140,7 +140,9 @@ const saveChanges = () => {
                 $toast.success("Burial record updated successfully!");
             },
             onError: () => {
-                $toast.error("Failed to update burial record. Please check the form for errors.");
+                $toast.error(
+                    "Failed to update burial record. Please check the form for errors."
+                );
             },
             preserveScroll: true,
         }
@@ -232,7 +234,7 @@ onBeforeUnmount(() => {
     <Teleport to="body">
         <div
             id="hs-cookies"
-            class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
             role="dialog"
             tabindex="-1"
             aria-labelledby="hs-cookies-label"
@@ -379,7 +381,8 @@ onBeforeUnmount(() => {
                     <button
                         @click="redirectToClerkMap"
                         :disabled="
-                            !burial_record.data.lot?.lot?.geometry?.coordinates?.length
+                            !burial_record.data.lot?.lot?.geometry?.coordinates
+                                ?.length
                         "
                         :class="{
                             'opacity-50 cursor-not-allowed disabled:hover:dark:bg-neutral-800':
@@ -725,7 +728,8 @@ onBeforeUnmount(() => {
                     :editing="editing"
                     :error="errors['deceased.applicant.middle_name']"
                     @update:modelValue="
-                        (val) => (localData.deceased.applicant.middle_name = val)
+                        (val) =>
+                            (localData.deceased.applicant.middle_name = val)
                     "
                 />
                 <Display
@@ -743,7 +747,8 @@ onBeforeUnmount(() => {
                     :editing="editing"
                     :error="errors['deceased.applicant.contact_number']"
                     @update:modelValue="
-                        (val) => (localData.deceased.applicant.contact_number = val)
+                        (val) =>
+                            (localData.deceased.applicant.contact_number = val)
                     "
                 />
             </div>

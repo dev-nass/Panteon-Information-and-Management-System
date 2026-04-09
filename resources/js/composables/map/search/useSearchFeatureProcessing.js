@@ -238,7 +238,7 @@ export function useSearchFeatureProcessing() {
     };
 
     /**
-     * Description: Mark lot point on map
+     * Description: Mark lot point on map and attach a popup each
      * @param lot expects a lot with Point geometry
      */
     const markLotPoint = (lot) => {

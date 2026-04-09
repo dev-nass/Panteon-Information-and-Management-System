@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\LotManagementController;
+use App\Http\Controllers\Api\LotManagementSearchController;
 use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,10 +25,15 @@ Route::controller(MapSearchDataController::class)->group(function () {
     Route::get('/data-search/burials', 'search')->name('api.map.search');
 });
 
-Route::controller(ApiLotManagement::class)->group(function () {
+Route::controller(LotManagementSearchController::class)->group(function () {
     Route::get('/data/phase', 'phase')->name('api.lot.management.phase');
     Route::get('/data/cluster', 'cluster')->name('api.lot.management.cluster');
     Route::get('/data/lot', 'lot')->name('api.lot.management.lot');
+});
+
+Route::controller(ApiLotManagement::class)->group(function () {
+    Route::get('/data/phase/{phaseId}/clusters', 'getClusters')->name('api.lot.management.clusters');
+    Route::get('/data/cluster/{clusterId}/lots', 'getLots')->name('api.lot.management.lots');
 });
 
 
@@ -65,7 +71,9 @@ Route::prefix('clerk')
             Route::post('/lot-management/phase', 'storePhase')->name('lot_management.store.phase');
             Route::post('/lot-management/cluster', 'storeCluster')->name('lot_management.store.cluster');
             Route::post('/lot-management/lot', 'storeLot')->name('lot_management.store.lot');
-            Route::post('/lot-management/update', 'update')->name('lot_management.update');
+            Route::put('/lot-management/phase/{phase}', 'updatePhase')->name('lot_management.update.phase');
+            Route::put('/lot-management/cluster/{cluster}', 'updateCluster')->name('lot_management.update.cluster');
+            Route::put('/lot-management/lot/{lot}', 'updateLot')->name('lot_management.update.lot');
             Route::delete('/lot-management/phase/{phase}', 'deletePhase')->name('lot_management.delete.phase');
             Route::delete('/lot-management/cluster/{cluster}', 'deleteCluster')->name('lot_management.delete.cluster');
             Route::delete('/lot-management/lot/{lot}', 'deleteLot')->name('lot_management.delete.lot');
