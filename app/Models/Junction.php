@@ -9,4 +9,11 @@ class Junction extends Model
 {
     /** @use HasFactory<\Database\Factories\JunctionFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'junction_number',
+        'type',
+        'coordinates',
+        'label',
+    ];
 }

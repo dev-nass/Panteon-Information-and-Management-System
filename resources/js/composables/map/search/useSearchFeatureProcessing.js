@@ -1,10 +1,12 @@
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useMapStates } from "@/stores/useMapStates";
+import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
 
 export function useSearchFeatureProcessing() {
     const { map } = useMapStates();
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
         useMapSearchStates();
+    const { drawPathToLot } = useDrawProcessedPath();
 
     const normalizeCoordinates = (coords) => {
         if (!coords || !Array.isArray(coords)) return [];
@@ -116,6 +118,9 @@ export function useSearchFeatureProcessing() {
         });
 
         searchResultLayer.value.addLayer(marker);
+
+        // Draw path to this lot
+        drawPathToLot([lng, lat]);
     };
 
     /**

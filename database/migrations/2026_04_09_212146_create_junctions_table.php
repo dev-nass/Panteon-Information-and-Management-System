@@ -13,6 +13,15 @@ return new class extends Migration {
         Schema::create('junctions', function (Blueprint $table) {
             $table->id();
 
+            $table->string('junction_number')->unique();
+            $table->enum('type', ['entrance', 'intersection', 'endpoint'])->default('intersection');
+            
+            // ✅ Geometry column (POINT)
+            $table->geometry('coordinates', 4326);
+            
+            // ✅ Spatial index
+            $table->spatialIndex('coordinates');
+            
             $table->string('label')->nullable();
             $table->timestamps();
         });

@@ -18,8 +18,8 @@ export function pathFinder() {
             error.value = null;
 
             const [junctionsRes, pathwaysRes] = await Promise.all([
-                fetch(route("junctions.index")), // Replace with your actual route name
-                fetch(route("pathways.index")), // Replace with your actual route name
+                fetch(route("api.junctions")), // Replace with your actual route name
+                fetch(route("api.pathways")), // Replace with your actual route name
             ]);
 
             if (!junctionsRes.ok || !pathwaysRes.ok) {
@@ -133,13 +133,17 @@ export function pathFinder() {
 
             if (!junction) continue;
 
+            // Parse coordinates from GeoJSON
+            const coords = JSON.parse(junction.coordinates);
+            const [longitude, latitude] = coords.coordinates;
+
             const detail = {
                 junctionId: junctionId,
                 junctionNumber: junction.junction_number,
                 type: junction.type,
-                latitude: junction.latitude,
-                longitude: junction.longitude,
-                coordinates: [junction.longitude, junction.latitude],
+                latitude: latitude,
+                longitude: longitude,
+                coordinates: [longitude, latitude],
             };
 
             // Add pathway coordinates for the route to this junction
@@ -312,11 +316,15 @@ export function pathFinder() {
         let minDistance = Infinity;
 
         junctions.value.forEach((junction) => {
+            // Parse coordinates from GeoJSON
+            const coords = JSON.parse(junction.coordinates);
+            const [jLongitude, jLatitude] = coords.coordinates;
+
             const distance = calculateDistance(
                 latitude,
                 longitude,
-                junction.latitude,
-                junction.longitude
+                jLatitude,
+                jLongitude
             );
 
             if (distance < minDistance) {

@@ -34,5 +34,6 @@ class DatabaseSeeder extends Seeder
 
 
         $this->call(PanteonDataSeeder::class);
+        $this->call(PathfinderSeeder::class);
     }
 }

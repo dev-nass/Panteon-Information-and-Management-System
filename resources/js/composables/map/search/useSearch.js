@@ -3,6 +3,7 @@ import { route } from "ziggy-js";
 
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing"; // adjust path as needed
+import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
 
 export function useSearch() {
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
@@ -16,6 +17,8 @@ export function useSearch() {
         markClusterPolygon,
         markLotPoint,
     } = useSearchFeatureProcessing();
+
+    const { clearPathLayers } = useDrawProcessedPath();
 
     /**
      * Description: Fetch Burial Records as the user types
@@ -90,7 +93,7 @@ export function useSearch() {
     };
 
     /**
-     * Description: Fetch phase data
+     * Description: Fetch phase data; Used on LotManagement "View on Map"
      */
     const fetchPhase = async (phaseId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -113,7 +116,7 @@ export function useSearch() {
     };
 
     /**
-     * Description: Fetch cluster data
+     * Description: Fetch cluster data; Used on LotManagement "View on Map"
      */
     const fetchCluster = async (clusterId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -137,6 +140,9 @@ export function useSearch() {
         }
     };
 
+    /**
+     * Description: Fetch lot data; Used on LotManagement "View on Map"
+     */
     const fetchLot = async (lotId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
         try {
@@ -220,6 +226,7 @@ export function useSearch() {
     const clearSearch = () => {
         suggestions.value = [];
         searchResultLayer.value.clearLayers();
+        clearPathLayers();
         isOnSearchMode.value = false;
     };
 
