@@ -14,13 +14,6 @@ export function useDrawProcessedPath() {
         loading,
     } = pathFinder();
 
-    // Clear path layers when search mode is disabled
-    watch(isOnSearchMode, (newValue) => {
-        if (!newValue) {
-            clearPathLayers();
-        }
-    });
-
     const drawPathToLot = async (lotCoordinates) => {
         // lotCoordinates should be [lng, lat] from the lot's Point geometry
         const [lng, lat] = lotCoordinates;

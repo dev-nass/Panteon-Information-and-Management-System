@@ -128,6 +128,7 @@ const featureForModal = ref(null);
  * result lot using 'window' API
  */
 window.openBurialRecordModal = function (clusterIdOrFeature) {
+    console.log(clusterIdOrFeature);
     // If it's a number, it's a clusterId (normal mode)
     if (typeof clusterIdOrFeature === "number") {
         clusterIdForModal.value = clusterIdOrFeature;

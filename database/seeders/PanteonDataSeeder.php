@@ -106,9 +106,10 @@ class PanteonDataSeeder extends Seeder
                 $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
                 DB::statement("
-                    INSERT INTO clusters (phase_id, cluster_name, cluster_type, coordinates, created_at, updated_at)
-                    VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+                    INSERT INTO clusters (id, phase_id, cluster_name, cluster_type, coordinates, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
                 ", [
+                    $attributes['id'],
                     $attributes['phase_id'],
                     $attributes['name'],
                     $attributes['type'],
