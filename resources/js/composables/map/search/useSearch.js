@@ -188,7 +188,7 @@ export function useSearch() {
             if (lots?.length > 0) {
                 lots.forEach((lotResource) => {
                     const lot = lotResource.lot;
-                    if (lot?.geometry?.coordinates) console.log("hello");
+                    if (lot?.geometry?.coordinates);
                     markBurialRecordLotPoint(lot);
                 });
             }

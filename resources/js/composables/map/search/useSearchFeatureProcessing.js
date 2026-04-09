@@ -100,7 +100,6 @@ export function useSearchFeatureProcessing() {
      * @param lot expects a lot with Point geometry
      */
     const markBurialRecordLotPoint = (lot) => {
-        console.log(lot);
         if (!lot.geometry?.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;
