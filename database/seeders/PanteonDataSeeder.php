@@ -22,7 +22,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        $this->deceasedRecords();
+        // $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -190,7 +190,7 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Assigning deceased records to lots...");
 
         $totalDeceased = DeceasedRecord::count();
-        
+
         if ($totalDeceased === 0) {
             $this->command->warn("No deceased records found. Please seed deceased records first.");
             return;

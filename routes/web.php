@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Api\PathfinderController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\DashboardController;
+use App\Http\Controllers\Clerk\ImportingController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use App\Http\Controllers\Api\LotManagementSearchController;
 use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
@@ -53,9 +54,10 @@ Route::prefix('clerk')
             return Inertia::render('Clerk/GenerateReport/IndexView');
         })->name('generate_report.index');
 
-        Route::get('/import', function () {
-            return Inertia::render('Clerk/ImportRecord/IndexView');
-        })->name('import.index');
+        Route::controller(ImportingController::class)->group(function () {
+            Route::get('/import', 'index')->name('import.index');
+            Route::post('/import', 'store')->name('import.store');
+        });
 
         Route::get('/map', function () {
             return Inertia::render('Clerk/Map/IndexView');
