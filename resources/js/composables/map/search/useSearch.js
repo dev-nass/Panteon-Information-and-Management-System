@@ -2,8 +2,9 @@ import { debounce } from "lodash";
 import { route } from "ziggy-js";
 
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing"; // adjust path as needed
+import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing";
 import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
+import { useMap } from "@/composables/useMap";
 
 export function useSearch() {
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
@@ -19,6 +20,8 @@ export function useSearch() {
     } = useSearchFeatureProcessing();
 
     const { clearPathLayers } = useDrawProcessedPath();
+
+    const { toggleMapFeatures, togglePhaseVisibility } = useMap();
 
     /**
      * Description: Fetch Burial Records as the user types
@@ -171,6 +174,8 @@ export function useSearch() {
      */
     const showSearchResult = (data, type = "burial_record") => {
         searchResultLayer.value.clearLayers();
+        toggleMapFeatures();
+        togglePhaseVisibility();
 
         if (type === "burial_record") {
             // Current process for burial records
