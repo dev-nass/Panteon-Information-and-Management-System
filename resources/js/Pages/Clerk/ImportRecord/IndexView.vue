@@ -25,14 +25,11 @@ watch(
     () => page.props.flash,
     (flash) => {
         if (flash?.success) {
-            importResult.value = flash.success;
-            toast.success(flash.success.message, {
-                position: 'top-right',
+            toast.success(flash.success, {
                 duration: 5000,
             });
         } else if (flash?.error) {
             toast.error(flash.error, {
-                position: 'top-right',
                 duration: 5000,
             });
         }
@@ -109,7 +106,7 @@ const startImport = () => {
     if (!selectedFile.value) {
         fileError.value = "Please select a CSV or XLSX file first";
         toast.error("Please select a CSV or XLSX file first", {
-            position: 'top-right',
+            position: "top-right",
         });
         return;
     }
@@ -130,7 +127,7 @@ const startImport = () => {
             const errorMsg = errors.file || "Failed to import file";
             fileError.value = errorMsg;
             toast.error(errorMsg, {
-                position: 'top-right',
+                position: "top-right",
                 duration: 5000,
             });
         },
@@ -265,9 +262,51 @@ const startImport = () => {
                                 {{ fileError }}
                             </p>
 
+                            <!-- Import Errors Display -->
+                            <div
+                                v-if="page.props.flash?.importErrors && page.props.flash.importErrors.length > 0"
+                                class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <div
+                                        class="flex items-center justify-center size-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex-shrink-0"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <circle cx="12" cy="12" r="10" />
+                                            <line x1="12" y1="8" x2="12" y2="12" />
+                                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                                            Import Errors ({{ page.props.flash.importErrors.length }})
+                                        </p>
+                                        <div class="max-h-48 overflow-y-auto space-y-1">
+                                            <p
+                                                v-for="(error, index) in page.props.flash.importErrors"
+                                                :key="index"
+                                                class="text-xs text-red-700 dark:text-red-300 font-mono bg-red-100/50 dark:bg-red-900/20 px-2 py-1 rounded"
+                                            >
+                                                {{ error }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Success Message -->
                             <div
-                                v-if="importResult"
+                                v-if="page.props.flash?.success"
                                 class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
                             >
                                 <div class="flex items-start gap-3">
@@ -292,33 +331,8 @@ const startImport = () => {
                                         <p
                                             class="text-sm font-medium text-green-800 dark:text-green-200"
                                         >
-                                            {{ importResult.message }}
+                                            {{ page.props.flash.success }}
                                         </p>
-                                        <div
-                                            v-if="
-                                                importResult.errors &&
-                                                importResult.errors.length > 0
-                                            "
-                                            class="mt-2 space-y-1"
-                                        >
-                                            <p
-                                                class="text-xs font-medium text-yellow-700 dark:text-yellow-400"
-                                            >
-                                                Warnings:
-                                            </p>
-                                            <ul
-                                                class="text-xs text-yellow-600 dark:text-yellow-500 space-y-0.5 max-h-32 overflow-y-auto"
-                                            >
-                                                <li
-                                                    v-for="(
-                                                        error, index
-                                                    ) in importResult.errors"
-                                                    :key="index"
-                                                >
-                                                    • {{ error }}
-                                                </li>
-                                            </ul>
-                                        </div>
                                     </div>
                                 </div>
                             </div>

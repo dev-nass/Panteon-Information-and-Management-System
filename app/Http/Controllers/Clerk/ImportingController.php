@@ -68,6 +68,18 @@ class ImportingController extends Controller
                     // Parse the full name from "NAME OF DECEASED" column (index 2)
                     $fullName = trim($row[2]);
                     $nameParts = $this->parseFullName($fullName);
+                    $burialDate = $this->parseDate($row[1]);
+
+                    // Check if deceased record already exists
+                    $existingRecord = DeceasedRecord::where('first_name', $nameParts['first_name'])
+                        ->where('last_name', $nameParts['last_name'])
+                        ->where('date_of_depository', $burialDate)
+                        ->first();
+
+                    if ($existingRecord) {
+                        $errors[] = "Row {$rowNumber}: Deceased record already exists (ID: {$existingRecord->id})";
+                        continue;
+                    }
 
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
@@ -75,7 +87,7 @@ class ImportingController extends Controller
                         'middle_name' => $nameParts['middle_name'],
                         'last_name' => $nameParts['last_name'],
                         'address' => $row[4] ?? null, // BRGY/ADDRESS (index 4)
-                        'date_of_depository' => $this->parseDate($row[1]), // BURIAL DATE (index 1)
+                        'date_of_depository' => $burialDate,
                     ]);
 
                     // Create applicant if data exists (index 3)
@@ -111,16 +123,20 @@ class ImportingController extends Controller
 
             DB::commit();
 
-            $message = "Successfully imported {$imported} records";
-            if (!empty($errors)) {
-                $message .= " with " . count($errors) . " errors";
-                \Log::info('Import errors:', $errors);
+            if ($imported === 0) {
+                return back()->with('error', 'No records were imported')->with('importErrors', $errors);
             }
 
-            return back()->with('success', $message);
+            $message = "Successfully imported {$imported} records";
+            if (!empty($errors)) {
+                $message .= " with " . count($errors) . " skipped";
+            }
+
+            return back()->with('success', $message)->with('importErrors', $errors);
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Failed to process file: ' . $e->getMessage());
+            \Log::error('Import failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return back()->with('error', 'Failed to process file')->with('importErrors', [$e->getMessage()]);
         }
     }
 
