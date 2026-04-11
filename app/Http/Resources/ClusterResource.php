@@ -10,29 +10,18 @@ class ClusterResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $lotsLoaded = $this->relationLoaded('lots');
+        $totalLots = DB::table('lots')
+            ->where('cluster_id', $this->id)
+            ->count();
 
-        if ($lotsLoaded) {
-            // Calculate from loaded relationship
-            $totalLots = $this->lots->count();
-            $occupiedLots = $this->lots->filter(function ($lot) {
-                return $lot->relationLoaded('burialRecords') && $lot->burialRecords->count() > 0;
-            })->count();
-        } else {
-            // Use withCount attributes if available, otherwise query database
-            $totalLots = $this->total_lots ?? DB::table('lots')
-                ->where('cluster_id', $this->id)
-                ->count();
-            
-            $occupiedLots = $this->occupied_lots ?? DB::table('lots')
-                ->where('cluster_id', $this->id)
-                ->whereExists(function ($query) {
-                    $query->select(DB::raw(1))
-                        ->from('burial_records')
-                        ->whereColumn('burial_records.lot_id', 'lots.id');
-                })
-                ->count();
-        }
+        $occupiedLots = $this->occupied_lots ?? DB::table('lots')
+            ->where('cluster_id', $this->id)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('burial_records')
+                    ->whereColumn('burial_records.lot_id', 'lots.id');
+            })
+            ->count();
 
         $status = $occupiedLots === 0 ? 'available' : ($occupiedLots === $totalLots ? 'occupied' : 'partial');
 

@@ -153,19 +153,35 @@ const paginatedBurials = computed(() => {
                     <template v-if="isLoading">
                         <div class="animate-pulse space-y-4">
                             <!-- Skeleton Search -->
-                            <div class="h-10 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg"></div>
-                            
+                            <div
+                                class="h-10 bg-gray-300/50 dark:bg-gray-700/50 rounded-lg"
+                            ></div>
+
                             <!-- Skeleton Info -->
                             <div class="space-y-2">
-                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-3/4"></div>
-                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"></div>
-                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-2/3"></div>
-                                <div class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"></div>
+                                <div
+                                    class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-3/4"
+                                ></div>
+                                <div
+                                    class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"
+                                ></div>
+                                <div
+                                    class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-2/3"
+                                ></div>
+                                <div
+                                    class="h-4 bg-gray-300/50 dark:bg-gray-700/50 rounded w-1/2"
+                                ></div>
                             </div>
 
                             <!-- Skeleton Grid -->
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                                <div v-for="i in 6" :key="i" class="h-20 bg-gray-300/50 dark:bg-gray-700/50 rounded-xl"></div>
+                            <div
+                                class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3"
+                            >
+                                <div
+                                    v-for="i in 6"
+                                    :key="i"
+                                    class="h-20 bg-gray-300/50 dark:bg-gray-700/50 rounded-xl"
+                                ></div>
                             </div>
                         </div>
                     </template>
@@ -191,8 +207,15 @@ const paginatedBurials = computed(() => {
                             </p>
                             <p>
                                 <strong>Occupants:</strong>
-                                {{ activeFeature.cluster?.properties?.total_lots }} /
-                                {{ activeFeature.cluster?.properties?.occupied_lots }}
+                                {{
+                                    activeFeature.cluster?.properties
+                                        ?.occupied_lots
+                                }}
+                                /
+                                {{
+                                    activeFeature.cluster?.properties
+                                        ?.total_lots
+                                }}
                             </p>
                             <p>
                                 <strong>Status:</strong>
