@@ -12,15 +12,14 @@ class Applicant extends Model
     use HasFactory;
 
     protected $fillable = [
-        'deceased_record_id',
         'first_name',
         'middle_name',
         'last_name',
         'contact_number',
     ];
 
-    public function deceasedRecord(): BelongsTo
+    public function deceasedRecords()
     {
-        return $this->belongsTo(DeceasedRecord::class);
+        return $this->hasMany(DeceasedRecord::class);
     }
 }

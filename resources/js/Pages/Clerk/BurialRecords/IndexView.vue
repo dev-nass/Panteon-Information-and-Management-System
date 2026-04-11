@@ -172,7 +172,14 @@ defineOptions({
                                             <span
                                                 class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                             >
-                                                {{ filters.filter === 'buried' ? 'Buried' : filters.filter === 'pending' ? 'Pending' : 'All' }}
+                                                {{
+                                                    filters.filter === "buried"
+                                                        ? "Buried"
+                                                        : filters.filter ===
+                                                          "pending"
+                                                        ? "Pending"
+                                                        : "All"
+                                                }}
                                             </span>
                                         </Button>
 
@@ -195,8 +202,14 @@ defineOptions({
                                                         value="all"
                                                         class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
                                                         id="filter-all"
-                                                        :checked="!filters.filter || filters.filter === 'all'"
-                                                        @change="applyFilter('all')"
+                                                        :checked="
+                                                            !filters.filter ||
+                                                            filters.filter ===
+                                                                'all'
+                                                        "
+                                                        @change="
+                                                            applyFilter('all')
+                                                        "
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
@@ -214,8 +227,15 @@ defineOptions({
                                                         value="buried"
                                                         class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
                                                         id="filter-buried"
-                                                        :checked="filters.filter === 'buried'"
-                                                        @change="applyFilter('buried')"
+                                                        :checked="
+                                                            filters.filter ===
+                                                            'buried'
+                                                        "
+                                                        @change="
+                                                            applyFilter(
+                                                                'buried'
+                                                            )
+                                                        "
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
@@ -233,8 +253,15 @@ defineOptions({
                                                         value="pending"
                                                         class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
                                                         id="filter-pending"
-                                                        :checked="filters.filter === 'pending'"
-                                                        @change="applyFilter('pending')"
+                                                        :checked="
+                                                            filters.filter ===
+                                                            'pending'
+                                                        "
+                                                        @change="
+                                                            applyFilter(
+                                                                'pending'
+                                                            )
+                                                        "
                                                     />
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
@@ -337,10 +364,14 @@ defineOptions({
                                         {{ record.deceased.last_name }}
                                     </TableData>
                                     <TableData>
-                                        {{ record.deceased.birth.date }}
+                                        {{
+                                            record.deceased.birth.date ?? "N/A"
+                                        }}
                                     </TableData>
                                     <TableData>
-                                        {{ record.deceased.death.date }}
+                                        {{
+                                            record.deceased.death.date ?? "N/A"
+                                        }}
                                     </TableData>
 
                                     <TableData>

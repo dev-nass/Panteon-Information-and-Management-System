@@ -1,10 +1,138 @@
 <script setup>
+import { ref, watch } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
+import { useToast } from "vue-toast-notification";
+
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 defineOptions({
     layout: Dashboard,
 });
+
+const page = usePage();
+const toast = useToast();
+const selectedFile = ref(null);
+const fileName = ref("");
+const fileError = ref("");
+const isDragging = ref(false);
+const isUploading = ref(false);
+const importResult = ref(null);
+
+// Watch for flash messages
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            toast.success(flash.success, {
+                duration: 5000,
+            });
+        } else if (flash?.error) {
+            toast.error(flash.error, {
+                duration: 5000,
+            });
+        }
+    },
+    { deep: true }
+);
+
+const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    validateAndSetFile(file);
+};
+
+const handleDrop = (event) => {
+    event.preventDefault();
+    isDragging.value = false;
+    const file = event.dataTransfer.files[0];
+    validateAndSetFile(file);
+};
+
+const handleDragOver = (event) => {
+    event.preventDefault();
+    isDragging.value = true;
+};
+
+const handleDragLeave = () => {
+    isDragging.value = false;
+};
+
+const validateAndSetFile = (file) => {
+    fileError.value = "";
+    importResult.value = null;
+
+    if (!file) return;
+
+    // Check file type (CSV or XLSX)
+    const validTypes = [
+        "text/csv",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+    ];
+    const validExtensions = [".csv", ".xlsx", ".xls"];
+    const hasValidType = validTypes.includes(file.type);
+    const hasValidExtension = validExtensions.some((ext) =>
+        file.name.toLowerCase().endsWith(ext)
+    );
+
+    if (!hasValidType && !hasValidExtension) {
+        fileError.value = "Only CSV and XLSX files are allowed";
+        return;
+    }
+
+    // Check file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+        fileError.value = "File size must be less than 2MB";
+        return;
+    }
+
+    selectedFile.value = file;
+    fileName.value = file.name;
+};
+
+const removeFile = () => {
+    selectedFile.value = null;
+    fileName.value = "";
+    fileError.value = "";
+    importResult.value = null;
+};
+
+const triggerFileInput = () => {
+    document.getElementById("csv-file-input").click();
+};
+
+const startImport = () => {
+    if (!selectedFile.value) {
+        fileError.value = "Please select a CSV or XLSX file first";
+        toast.error("Please select a CSV or XLSX file first", {
+            position: "top-right",
+        });
+        return;
+    }
+
+    isUploading.value = true;
+    importResult.value = null;
+
+    const formData = new FormData();
+    formData.append("file", selectedFile.value);
+
+    router.post(route("clerk.import.store"), formData, {
+        onSuccess: () => {
+            isUploading.value = false;
+            removeFile();
+        },
+        onError: (errors) => {
+            isUploading.value = false;
+            const errorMsg = errors.file || "Failed to import file";
+            fileError.value = errorMsg;
+            toast.error(errorMsg, {
+                position: "top-right",
+                duration: 5000,
+            });
+        },
+    });
+};
 </script>
 
 <template>
@@ -50,22 +178,36 @@ defineOptions({
                                 <p
                                     class="text-sm text-gray-500 dark:text-gray-400"
                                 >
-                                    Upload CSV files to import burial and
-                                    deceased records into the system.
+                                    Upload CSV or XLSX files to import burial
+                                    and deceased records into the system.
                                 </p>
                             </article>
                         </div>
 
                         <!-- File Upload -->
-                        <div
-                            data-hs-file-upload='{
-"url": "/upload"
-}'
-                        >
+                        <div>
+                            <!-- Hidden File Input -->
+                            <input
+                                id="csv-file-input"
+                                type="file"
+                                accept=".csv,.xlsx,.xls"
+                                class="hidden"
+                                @change="handleFileSelect"
+                            />
+
                             <!-- Drop Area -->
                             <div
-                                class="cursor-pointer p-[4rem] flex justify-center bg-white/50 dark:bg-neutral-900/40 border border-dashed border-gray-300 dark:border-neutral-700 rounded-xl hover:border-green-500 transition"
-                                data-hs-file-upload-trigger
+                                @click="triggerFileInput"
+                                @drop="handleDrop"
+                                @dragover="handleDragOver"
+                                @dragleave="handleDragLeave"
+                                :class="[
+                                    'cursor-pointer p-[4rem] flex justify-center bg-white/50 dark:bg-neutral-900/40 border border-dashed rounded-xl transition',
+                                    isDragging
+                                        ? 'border-green-500 bg-green-50/50 dark:bg-green-900/10'
+                                        : 'border-gray-300 dark:border-neutral-700 hover:border-green-500',
+                                    fileError ? 'border-red-500' : '',
+                                ]"
                             >
                                 <div
                                     class="text-center flex flex-col items-center"
@@ -95,7 +237,7 @@ defineOptions({
                                         <span
                                             class="font-medium text-gray-800 dark:text-gray-200"
                                         >
-                                            Drop your CSV file here
+                                            Drop your CSV or XLSX file here
                                         </span>
                                         or
                                         <span
@@ -106,66 +248,180 @@ defineOptions({
                                     </div>
 
                                     <p class="mt-1 text-xs text-gray-500">
-                                        Supported format: CSV • Max size 2MB
+                                        Supported formats: CSV, XLSX • Max size
+                                        2MB
                                     </p>
+                                </div>
+                            </div>
+
+                            <!-- Error Message -->
+                            <p
+                                v-if="fileError"
+                                class="mt-2 text-sm text-red-600 dark:text-red-400"
+                            >
+                                {{ fileError }}
+                            </p>
+
+                            <!-- Import Errors Display -->
+                            <div
+                                v-if="page.props.flash?.importErrors && page.props.flash.importErrors.length > 0"
+                                class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <div
+                                        class="flex items-center justify-center size-8 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex-shrink-0"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <circle cx="12" cy="12" r="10" />
+                                            <line x1="12" y1="8" x2="12" y2="12" />
+                                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                                            Import Errors ({{ page.props.flash.importErrors.length }})
+                                        </p>
+                                        <div class="max-h-48 overflow-y-auto space-y-1">
+                                            <p
+                                                v-for="(error, index) in page.props.flash.importErrors"
+                                                :key="index"
+                                                class="text-xs text-red-700 dark:text-red-300 font-mono bg-red-100/50 dark:bg-red-900/20 px-2 py-1 rounded"
+                                            >
+                                                {{ error }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Success Message -->
+                            <div
+                                v-if="page.props.flash?.success"
+                                class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+                            >
+                                <div class="flex items-start gap-3">
+                                    <div
+                                        class="flex items-center justify-center size-8 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path d="M20 6 9 17l-5-5" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p
+                                            class="text-sm font-medium text-green-800 dark:text-green-200"
+                                        >
+                                            {{ page.props.flash.success }}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- File Preview -->
                             <div
-                                class="mt-4 space-y-2 empty:mt-0"
-                                data-hs-file-upload-previews
-                            ></div>
+                                v-if="selectedFile"
+                                class="mt-4 p-4 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-700"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div
+                                            class="flex items-center justify-center size-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="20"
+                                                height="20"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+                                                />
+                                                <polyline
+                                                    points="14 2 14 8 20 8"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p
+                                                class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                                            >
+                                                {{ fileName }}
+                                            </p>
+                                            <p
+                                                class="text-xs text-gray-500 dark:text-gray-400"
+                                            >
+                                                {{
+                                                    (
+                                                        selectedFile.size / 1024
+                                                    ).toFixed(2)
+                                                }}
+                                                KB
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        @click.stop="removeFile"
+                                        type="button"
+                                        class="flex items-center justify-center size-8 rounded-lg text-gray-500 hover:bg-gray-200 dark:hover:bg-neutral-700 transition"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path d="M18 6 6 18" />
+                                            <path d="m6 6 12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Actions -->
                         <div class="flex justify-between items-center pt-2">
-                            <Button data-hs-overlay="#import-logs-modal">
-                                View Import Logs
-                            </Button>
+                            <Button> View Import Logs </Button>
 
-                            <Button :highlighted="true"> Start Import </Button>
+                            <Button
+                                @click="startImport"
+                                :highlighted="true"
+                                :disabled="!selectedFile || isUploading"
+                            >
+                                <span v-if="isUploading">Importing...</span>
+                                <span v-else>Start Import</span>
+                            </Button>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Import Logs Modal -->
-
-    <div
-        id="import-logs-modal"
-        class="hs-overlay hidden size-full fixed top-0 start-0 z-[80] overflow-x-hidden overflow-y-auto"
-    >
-        <div
-            class="hs-overlay-open:mt-7 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
-        >
-            <div
-                class="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-lg"
-            >
-                <div
-                    class="flex justify-between items-center px-4 py-3 border-b dark:border-neutral-700"
-                >
-                    <h3 class="font-bold text-gray-800 dark:text-white">
-                        Import Logs
-                    </h3>
-
-                    <button
-                        type="button"
-                        class="size-8 flex justify-center items-center rounded-full hover:bg-gray-100 dark:hover:bg-neutral-700"
-                        data-hs-overlay="#import-logs-modal"
-                    >
-                        ✕
-                    </button>
-                </div>
-
-                <div
-                    class="p-4 space-y-3 text-sm text-gray-600 dark:text-gray-300 max-h-[300px] overflow-y-auto"
-                >
-                    <p>✔ Records imported successfully</p>
-                    <p>⚠ Row 24 skipped (invalid date)</p>
-                    <p>✔ 120 records inserted</p>
                 </div>
             </div>
         </div>

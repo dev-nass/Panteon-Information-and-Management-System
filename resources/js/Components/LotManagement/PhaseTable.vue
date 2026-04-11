@@ -58,7 +58,13 @@ const handlePhaseCoordinatesSet = (coords) => {
             preserveScroll: true,
             onSuccess: () => {
                 showPhaseModal.value = false;
-                editingItem.value = null;
+                cancelEditRow();
+                toast.success(
+                    `Phase "${editingItem.value.name}" updated coordinates successfully!`,
+                    {
+                        duration: 3000,
+                    }
+                );
             },
         }
     );

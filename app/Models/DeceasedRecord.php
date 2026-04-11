@@ -12,6 +12,7 @@ class DeceasedRecord extends Model
 
     //
     protected $fillable = [
+        'applicant_id',
         'first_name',
         'middle_name',
         'last_name',
@@ -45,6 +46,6 @@ class DeceasedRecord extends Model
 
     public function applicant()
     {
-        return $this->hasOne(Applicant::class);
+        return $this->belongsTo(Applicant::class);
     }
 }

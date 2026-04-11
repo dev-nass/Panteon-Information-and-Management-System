@@ -1,10 +1,12 @@
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useMapStates } from "@/stores/useMapStates";
+import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
 
 export function useSearchFeatureProcessing() {
     const { map } = useMapStates();
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
         useMapSearchStates();
+    const { drawPathToLot } = useDrawProcessedPath();
 
     const normalizeCoordinates = (coords) => {
         if (!coords || !Array.isArray(coords)) return [];
@@ -98,12 +100,18 @@ export function useSearchFeatureProcessing() {
      * @param lot expects a lot with Point geometry
      */
     const markBurialRecordLotPoint = (lot) => {
-        if (!lot.geometry || !lot.geometry.coordinates) {
+        if (!lot.geometry?.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;
         }
 
-        // lot.geometry.coordinates = [lng, lat] for Point type
+        if (lot.geometry.type !== "Point") {
+            console.error(
+                `Expected Point geometry but got ${lot.geometry.type}`
+            );
+            return;
+        }
+
         const [lng, lat] = lot.geometry.coordinates;
 
         const marker = L.circleMarker([lat, lng], {
@@ -116,6 +124,7 @@ export function useSearchFeatureProcessing() {
         });
 
         searchResultLayer.value.addLayer(marker);
+        drawPathToLot([lng, lat]);
     };
 
     /**
@@ -124,7 +133,6 @@ export function useSearchFeatureProcessing() {
      * @param polygonCoordinate expects GeoJSON coordinates
      */
     const markPhasePolygon = (phaseData, polygonCoordinate) => {
-        console.log(phaseData);
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
                 `Unable to mark phase polygon, invalid polygon coordinates`
@@ -242,7 +250,7 @@ export function useSearchFeatureProcessing() {
      * @param lot expects a lot with Point geometry
      */
     const markLotPoint = (lot) => {
-        console.log(lot);
+        console.log("Mark Lot Point", lot);
         if (!lot.geometry || !lot.geometry.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;

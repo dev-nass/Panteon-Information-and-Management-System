@@ -17,7 +17,10 @@ class ApplicantFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'first_name' => $this->faker->firstName,
+            'middle_name' => $this->faker->optional()->firstName,
+            'last_name' => $this->faker->lastName,
+            'contact_number' => $this->faker->optional()->numerify('09#########'),
         ];
     }
 }

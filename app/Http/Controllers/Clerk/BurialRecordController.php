@@ -130,7 +130,7 @@ class BurialRecordController extends Controller
             'applicant_first_name' => 'required|string|max:255',
             'applicant_middle_name' => 'nullable|string|max:255',
             'applicant_last_name' => 'required|string|max:255',
-            'applicant_contact_number' => 'required|string|max:255',
+            'applicant_contact_number' => 'nullable|string|max:255',
         ]);
 
         $deceasedRecord = DeceasedRecord::create([
@@ -170,7 +170,7 @@ class BurialRecordController extends Controller
             'first_name' => $validated['applicant_first_name'],
             'middle_name' => $validated['applicant_middle_name'] ?? null,
             'last_name' => $validated['applicant_last_name'],
-            'contact_number' => $validated['applicant_contact_number'],
+            'contact_number' => $validated['applicant_contact_number'] ?? null,
         ]);
 
         return to_route('clerk.burial_records.show', $burialRecord->id)
@@ -268,7 +268,7 @@ class BurialRecordController extends Controller
             'deceased.applicant.first_name' => 'required|string|max:255',
             'deceased.applicant.middle_name' => 'nullable|string|max:255',
             'deceased.applicant.last_name' => 'required|string|max:255',
-            'deceased.applicant.contact_number' => 'required|string|max:255',
+            'deceased.applicant.contact_number' => 'nullable|string|max:255',
             'lot_id' => 'nullable|exists:lots,id',
         ]);
 
@@ -310,7 +310,7 @@ class BurialRecordController extends Controller
                 'first_name' => $validated['deceased']['applicant']['first_name'],
                 'middle_name' => $validated['deceased']['applicant']['middle_name'] ?? null,
                 'last_name' => $validated['deceased']['applicant']['last_name'],
-                'contact_number' => $validated['deceased']['applicant']['contact_number'],
+                'contact_number' => $validated['deceased']['applicant']['contact_number'] ?? null,
             ]);
         }
 

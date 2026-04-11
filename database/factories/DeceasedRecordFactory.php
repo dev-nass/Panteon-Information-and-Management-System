@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Applicant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 
@@ -27,6 +28,7 @@ class DeceasedRecordFactory extends Factory
         ]);
 
         return [
+            'applicant_id' => Applicant::factory(),
             'first_name' => $this->faker->firstName,
             'middle_name' => $this->faker->optional()->firstName,
             'last_name' => $this->faker->lastName,

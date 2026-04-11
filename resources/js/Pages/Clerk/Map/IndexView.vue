@@ -126,6 +126,7 @@ const featureForModal = ref(null);
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
+ * TODO: what does the else do?
  */
 window.openBurialRecordModal = function (clusterIdOrFeature) {
     // If it's a number, it's a clusterId (normal mode)

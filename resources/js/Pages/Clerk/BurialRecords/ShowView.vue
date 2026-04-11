@@ -745,7 +745,6 @@ onBeforeUnmount(() => {
                     label="Contact Number"
                     :modelValue="localData.deceased?.applicant?.contact_number"
                     :editing="editing"
-                    :error="errors['deceased.applicant.contact_number']"
                     @update:modelValue="
                         (val) =>
                             (localData.deceased.applicant.contact_number = val)

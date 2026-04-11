@@ -43,7 +43,7 @@ export function useMap() {
 
         initializeLayers();
 
-        // ✅ Remove the map argument — useDbGeoJson reads from store directly
+        // Registration of event listener when the map if moved
         map.value.on("moveend", () => {
             if (moveTimeout) clearTimeout(moveTimeout);
             moveTimeout = setTimeout(() => {
@@ -51,13 +51,15 @@ export function useMap() {
             }, 300);
         });
 
+        // Registration of event listener when the map if zoomed
         map.value.on("zoomend", () => {
             loadVisibleClusters(); // ← no argument needed
             updateVisibility();
         });
 
+        // initial load
         loadAllPhases();
-        loadVisibleClusters(); // initial load
+        loadVisibleClusters();
     };
 
     /**
@@ -70,7 +72,7 @@ export function useMap() {
                 {
                     maxZoom: 30,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
-                }
+                },
             );
 
             googleLayer.value.addTo(map.value);
@@ -78,7 +80,7 @@ export function useMap() {
     };
 
     /**
-     * Description: Properly destroys the map each render;
+     * Description: Properly destroys the map each onBeforeMount;
      *              Used in Clerk/Map/index
      */
     const cleanupMap = () => {
@@ -86,6 +88,8 @@ export function useMap() {
             map.value.remove(); // Properly destroys map and removes all listeners
             map.value = null;
         }
+
+        isOnSearchMode.value = false;
 
         // Clear layer references
         googleLayer.value = null;
@@ -117,7 +121,7 @@ export function useMap() {
         if (type === "all") {
             // Toggle all types
             const allVisible = Array.from(
-                clusterVisibility.value.values()
+                clusterVisibility.value.values(),
             ).every((v) => v);
             const newState = !allVisible;
 
@@ -136,24 +140,18 @@ export function useMap() {
 
         // Update the state
         toggleMapFeaturesState.value = Array.from(
-            clusterVisibility.value.values()
+            clusterVisibility.value.values(),
         ).some((v) => v);
     };
 
     /**
      * Description: Toggle map 'phase' features on/off for filtering
      */
-    const togglePhaseVisibility = () => {
-        phaseVisibility.value = !phaseVisibility.value;
-
-        if (phaseVisibility.value == true) {
-            if (phaseLayerGroup.value) {
-                phaseLayerGroup.value.addTo(map.value);
-            }
-        } else {
-            if (phaseLayerGroup.value) {
-                map.value.removeLayer(phaseLayerGroup.value);
-            }
+    const togglePhaseVisibility = (type = "off") => {
+        if (type == "off") {
+            map.value.removeLayer(phaseLayerGroup.value);
+        } else if (type == "on") {
+            phaseLayerGroup.value.addTo(map.value);
         }
     };
 
@@ -201,12 +199,15 @@ export function useMap() {
             });
         }
         // loads the phase
-        else if (phaseVisibility.value == true) {
+        else {
+            phaseVisibility.value = true;
             if (
                 phaseLayerGroup.value &&
                 !map.value.hasLayer(phaseLayerGroup.value)
             ) {
                 phaseLayerGroup.value.addTo(map.value);
+                toggleMapFeatures("all");
+                cleanupLayers();
             }
         }
     };

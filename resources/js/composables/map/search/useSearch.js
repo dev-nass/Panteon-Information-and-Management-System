@@ -2,7 +2,9 @@ import { debounce } from "lodash";
 import { route } from "ziggy-js";
 
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing"; // adjust path as needed
+import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing";
+import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
+import { useMap } from "@/composables/useMap";
 
 export function useSearch() {
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
@@ -16,6 +18,10 @@ export function useSearch() {
         markClusterPolygon,
         markLotPoint,
     } = useSearchFeatureProcessing();
+
+    const { clearPathLayers } = useDrawProcessedPath();
+
+    const { toggleMapFeatures, togglePhaseVisibility } = useMap();
 
     /**
      * Description: Fetch Burial Records as the user types
@@ -90,7 +96,7 @@ export function useSearch() {
     };
 
     /**
-     * Description: Fetch phase data
+     * Description: Fetch phase data; Used on LotManagement "View on Map"
      */
     const fetchPhase = async (phaseId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -113,7 +119,7 @@ export function useSearch() {
     };
 
     /**
-     * Description: Fetch cluster data
+     * Description: Fetch cluster data; Used on LotManagement "View on Map"
      */
     const fetchCluster = async (clusterId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -137,6 +143,9 @@ export function useSearch() {
         }
     };
 
+    /**
+     * Description: Fetch lot data; Used on LotManagement "View on Map"
+     */
     const fetchLot = async (lotId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
         try {
@@ -165,6 +174,8 @@ export function useSearch() {
      */
     const showSearchResult = (data, type = "burial_record") => {
         searchResultLayer.value.clearLayers();
+        toggleMapFeatures();
+        togglePhaseVisibility();
 
         if (type === "burial_record") {
             // Current process for burial records
@@ -182,8 +193,8 @@ export function useSearch() {
             if (lots?.length > 0) {
                 lots.forEach((lotResource) => {
                     const lot = lotResource.lot;
-                    if (lot?.geometry?.coordinates)
-                        markBurialRecordLotPoint(lot);
+                    if (lot?.geometry?.coordinates);
+                    markBurialRecordLotPoint(lot);
                 });
             }
         } else if (type === "phase") {
@@ -220,6 +231,7 @@ export function useSearch() {
     const clearSearch = () => {
         suggestions.value = [];
         searchResultLayer.value.clearLayers();
+        clearPathLayers();
         isOnSearchMode.value = false;
     };
 
