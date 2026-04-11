@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Applicant;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,6 +13,8 @@ return new class extends Migration {
     {
         Schema::create('deceased_records', function (Blueprint $table) {
             $table->id(); // bigint, auto-increment
+
+            $table->foreignIdFor(Applicant::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('first_name');
             $table->string('middle_name')->nullable();

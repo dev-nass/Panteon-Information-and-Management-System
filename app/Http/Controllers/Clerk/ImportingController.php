@@ -81,27 +81,29 @@ class ImportingController extends Controller
                         continue;
                     }
 
+                    // Create applicant if data exists (index 3)
+                    $applicantId = null;
+                    $applicantName = trim($row[3] ?? '');
+                    if (!empty($applicantName)) {
+                        $applicantParts = $this->parseFullName($applicantName);
+                        $applicant = Applicant::create([
+                            'first_name' => $applicantParts['first_name'],
+                            'middle_name' => $applicantParts['middle_name'],
+                            'last_name' => $applicantParts['last_name'],
+                            'contact_number' => '',
+                        ]);
+                        $applicantId = $applicant->id;
+                    }
+
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
+                        'applicant_id' => $applicantId,
                         'first_name' => $nameParts['first_name'],
                         'middle_name' => $nameParts['middle_name'],
                         'last_name' => $nameParts['last_name'],
                         'address' => $row[4] ?? null, // BRGY/ADDRESS (index 4)
                         'date_of_depository' => $burialDate,
                     ]);
-
-                    // Create applicant if data exists (index 3)
-                    $applicantName = trim($row[3] ?? '');
-                    if (!empty($applicantName)) {
-                        $applicantParts = $this->parseFullName($applicantName);
-                        Applicant::create([
-                            'deceased_record_id' => $deceased->id,
-                            'first_name' => $applicantParts['first_name'],
-                            'middle_name' => $applicantParts['middle_name'],
-                            'last_name' => $applicantParts['last_name'],
-                            'contact_number' => '',
-                        ]);
-                    }
 
                     // Create burial record with null lot and current user
                     BurialRecord::create([

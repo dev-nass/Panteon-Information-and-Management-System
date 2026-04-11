@@ -24,13 +24,17 @@ class DatabaseSeeder extends Seeder
         // ]);
 
 
-        DeceasedRecord::factory()
-            ->count(21000)
-            ->make()
-            ->chunk(1000)
-            ->each(function ($chunk) {
-                DeceasedRecord::insert($chunk->toArray());
-            });
+        $chunkSize = 1000;
+        $total = 21000;
+
+        for ($i = 0; $i < $total; $i += $chunkSize) {
+            $deceasedBatch = DeceasedRecord::factory()
+                ->count($chunkSize)
+                ->make()
+                ->toArray();
+
+            DeceasedRecord::insert($deceasedBatch);
+        }
 
 
         $this->call(PanteonDataSeeder::class);
