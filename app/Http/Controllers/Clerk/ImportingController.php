@@ -53,8 +53,8 @@ class ImportingController extends Controller
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
 
                 try {
-                    // Expected columns: NO., BURIAL DATE, NAME OF DECEASED, APPLICANT, BRGY/ADDRESS
-                    // Column indices: 0=NO., 1=BURIAL DATE, 2=NAME OF DECEASED, 3=APPLICANT, 4=BRGY/ADDRESS
+                    // Expected columns: NO., BURIAL DATE, NAME OF DECEASED, APPLICANT, PHASE, CLUSTER, APT. NUMBER, BRGY/ADDRESS
+                    // Column indices: 0=NO., 1=BURIAL DATE, 2=NAME OF DECEASED, 3=APPLICANT, 4=PHASE, 5=CLUSTER, 6=APT. NUMBER, 7=BRGY/ADDRESS
                     // Skip completely empty rows
                     if (empty(array_filter($row))) {
                         continue;
@@ -68,7 +68,7 @@ class ImportingController extends Controller
                     // Parse the full name from "NAME OF DECEASED" column (index 2)
                     $fullName = trim($row[2]);
                     $nameParts = $this->parseFullName($fullName);
-                    $burialDate = $this->parseDate($row[1]);
+                    $burialDate = $this->parseDate($row[1]); // BURIAL DATE (index 1)
 
                     // Check if deceased record already exists
                     $existingRecord = DeceasedRecord::where('first_name', $nameParts['first_name'])
@@ -83,7 +83,7 @@ class ImportingController extends Controller
 
                     // Create applicant if data exists (index 3)
                     $applicantId = null;
-                    $applicantName = trim($row[3] ?? '');
+                    $applicantName = trim($row[3] ?? ''); // APPLICANT (index 3)
                     if (!empty($applicantName)) {
                         $applicantParts = $this->parseFullName($applicantName);
                         $applicant = Applicant::create([
@@ -101,7 +101,7 @@ class ImportingController extends Controller
                         'first_name' => $nameParts['first_name'],
                         'middle_name' => $nameParts['middle_name'],
                         'last_name' => $nameParts['last_name'],
-                        'address' => $row[4] ?? null, // BRGY/ADDRESS (index 4)
+                        'address' => $row[7] ?? null, // BRGY/ADDRESS (index 7)
                         'date_of_depository' => $burialDate,
                     ]);
 
