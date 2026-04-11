@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,14 +11,14 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('applicants', function (Blueprint $table) {
+        Schema::create('imported_logs', function (Blueprint $table) {
             $table->id();
 
-            $table->string('first_name');
-            $table->string('middle_name')->nullable();
-            $table->string('last_name');
+            $table->string('file_name');
+            $table->enum('status', ['pending', 'processing', 'successful', 'failed'])
+                  ->default('pending');
 
-            $table->string('contact_number')->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(User::class, 'imported_by')->nullable()->constrained()->nullOnDelete();
 
             $table->timestamps();
         });
@@ -28,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('applicants');
+        Schema::dropIfExists('imported_logs');
     }
 };

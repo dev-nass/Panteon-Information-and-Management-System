@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
+use App\Models\ImportedLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,11 +31,13 @@ class ImportingController extends Controller
         }
 
         try {
+            // TODO: Change this when Registration is done
             // if (!auth()->check()) {
             //     return back()->with('error', 'You must be logged in to import records');
             // }
 
             $file = $request->file('file');
+            $fileName = $file->getClientOriginalName();
             $spreadsheet = IOFactory::load($file->getRealPath());
             $worksheet = $spreadsheet->getActiveSheet();
             $rows = $worksheet->toArray();
@@ -42,12 +45,20 @@ class ImportingController extends Controller
             // Remove header row
             array_shift($rows);
 
+            \Log::info('Importing file:', ['file_name' => $fileName]);
             \Log::info('First row data:', ['row' => $rows[0] ?? 'no rows']);
 
             $imported = 0;
             $errors = [];
 
             DB::beginTransaction();
+
+            // TODO: Change this when Registration is done
+            $importLog = ImportedLog::create([
+                'file_name' => $fileName,
+                'imported_by' => null, // if logged in
+                'status' => 'processing',
+            ]);
 
             foreach ($rows as $index => $row) {
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
@@ -118,14 +129,18 @@ class ImportingController extends Controller
                     \Log::error("Import error on row {$rowNumber}", [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
-                        'row_data' => $row
+                        'row_data' => $row,
                     ]);
                 }
             }
 
+
             DB::commit();
 
             if ($imported === 0) {
+                $importLog->update([
+                    'status' => 'failed',
+                ]);
                 return back()->with('error', 'No records were imported')->with('importErrors', $errors);
             }
 
@@ -134,6 +149,10 @@ class ImportingController extends Controller
                 $message .= " with " . count($errors) . " skipped";
             }
 
+
+            $importLog->update([
+                'status' => 'successful',
+            ]);
             return back()->with('success', $message)->with('importErrors', $errors);
         } catch (\Exception $e) {
             DB::rollBack();
