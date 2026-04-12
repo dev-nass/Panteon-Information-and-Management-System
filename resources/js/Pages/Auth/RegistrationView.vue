@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 
@@ -142,12 +142,12 @@ const handleSubmit = () => {
                     class="text-center text-sm text-gray-600 dark:text-neutral-400"
                 >
                     Already have an account?
-                    <a
-                        :href="route('visitor.index')"
+                    <Link
+                        :href="route('login')"
                         class="text-green-600 dark:text-green-500 hover:underline font-medium"
                     >
                         Sign in
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>
