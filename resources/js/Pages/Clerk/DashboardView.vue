@@ -14,13 +14,23 @@ const props = defineProps({
     disposal_stats: { type: Object, required: true },
     activity_data: { type: Object, required: true },
     current_filter: { type: String, default: 'monthly' },
+    selected_year: { type: Number, default: new Date().getFullYear() },
 });
 
 const activeTab = ref(props.current_filter);
+const selectedYear = ref(props.selected_year);
+
+// Generate year options (2013 to current year)
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from({ length: currentYear - 2013 + 1 }, (_, i) => 2013 + i).reverse();
 
 const changeFilter = (filter) => {
     activeTab.value = filter;
-    router.get(route('clerk.dashboard'), { filter }, { preserveState: true });
+    router.get(route('clerk.dashboard'), { filter, year: selectedYear.value }, { preserveState: true });
+};
+
+const changeYear = () => {
+    router.get(route('clerk.dashboard'), { filter: activeTab.value, year: selectedYear.value }, { preserveState: true });
 };
 
 /* BAR CHART DATA */
@@ -87,27 +97,42 @@ defineOptions({
             <h1 class="text-3xl font-bold text-green-600 dark:text-green-400">
                 Dashboard
             </h1>
-
-            <Button> + Create new data </Button>
         </div>
 
-        <!-- FILTER TABS -->
-        <div
-            class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-fit"
-        >
-            <button
-                v-for="tab in ['today', 'weekly', 'monthly', 'yearly']"
-                :key="tab"
-                @click="changeFilter(tab)"
-                class="px-4 py-2 rounded-lg text-sm font-medium transition"
-                :class="
-                    activeTab === tab
-                        ? 'bg-green-500 text-white'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'
-                "
+        <!-- FILTER TABS AND YEAR SELECTOR -->
+        <div class="flex items-center justify-between gap-4">
+            <div
+                class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-fit"
             >
-                {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
-            </button>
+                <button
+                    v-for="tab in ['today', 'weekly', 'monthly', 'yearly']"
+                    :key="tab"
+                    @click="changeFilter(tab)"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                    :class="
+                        activeTab === tab
+                            ? 'bg-green-500 text-white'
+                            : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'
+                    "
+                >
+                    {{ tab.charAt(0).toUpperCase() + tab.slice(1) }}
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    Year:
+                </label>
+                <select
+                    v-model="selectedYear"
+                    @change="changeYear"
+                    class="px-3 py-2 border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                >
+                    <option v-for="year in yearOptions" :key="year" :value="year">
+                        {{ year }}
+                    </option>
+                </select>
+            </div>
         </div>
 
         <!-- STAT CARDS -->

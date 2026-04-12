@@ -17,9 +17,10 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $filter = $request->get('filter', 'monthly');
+        $year = $request->get('year', Carbon::now()->year);
 
         // Get date range based on filter
-        $dateRange = $this->getDateRange($filter);
+        $dateRange = $this->getDateRange($filter, $year);
 
         // Total statistics
         $totalBurialRecords = BurialRecord::count();
@@ -35,7 +36,7 @@ class DashboardController extends Controller
             ->toArray();
 
         // Monthly activity data
-        $activityData = $this->getActivityData($filter);
+        $activityData = $this->getActivityData($filter, $year);
 
         return Inertia::render('Clerk/DashboardView', [
             'stats' => [
@@ -50,12 +51,14 @@ class DashboardController extends Controller
             ],
             'activity_data' => $activityData,
             'current_filter' => $filter,
+            'selected_year' => (int) $year,
         ]);
     }
 
-    private function getDateRange($filter)
+    private function getDateRange($filter, $year)
     {
         $now = Carbon::now();
+        $targetYear = Carbon::create($year);
 
         return match ($filter) {
             'today' => [
@@ -67,8 +70,8 @@ class DashboardController extends Controller
                 'end' => $now->copy()->endOfWeek(),
             ],
             'yearly' => [
-                'start' => $now->copy()->startOfYear(),
-                'end' => $now->copy()->endOfYear(),
+                'start' => $targetYear->copy()->startOfYear(),
+                'end' => $targetYear->copy()->endOfYear(),
             ],
             default => [ // monthly
                 'start' => $now->copy()->startOfMonth(),
@@ -77,17 +80,18 @@ class DashboardController extends Controller
         };
     }
 
-    private function getActivityData($filter)
+    private function getActivityData($filter, $year)
     {
         $now = Carbon::now();
 
         if ($filter === 'today') {
             // Hourly data for today
-            $data = BurialRecord::select(
-                DB::raw('HOUR(created_at) as period'),
-                DB::raw('count(*) as count')
-            )
-                ->whereDate('created_at', $now->toDateString())
+            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+                ->select(
+                    DB::raw('HOUR(deceased_records.date_of_depository) as period'),
+                    DB::raw('count(*) as count')
+                )
+                ->whereDate('deceased_records.date_of_depository', $now->toDateString())
                 ->groupBy('period')
                 ->orderBy('period')
                 ->get()
@@ -100,11 +104,12 @@ class DashboardController extends Controller
 
         } elseif ($filter === 'weekly') {
             // Daily data for this week
-            $data = BurialRecord::select(
-                DB::raw('DATE(created_at) as period'),
-                DB::raw('count(*) as count')
-            )
-                ->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
+            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+                ->select(
+                    DB::raw('DATE(deceased_records.date_of_depository) as period'),
+                    DB::raw('count(*) as count')
+                )
+                ->whereBetween('deceased_records.date_of_depository', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
                 ->groupBy('period')
                 ->orderBy('period')
                 ->get()
@@ -121,12 +126,13 @@ class DashboardController extends Controller
             }
 
         } elseif ($filter === 'yearly') {
-            // Monthly data for this year
-            $data = BurialRecord::select(
-                DB::raw('MONTH(created_at) as period'),
-                DB::raw('count(*) as count')
-            )
-                ->whereYear('created_at', $now->year)
+            // Monthly data for selected year
+            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+                ->select(
+                    DB::raw('MONTH(deceased_records.date_of_depository) as period'),
+                    DB::raw('count(*) as count')
+                )
+                ->whereYear('deceased_records.date_of_depository', $year)
                 ->groupBy('period')
                 ->orderBy('period')
                 ->get()
@@ -139,12 +145,13 @@ class DashboardController extends Controller
         } else { // monthly
             // Daily data for this month
             $daysInMonth = $now->daysInMonth;
-            $data = BurialRecord::select(
-                DB::raw('DAY(created_at) as period'),
-                DB::raw('count(*) as count')
-            )
-                ->whereYear('created_at', $now->year)
-                ->whereMonth('created_at', $now->month)
+            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+                ->select(
+                    DB::raw('DAY(deceased_records.date_of_depository) as period'),
+                    DB::raw('count(*) as count')
+                )
+                ->whereYear('deceased_records.date_of_depository', $now->year)
+                ->whereMonth('deceased_records.date_of_depository', $now->month)
                 ->groupBy('period')
                 ->orderBy('period')
                 ->get()
