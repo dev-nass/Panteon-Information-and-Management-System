@@ -10,11 +10,16 @@ use App\Http\Controllers\Clerk\ImportingController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use App\Http\Controllers\Api\LotManagementSearchController;
 use App\Http\Controllers\Api\LotManagementController as ApiLotManagement;
+use App\Http\Controllers\VisitorInteractiveMapController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('WelcomeView');
+})->name('visitor.index');
+
+Route::controller(VisitorInteractiveMapController::class)->group(function () {
+    Route::get('/map', 'index')->name('map.sections');
 });
 
 Route::controller(MapDataController::class)->group(function () {
