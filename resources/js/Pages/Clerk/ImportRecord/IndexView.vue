@@ -264,7 +264,10 @@ const startImport = () => {
 
                             <!-- Import Errors Display -->
                             <div
-                                v-if="page.props.flash?.importErrors && page.props.flash.importErrors.length > 0"
+                                v-if="
+                                    page.props.flash?.importErrors &&
+                                    page.props.flash.importErrors.length > 0
+                                "
                                 class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800"
                             >
                                 <div class="flex items-start gap-3">
@@ -283,17 +286,35 @@ const startImport = () => {
                                             stroke-linejoin="round"
                                         >
                                             <circle cx="12" cy="12" r="10" />
-                                            <line x1="12" y1="8" x2="12" y2="12" />
-                                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                                            <line
+                                                x1="12"
+                                                y1="8"
+                                                x2="12"
+                                                y2="12"
+                                            />
+                                            <line
+                                                x1="12"
+                                                y1="16"
+                                                x2="12.01"
+                                                y2="16"
+                                            />
                                         </svg>
                                     </div>
                                     <div class="flex-1">
-                                        <p class="text-sm font-medium text-red-800 dark:text-red-200 mb-2">
-                                            Import Errors ({{ page.props.flash.importErrors.length }})
+                                        <p
+                                            class="text-sm font-medium text-red-800 dark:text-red-200 mb-2"
+                                        >
+                                            Import Errors ({{
+                                                page.props.flash.importErrors
+                                                    .length
+                                            }})
                                         </p>
-                                        <div class="max-h-48 overflow-y-auto space-y-1">
+                                        <div
+                                            class="max-h-48 overflow-y-auto space-y-1"
+                                        >
                                             <p
-                                                v-for="(error, index) in page.props.flash.importErrors"
+                                                v-for="(error, index) in page
+                                                    .props.flash.importErrors"
                                                 :key="index"
                                                 class="text-xs text-red-700 dark:text-red-300 font-mono bg-red-100/50 dark:bg-red-900/20 px-2 py-1 rounded"
                                             >
