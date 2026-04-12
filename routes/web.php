@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\MapDataController;
 use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Api\PathfinderController;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\DashboardController;
@@ -18,6 +19,12 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('WelcomeView');
 })->name('visitor.index');
+
+Route::controller(LoginController::class)->group(function () {
+    Route::get('/login', 'create')->name('login');
+    Route::post('/login', 'store')->name('login.store');
+    Route::post('/logout', 'destroy')->name('logout');
+});
 
 Route::controller(RegistrationController::class)->group(function () {
     Route::get('/registration', 'create')->name('register');
