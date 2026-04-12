@@ -1,3 +1,7 @@
+<script setup>
+import { Link } from "@inertiajs/vue3";
+</script>
+
 <template>
     <!-- Use Map -->
     <div id="map" class="px-4 sm:px-6 lg:px-4">
@@ -84,12 +88,12 @@
                 </article>
                 <div class="text-right flex flex-col justify-end">
                     <div class="flex mt-5 gap-4 flex-wrap justify-end mb-2">
-                        <a
-                            href="#_"
+                        <Link
+                            :href="route('visitor.map.index')"
                             class="inline-flex items-center justify-center px-5 py-3 font-semibold text-center text-yellow-500 no-underline align-middle transition-all duration-300 ease-in-out bg-neutral-900 backdrop-blur-md border border-yellow rounded-full cursor-pointer select-none hover:bg-yellow-500 hover:text-black hover:border-white/40 focus:shadow-xs focus:no-underline shadow-lg"
                         >
-                            Button Text
-                        </a>
+                            View Map
+                        </Link>
                     </div>
                     <p
                         class="text-white text-base lg:w-[50ch] md:text-lg leading-relaxed"
