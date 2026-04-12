@@ -1,7 +1,9 @@
 <script setup>
 import { useVisitorMap } from "@/composables/useVisitorMap";
+import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing";
+import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { router, Link } from "@inertiajs/vue3";
+import { Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Modal from "@/Components/Modal.vue";
 
@@ -10,16 +12,24 @@ const props = defineProps({
     filters: Object,
 });
 
-const { initializeMap, cleanupMap } = useVisitorMap();
+const { initializeMap, cleanupMap, searchBurialRecord, clearSearch } = useVisitorMap();
+const { normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint } = useSearchFeatureProcessing();
+const { isOnSearchMode } = useMapSearchStates();
 const mapContainer = ref(null);
 const search = ref(props.filters.search || "");
 
 const handleSearch = () => {
-    router.get(
-        route("visitor.map.index"),
-        { search: search.value },
-        { preserveState: true, replace: true }
-    );
+    if (isOnSearchMode.value) {
+        // Clear search
+        search.value = "";
+        clearSearch();
+    } else {
+        // Perform search
+        if (search.value) {
+            isOnSearchMode.value = true;
+            searchBurialRecord(search.value, normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint);
+        }
+    }
 };
 
 onMounted(() => {
@@ -69,11 +79,50 @@ onBeforeUnmount(() => {
                 <div class="flex-1">
                     <Input
                         v-model="search"
-                        placeholder="Search by name..."
+                        placeholder="firstname-lastname+date (YYYY-MM-DD)"
                         @keyup.enter="handleSearch"
                         class="shadow-lg !max-w-none"
                     />
                 </div>
+
+                <button
+                    type="button"
+                    @click="handleSearch"
+                    class="flex items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                >
+                    <svg
+                        v-if="!isOnSearchMode"
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-green-500 dark:text-green-600"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-red-500 dark:text-red-600"
+                    >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
 
                 <button
                     type="button"

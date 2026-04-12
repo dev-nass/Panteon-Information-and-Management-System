@@ -30,7 +30,7 @@ export function useSearchFeatureProcessing() {
     };
 
     /**
-     * Description: Use for BurialRecord Search
+     * Description: Use for BurialRecord Search and Direct Search on Clerk/Map/Index
      * @param clusterData expects a cluster record from ClusterResource
      * @param polygonCoordinate expects GeoJSON coordinates
      */

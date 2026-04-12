@@ -19,7 +19,8 @@ Route::get('/', function () {
 })->name('visitor.index');
 
 Route::controller(VisitorInteractiveMapController::class)->group(function () {
-    Route::get('/map', 'index')->name('map.sections');
+    Route::get('/map', 'index')->name('visitor.map.index');
+    Route::get('/map/search', 'search')->name('visitor.map.search');
 });
 
 Route::controller(MapDataController::class)->group(function () {
