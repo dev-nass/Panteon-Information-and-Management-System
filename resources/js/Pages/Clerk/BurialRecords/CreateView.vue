@@ -55,7 +55,7 @@ const form = useForm({
     mother_maiden_name: "",
     company_address: "",
     company_supervisor: "",
-    
+
     // Applicant
     applicant_first_name: "",
     applicant_middle_name: "",
@@ -441,6 +441,12 @@ defineOptions({
                             Date of Depository
                         </label>
                         <Input v-model="form.burial_date" type="date" />
+                        <span
+                            v-if="form.errors.burial_date"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.burial_date }}
+                        </span>
                     </div>
                 </div>
 

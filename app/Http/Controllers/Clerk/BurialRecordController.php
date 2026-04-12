@@ -121,7 +121,7 @@ class BurialRecordController extends Controller
             'cremation_place' => 'nullable|string|max:255',
             'cremation_date' => 'nullable|date',
             'burial_place' => 'nullable|string|max:255',
-            'burial_date' => 'nullable|date',
+            'burial_date' => 'required|date',
             'father_name' => 'nullable|string|max:255',
             'mother_maiden_name' => 'nullable|string|max:255',
             'company_address' => 'nullable|string|max:255',
