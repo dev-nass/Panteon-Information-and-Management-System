@@ -23,7 +23,7 @@ const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
     useMap();
 const { fetchClusterByBurialId } = useSearch();
 
-console.log("Clerk Burial Show", props.burial_record);
+// console.log("Clerk Burial Show", props.burial_record);
 
 const activeTab = ref("personal");
 const tabs = [
@@ -658,10 +658,13 @@ onBeforeUnmount(() => {
                         (val) => (localData.deceased.burial_place = val)
                     "
                 />
+
                 <Display
                     label="Date of Depository"
+                    placeholder="YYYY-MM-DD"
                     :modelValue="localData.deceased?.burial?.date"
                     :editing="editing"
+                    :error="errors['deceased.burial.date']"
                     @update:modelValue="
                         (val) => (localData.deceased.burial.date = val)
                     "
