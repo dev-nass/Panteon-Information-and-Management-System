@@ -25,17 +25,17 @@ class DatabaseSeeder extends Seeder
 
 
         // Seed deceased record and applicants
-        // $chunkSize = 1000;
-        // $total = 21000;
+        $chunkSize = 1000;
+        $total = 21000;
 
-        // for ($i = 0; $i < $total; $i += $chunkSize) {
-        //     $deceasedBatch = DeceasedRecord::factory()
-        //         ->count($chunkSize)
-        //         ->make()
-        //         ->toArray();
+        for ($i = 0; $i < $total; $i += $chunkSize) {
+            $deceasedBatch = DeceasedRecord::factory()
+                ->count($chunkSize)
+                ->make()
+                ->toArray();
 
-        //     DeceasedRecord::insert($deceasedBatch);
-        // }
+            DeceasedRecord::insert($deceasedBatch);
+        }
 
 
         $this->call(PanteonDataSeeder::class);
