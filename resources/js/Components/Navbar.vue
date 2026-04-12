@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { Link } from "@inertiajs/vue3";
 
 const links = [
     { id: "home", label: "Home" },
@@ -143,9 +144,9 @@ onBeforeUnmount(() => {
                         <div
                             class="flex items-center justify-center md:justify-end gap-x-1.5 md:col-span-1 md:col-start-3 md:ps-2.5 md:ms-1.5 before:block before:absolute before:top-1/2 before:-start-px before:w-px before:h-4 before:bg-gray-300/50 dark:before:bg-neutral-600/50 before:-translate-y-1/2"
                         >
-                            <a
+                            <Link
+                                :href="route('login')"
                                 class="p-2 w-full flex items-center text-sm font-medium text-gray-700 dark:text-neutral-200 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 rounded-lg transition-colors focus:outline-hidden md:w-21"
-                                href="#"
                             >
                                 <svg
                                     class="shrink-0 size-4 me-3 md:me-2"
@@ -165,7 +166,7 @@ onBeforeUnmount(() => {
                                     <circle cx="12" cy="7" r="4" />
                                 </svg>
                                 Log in
-                            </a>
+                            </Link>
                             <!-- Dark Mode / Light Mode -->
                             <div>
                                 <button
