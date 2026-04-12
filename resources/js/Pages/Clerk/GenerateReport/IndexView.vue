@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from "vue";
+import { router } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Button from "@/Components/Form/Button.vue";
 
@@ -10,19 +12,45 @@ defineOptions({
 const reportType = ref("");
 const startDate = ref("");
 const endDate = ref("");
+const format = ref("pdf");
+const isGenerating = ref(false);
+
+const resetForm = () => {
+    reportType.value = "";
+    startDate.value = "";
+    endDate.value = "";
+    format.value = "pdf";
+};
 
 const generateReport = () => {
-    console.log({
+    if (!reportType.value || !startDate.value || !endDate.value) {
+        alert("Please fill in all fields");
+        return;
+    }
+
+    isGenerating.value = true;
+
+    // Build query parameters
+    const params = new URLSearchParams({
         reportType: reportType.value,
         startDate: startDate.value,
         endDate: endDate.value,
+        format: format.value,
     });
+
+    // Create a temporary link and trigger download
+    const url = route('clerk.generate_report.generate') + '?' + params.toString();
+    window.open(url, '_blank');
+
+    setTimeout(() => {
+        isGenerating.value = false;
+    }, 1000);
 };
 </script>
 
 <template>
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
-        <div class="flex flex-col items-center" data-aos="zoom-out">
+        <div class="flex flex-col items-center">
             <div class="-m-1.5 overflow-x-auto">
                 <div class="p-1.5 min-w-[600px] inline-block align-middle">
                     <div
@@ -71,7 +99,7 @@ const generateReport = () => {
                         <!-- Form -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <!-- Report Type -->
-                            <div class="flex flex-col gap-1">
+                            <div class="flex flex-col col-span-full gap-1">
                                 <label
                                     class="text-sm font-medium text-gray-600 dark:text-gray-300"
                                 >
@@ -113,7 +141,7 @@ const generateReport = () => {
                             </div>
 
                             <!-- End Date -->
-                            <div class="flex flex-col gap-1 md:col-span-2">
+                            <div class="flex flex-col gap-1">
                                 <label
                                     class="text-sm font-medium text-gray-600 dark:text-gray-300"
                                 >
@@ -126,13 +154,52 @@ const generateReport = () => {
                                     class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
+
+                            <!-- Export Format -->
+                            <div class="flex flex-col col-span-full gap-1">
+                                <label
+                                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                >
+                                    Export Format
+                                </label>
+
+                                <div class="flex gap-4">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            v-model="format"
+                                            value="pdf"
+                                            class="w-4 h-4 text-green-600 focus:ring-green-500"
+                                        />
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">
+                                            PDF (Recommended)
+                                        </span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            v-model="format"
+                                            value="excel"
+                                            class="w-4 h-4 text-green-600 focus:ring-green-500"
+                                        />
+                                        <span class="text-sm text-gray-700 dark:text-gray-300">
+                                            Excel
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Buttons -->
                         <div class="flex justify-end gap-3 pt-2">
-                            <Button> Reset </Button>
-                            <Button @click="generateReport" :highlighted="true">
-                                Generate Report
+                            <Button @click="resetForm"> Reset </Button>
+                            <Button 
+                                @click="generateReport" 
+                                :highlighted="true"
+                                :disabled="isGenerating"
+                            >
+                                <span v-if="isGenerating">Generating...</span>
+                                <span v-else>Generate Report</span>
                             </Button>
                         </div>
                     </div>

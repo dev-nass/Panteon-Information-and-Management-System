@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MapSearchDataController;
 use App\Http\Controllers\Api\PathfinderController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\DashboardController;
+use App\Http\Controllers\Clerk\GenerateReportController;
 use App\Http\Controllers\Clerk\ImportingController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use App\Http\Controllers\Api\LotManagementSearchController;
@@ -50,9 +51,10 @@ Route::prefix('clerk')
 
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('/generate-report', function () {
-            return Inertia::render('Clerk/GenerateReport/IndexView');
-        })->name('generate_report.index');
+        Route::controller(GenerateReportController::class)->group(function () {
+            Route::get('/generate-report', 'index')->name('generate_report.index');
+            Route::get('/generate-report/download', 'generate')->name('generate_report.generate');
+        });
 
         Route::controller(ImportingController::class)->group(function () {
             Route::get('/import', 'index')->name('import.index');
