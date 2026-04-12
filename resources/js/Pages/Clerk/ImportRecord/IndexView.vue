@@ -5,10 +5,15 @@ import { route } from "ziggy-js";
 import { useToast } from "vue-toast-notification";
 
 import Button from "@/Components/Form/Button.vue";
+import Modal from "@/Components/Modal.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 defineOptions({
     layout: Dashboard,
+});
+
+const props = defineProps({
+    importLogs: Array,
 });
 
 const page = usePage();
@@ -431,7 +436,9 @@ const startImport = () => {
 
                         <!-- Actions -->
                         <div class="flex justify-between items-center pt-2">
-                            <Button> View Import Logs </Button>
+                            <Button data-hs-overlay="#import-logs-modal">
+                                View Import Logs
+                            </Button>
 
                             <Button
                                 @click="startImport"
@@ -447,4 +454,88 @@ const startImport = () => {
             </div>
         </div>
     </div>
+
+    <!-- Import Logs Modal -->
+    <Modal id="import-logs-modal" size="lg">
+        <template #header>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+            </svg>
+        </template>
+
+        <template #main>
+            <h3
+                id="import-logs-modal-label"
+                class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+            >
+                Import Logs
+            </h3>
+
+            <div class="w-full max-h-96 overflow-y-auto">
+                <div
+                    v-if="!importLogs || importLogs.length === 0"
+                    class="text-center py-8"
+                >
+                    <p class="text-gray-500 dark:text-gray-400">
+                        No import logs found
+                    </p>
+                </div>
+
+                <div v-else class="space-y-3">
+                    <div
+                        v-for="log in importLogs"
+                        :key="log.id"
+                        class="p-4 bg-white/50 dark:bg-neutral-800/50 rounded-lg border border-white/30 dark:border-neutral-700 text-left"
+                    >
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <p
+                                    class="font-medium text-gray-800 dark:text-gray-200"
+                                >
+                                    {{ log.file_name }}
+                                </p>
+                                <p class="text-xs text-gray-500 mt-1">
+                                    {{ new Date(log.created_at).toLocaleString() }}
+                                </p>
+                            </div>
+                            <span
+                                :class="[
+                                    'px-2 py-1 text-xs font-medium rounded-full',
+                                    log.status === 'successful'
+                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                        : log.status === 'failed'
+                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                ]"
+                            >
+                                {{ log.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+
+        <template #footer>
+            <button
+                type="button"
+                class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
+                data-hs-overlay="#import-logs-modal"
+            >
+                Close
+            </button>
+        </template>
+    </Modal>
 </template>

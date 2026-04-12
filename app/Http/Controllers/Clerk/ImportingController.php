@@ -17,7 +17,10 @@ class ImportingController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Clerk/ImportRecord/IndexView');
+        $logs = ImportedLog::orderBy('created_at', 'desc')->limit(50)->get();
+        return Inertia::render('Clerk/ImportRecord/IndexView', [
+            'importLogs' => $logs,
+        ]);
     }
 
     public function store(Request $request)
