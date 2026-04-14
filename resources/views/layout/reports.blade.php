@@ -142,6 +142,35 @@
             color: #666;
         }
 
+        .signature-section {
+            margin-top: 40px;
+            text-align: right;
+            padding-right: 50px;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            margin: 0 0 5px auto;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .signature-title {
+            font-size: 10px;
+            color: #666;
+        }
+
+        .disclaimer {
+            margin-top: 20px;
+            font-size: 10px;
+            font-style: italic;
+            color: #666;
+        }
+
         .summary-box {
             background: #f0fdf4;
             border: 2px solid #16a34a;
@@ -210,7 +239,14 @@
 
     <div class="footer">
         <p>Total Records: @yield('total-records')</p>
+        <p class="disclaimer">This is a system-generated report from the Panteon Information and Management System.</p>
         <p>Panteon Information and Management System</p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-line"></div>
+        <p class="signature-name">{{ auth()->user()->name }}</p>
+        <p class="signature-title">Authorized Clerk</p>
     </div>
 </body>
 
