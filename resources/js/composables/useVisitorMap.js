@@ -47,15 +47,16 @@ export function useVisitorMap() {
         }
     };
 
-    const searchBurialRecord = async (searchQuery, normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint) => {
+    const searchBurialRecord = async (searchParams, normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint) => {
         try {
             // Clear previous search results
             if (searchResultLayer.value) {
                 searchResultLayer.value.clearLayers();
             }
 
+            const queryParams = new URLSearchParams(searchParams).toString();
             const response = await fetch(
-                `${route("visitor.map.search")}?search=${encodeURIComponent(searchQuery)}`,
+                `${route("visitor.map.search")}?${queryParams}`,
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",

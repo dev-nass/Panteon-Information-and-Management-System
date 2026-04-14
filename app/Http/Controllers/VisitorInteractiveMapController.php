@@ -33,19 +33,11 @@ class VisitorInteractiveMapController extends Controller
         ]);
     }
 
-    public function search()
+    public function search(Request $request)
     {
-        $search = request('search');
-
-        // Split by '+' to separate name and date
-        $parts = explode("+", $search);
-        $namesPart = $parts[0] ?? '';
-        $date = $parts[1] ?? '';
-
-        // Split names by '-' to get first and last name
-        $names = explode("-", $namesPart);
-        $firstName = $names[0] ?? '';
-        $lastName = $names[1] ?? '';
+        $firstName = $request->input('firstName', '');
+        $lastName = $request->input('lastName', '');
+        $burialDate = $request->input('burialDate', '');
 
         $lotIds = DB::table('burial_records')
             ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
@@ -55,8 +47,8 @@ class VisitorInteractiveMapController extends Controller
             ->when($lastName, function ($query) use ($lastName) {
                 $query->where('deceased_records.last_name', 'like', "%{$lastName}%");
             })
-            ->when($date, function ($query) use ($date) {
-                $query->where('deceased_records.date_of_depository', 'like', "%{$date}%");
+            ->when($burialDate, function ($query) use ($burialDate) {
+                $query->where('deceased_records.date_of_depository', 'like', "%{$burialDate}%");
             })
             ->distinct()
             ->limit(10)

@@ -6,29 +6,49 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import { Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Modal from "@/Components/Modal.vue";
+import Button from "@/Components/Form/Button.vue";
 
 const props = defineProps({
     burial_records: Array,
     filters: Object,
 });
 
-const { initializeMap, cleanupMap, searchBurialRecord, clearSearch } = useVisitorMap();
-const { normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint } = useSearchFeatureProcessing();
+const { initializeMap, cleanupMap, searchBurialRecord, clearSearch } =
+    useVisitorMap();
+const {
+    normalizeCoordinates,
+    markBurialRecordClusterPolygon,
+    markBurialRecordLotPoint,
+} = useSearchFeatureProcessing();
 const { isOnSearchMode } = useMapSearchStates();
-const mapContainer = ref(null);
-const search = ref(props.filters.search || "");
 
-const handleSearch = () => {
-    if (isOnSearchMode.value) {
-        // Clear search
-        search.value = "";
-        clearSearch();
-    } else {
-        // Perform search
-        if (search.value) {
-            isOnSearchMode.value = true;
-            searchBurialRecord(search.value, normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint);
-        }
+const mapContainer = ref(null);
+const firstName = ref("");
+const lastName = ref("");
+const burialDate = ref("");
+const showSearchModal = ref(false);
+
+const handleClear = () => {
+    firstName.value = "";
+    lastName.value = "";
+    burialDate.value = "";
+    clearSearch();
+};
+
+const performSearch = () => {
+    if (firstName.value && lastName.value && burialDate.value) {
+        isOnSearchMode.value = true;
+        searchBurialRecord(
+            {
+                firstName: firstName.value,
+                lastName: lastName.value,
+                burialDate: burialDate.value,
+            },
+            normalizeCoordinates,
+            markBurialRecordClusterPolygon,
+            markBurialRecordLotPoint
+        );
+        showSearchModal.value = false;
     }
 };
 
@@ -76,22 +96,15 @@ onBeforeUnmount(() => {
                     </svg>
                 </Link>
 
-                <div class="flex-1">
-                    <Input
-                        v-model="search"
-                        placeholder="firstname-lastname+date (YYYY-MM-DD)"
-                        @keyup.enter="handleSearch"
-                        class="shadow-lg !max-w-none"
-                    />
-                </div>
-
-                <button
-                    type="button"
-                    @click="handleSearch"
-                    class="flex items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                <Button
+                    v-if="!isOnSearchMode"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                    aria-controls="hs-search-modal"
+                    data-hs-overlay="#hs-search-modal"
                 >
+                    Search
                     <svg
-                        v-if="!isOnSearchMode"
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
                         height="20"
@@ -106,8 +119,15 @@ onBeforeUnmount(() => {
                         <circle cx="11" cy="11" r="8" />
                         <path d="m21 21-4.35-4.35" />
                     </svg>
+                </Button>
+
+                <button
+                    v-if="isOnSearchMode"
+                    type="button"
+                    @click="handleClear"
+                    class="flex items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-red-300 dark:border-red-700 rounded-lg shadow-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition"
+                >
                     <svg
-                        v-else
                         xmlns="http://www.w3.org/2000/svg"
                         width="20"
                         height="20"
@@ -123,37 +143,11 @@ onBeforeUnmount(() => {
                         <path d="m6 6 12 12" />
                     </svg>
                 </button>
-
-                <button
-                    type="button"
-                    class="flex items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
-                    aria-haspopup="dialog"
-                    aria-expanded="false"
-                    aria-controls="hs-search-instructions"
-                    data-hs-overlay="#hs-search-instructions"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="text-green-500 dark:text-green-600"
-                    >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 16v-4" />
-                        <path d="M12 8h.01" />
-                    </svg>
-                </button>
             </div>
         </div>
 
         <Teleport to="body">
-            <Modal id="hs-search-instructions">
+            <Modal id="hs-search-modal">
                 <template v-slot:header>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -167,9 +161,8 @@ onBeforeUnmount(() => {
                         stroke-linejoin="round"
                         class="text-green-500 dark:text-green-600"
                     >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                        <path d="M12 17h.01" />
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
                     </svg>
                 </template>
 
@@ -177,57 +170,53 @@ onBeforeUnmount(() => {
                     <h3
                         class="text-2xl font-bold text-green-600 dark:text-green-400 mb-4"
                     >
-                        Search Instructions
+                        Search Burial Record
                     </h3>
 
-                    <div class="space-y-4 text-gray-600 dark:text-neutral-300">
-                        <p>
-                            Use the combined search format to find burial
-                            records:
-                        </p>
-
-                        <div
-                            class="bg-gray-50 dark:bg-neutral-800 p-4 rounded-lg border border-gray-200 dark:border-neutral-700"
-                        >
-                            <p class="font-mono text-sm mb-2">
-                                <span class="text-green-600 dark:text-green-400"
-                                    >firstname-lastname+burial_date</span
-                                >
-                            </p>
+                    <div class="space-y-4">
+                        <div>
+                            <label
+                                for="firstName"
+                                class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2 text-left"
+                            >
+                                First Name
+                            </label>
+                            <Input
+                                id="firstName"
+                                v-model="firstName"
+                                placeholder="Enter first name"
+                                class="!max-w-none"
+                            />
                         </div>
 
-                        <div class="space-y-2">
-                            <p
-                                class="font-semibold text-gray-800 dark:text-neutral-200"
+                        <div>
+                            <label
+                                for="lastName"
+                                class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2 text-left"
                             >
-                                Examples:
-                            </p>
-                            <ul class="list-disc list-inside space-y-1 ml-2">
-                                <li>
-                                    <code
-                                        class="text-sm bg-gray-100 dark:bg-neutral-700 px-2 py-1 rounded"
-                                        >john-doe+2024-01-15</code
-                                    >
-                                </li>
-                                <li>
-                                    <code
-                                        class="text-sm bg-gray-100 dark:bg-neutral-700 px-2 py-1 rounded"
-                                        >maria-santos+2023-12-25</code
-                                    >
-                                </li>
-                            </ul>
+                                Last Name
+                            </label>
+                            <Input
+                                id="lastName"
+                                v-model="lastName"
+                                placeholder="Enter last name"
+                                class="!max-w-none"
+                            />
                         </div>
 
-                        <div
-                            class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-lg"
-                        >
-                            <p
-                                class="text-sm text-yellow-800 dark:text-yellow-400"
+                        <div>
+                            <label
+                                for="burialDate"
+                                class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2 text-left"
                             >
-                                <strong>Note:</strong> Use hyphens (-) between
-                                first and last name, and plus (+) before the
-                                date. Date format must be YYYY-MM-DD.
-                            </p>
+                                Burial Date
+                            </label>
+                            <Input
+                                id="burialDate"
+                                v-model="burialDate"
+                                type="date"
+                                class="!max-w-none"
+                            />
                         </div>
                     </div>
                 </template>
@@ -236,9 +225,10 @@ onBeforeUnmount(() => {
                     <button
                         type="button"
                         class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition rounded-lg"
-                        data-hs-overlay="#hs-search-instructions"
+                        data-hs-overlay="#hs-search-modal"
+                        @click="performSearch"
                     >
-                        Got it
+                        Search
                     </button>
                 </template>
             </Modal>
