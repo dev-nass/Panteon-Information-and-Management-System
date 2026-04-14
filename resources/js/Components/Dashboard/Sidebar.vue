@@ -1,10 +1,16 @@
 <script setup>
-import { Link, usePage } from "@inertiajs/vue3";
+import { Link, usePage, router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
+import { computed } from "vue";
 
 import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
 const page = usePage();
+const user = computed(() => page.props.auth.user);
+
+const handleLogout = () => {
+    router.post(route('logout'));
+};
 </script>
 
 <template>
@@ -162,7 +168,7 @@ const page = usePage();
                                 </svg>
                                 <span
                                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                    >James Collison</span
+                                    >{{ user.first_name }} {{ user.last_name }}</span
                                 >
                             </div>
 
@@ -195,21 +201,13 @@ const page = usePage();
                                 <span
                                     class="font-medium text-gray-800 dark:text-neutral-200"
                                 >
-                                    James Collison
+                                    {{ user.first_name }} {{ user.last_name }}
                                 </span>
                                 <p
                                     class="text-sm text-gray-500 dark:text-neutral-400"
                                 >
-                                    jamescollison@site.com
+                                    {{ user.email }}
                                 </p>
-                                <div class="mt-1.5">
-                                    <a
-                                        class="flex justify-center items-center gap-x-1.5 py-2 px-2.5 font-medium text-[13px] bg-blue-600 dark:bg-blue-500 border border-transparent text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:bg-blue-700 dark:focus:bg-blue-600 disabled:opacity-50 disabled:pointer-events-none"
-                                        href="#"
-                                    >
-                                        Upgrade plan
-                                    </a>
-                                </div>
                             </div>
                             <div
                                 class="px-4 py-2 border-t border-gray-200 dark:border-neutral-800"
@@ -381,9 +379,9 @@ const page = usePage();
                                     </svg>
                                     Settings
                                 </a>
-                                <a
-                                    class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
-                                    href="#"
+                                <button
+                                    @click="handleLogout"
+                                    class="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
                                 >
                                     <svg
                                         class="shrink-0 mt-0.5 size-4"
@@ -404,7 +402,7 @@ const page = usePage();
                                         />
                                     </svg>
                                     Log out
-                                </a>
+                                </button>
                             </div>
                         </div>
                         <!-- End Account Dropdown -->

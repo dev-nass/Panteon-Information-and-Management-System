@@ -38,9 +38,9 @@ class DatabaseSeeder extends Seeder
         // }
 
         User::create([
-            'first_name' => 'Admin',
+            'first_name' => 'Alex',
             'middle_name' => '',
-            'last_name' => 'User',
+            'last_name' => 'Gonzales',
             'email' => 'admin@panteon.com',
             'password' => bcrypt('admin123'),
             'contact_number' => '09123456789',

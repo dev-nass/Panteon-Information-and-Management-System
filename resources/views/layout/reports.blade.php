@@ -230,7 +230,9 @@
         <div class="header-divider"></div>
         <div class="report-info">
             <p class="font-bold">@yield('report-title')</p>
-            <p>Period: {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}</p>
+            <p>Period: {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to
+                {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
+            </p>
             <p>Generated on: {{ date('F d, Y') }}</p>
         </div>
     </div>
@@ -245,7 +247,7 @@
 
     <div class="signature-section">
         <div class="signature-line"></div>
-        <p class="signature-name">{{ auth()->user()->name }}</p>
+        <p class="signature-name">{{ auth()->user()->first_name . " " . auth()->user()->last_name}}</p>
         <p class="signature-title">Authorized Clerk</p>
     </div>
 </body>
