@@ -7,6 +7,7 @@ import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
+import { onMounted } from "vue";
 
 // NOTE:(out for now since we ended up separating the MAP and TABLE)
 // const emit = defineEmits(["toggleTable"]);
@@ -78,6 +79,10 @@ window.addEventListener("load", () => {
             .querySelectorAll(".hs-overlay")
             .forEach((el) => HSOverlay.open(el));
     });
+});
+
+onMounted(() => {
+    router.reload({ only: ['burial_records'] });
 });
 
 defineOptions({
@@ -382,7 +387,7 @@ defineOptions({
 
                                     <TableData>
                                         <span
-                                            v-if="record.deceased.precinct_num"
+                                            v-if="record.lot?.lot?.properties?.lot_id"
                                             class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
                                         >
                                             <svg
