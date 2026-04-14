@@ -124,17 +124,17 @@ class GenerateReportController extends Controller
             $exportData->push([]); // Empty row
             // Column headers
             $exportData->push([
-                'ID' => 'ID',
+                'Seq. No' => 'Seq. No',
                 'Full Name' => 'Full Name',
                 'Date of Burial' => 'Date of Burial',
                 'Address' => 'Address',
                 'Applicant' => 'Applicant',
             ]);
             
-            foreach ($data as $deceased) {
+            foreach ($data as $index => $deceased) {
                 $fullName = trim($deceased->first_name . ' ' . ($deceased->middle_name ?? '') . ' ' . $deceased->last_name);
                 $exportData->push([
-                    'ID' => $deceased->id,
+                    'Seq. No' => $index + 1,
                     'Full Name' => $fullName,
                     'Date of Burial' => $deceased->date_of_depository,
                     'Address' => $deceased->address,

@@ -23,7 +23,7 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>Seq. No</th>
                 <th>First Name</th>
                 <th>Middle Name</th>
                 <th>Last Name</th>
@@ -33,9 +33,9 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($data as $deceased)
+            @foreach($data as $index => $deceased)
             <tr>
-                <td>{{ $deceased->id }}</td>
+                <td>{{ $index + 1 }}</td>
                 <td>{{ $deceased->first_name }}</td>
                 <td>{{ $deceased->middle_name }}</td>
                 <td>{{ $deceased->last_name }}</td>
