@@ -29,7 +29,7 @@
     <tbody>
         @foreach($data['by_month'] as $month)
         <tr>
-            <td>{{ $month->month }}</td>
+            <td>{{ \Carbon\Carbon::parse($month->month . '-01')->format('F Y') }}</td>
             <td>{{ $month->count }}</td>
         </tr>
         @endforeach
