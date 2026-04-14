@@ -110,7 +110,7 @@ class GenerateReportController extends Controller
                     'ID' => $burial->id,
                     'Deceased Name' => $burial->deceasedRecord->first_name . ' ' . $burial->deceasedRecord->last_name,
                     'Date of Burial' => $burial->deceasedRecord->date_of_depository,
-                    'Lot' => $burial->lot ? $burial->lot->properties['column'] . $burial->lot->properties['row'] : 'N/A',
+                    'Lot' => $burial->lot && $burial->lot->properties ? $burial->lot->properties['column'] . $burial->lot->properties['row'] : 'N/A',
                     'Address' => $burial->deceasedRecord->address,
                 ]);
             }

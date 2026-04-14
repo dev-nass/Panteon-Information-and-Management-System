@@ -36,7 +36,7 @@
                 <td>{{ $burial->id }}</td>
                 <td>{{ $burial->deceasedRecord->first_name }} {{ $burial->deceasedRecord->last_name }}</td>
                 <td>{{ $burial->deceasedRecord->date_of_depository }}</td>
-                <td>{{ $burial->lot ? $burial->lot->properties['column'] . $burial->lot->properties['row'] : 'N/A' }}</td>
+                <td>{{ $burial->lot && $burial->lot->properties ? $burial->lot->properties['column'] . $burial->lot->properties['row'] : 'N/A' }}</td>
                 <td>{{ $burial->deceasedRecord->address }}</td>
             </tr>
             @endforeach
