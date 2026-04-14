@@ -44,7 +44,7 @@ class GenerateReportController extends Controller
     {
         switch ($reportType) {
             case 'burial':
-                return BurialRecord::with(['deceasedRecord', 'lot', 'user'])
+                return BurialRecord::with(['deceasedRecord', 'lot.cluster.phase', 'user'])
                     ->whereHas('deceasedRecord', function ($query) use ($startDate, $endDate) {
                         $query->whereBetween('date_of_depository', [$startDate, $endDate]);
                     })
@@ -98,19 +98,23 @@ class GenerateReportController extends Controller
             $exportData->push([]); // Empty row
             // Column headers
             $exportData->push([
-                'ID' => 'ID',
+                'Seq. No' => 'Seq. No',
                 'Deceased Name' => 'Deceased Name',
                 'Date of Burial' => 'Date of Burial',
+                'Phase' => 'Phase',
+                'Cluster' => 'Cluster',
                 'Lot' => 'Lot',
                 'Address' => 'Address',
             ]);
             
-            foreach ($data as $burial) {
+            foreach ($data as $index => $burial) {
                 $exportData->push([
-                    'ID' => $burial->id,
+                    'Seq. No' => $index + 1,
                     'Deceased Name' => $burial->deceasedRecord->first_name . ' ' . $burial->deceasedRecord->last_name,
                     'Date of Burial' => $burial->deceasedRecord->date_of_depository,
-                    'Lot' => $burial->lot && $burial->lot->properties ? $burial->lot->properties['column'] . $burial->lot->properties['row'] : 'N/A',
+                    'Phase' => $burial->lot && $burial->lot->cluster && $burial->lot->cluster->phase ? $burial->lot->cluster->phase->phase_name : 'N/A',
+                    'Cluster' => $burial->lot && $burial->lot->cluster ? $burial->lot->cluster->cluster_name : 'N/A',
+                    'Lot' => $burial->lot ? $burial->lot->column . $burial->lot->row : 'N/A',
                     'Address' => $burial->deceasedRecord->address,
                 ]);
             }
