@@ -37,6 +37,16 @@ class DatabaseSeeder extends Seeder
         //     DeceasedRecord::insert($deceasedBatch);
         // }
 
+        User::create([
+            'first_name' => 'Admin',
+            'middle_name' => '',
+            'last_name' => 'User',
+            'email' => 'admin@panteon.com',
+            'password' => bcrypt('admin123'),
+            'contact_number' => '09123456789',
+            'role' => 'admin',
+        ]);
+
 
         $this->call(PanteonDataSeeder::class);
         $this->call(PathfinderSeeder::class);

@@ -6,6 +6,10 @@ const props = defineProps({
         type: String,
         default: "base",
     },
+    type: {
+        type: String,
+        default: "button",
+    },
     // highlighted is used on 'Clerk/BurialRecords/Show' Edit button
     // Not highlihted is used on 'Clerk/Burial/Index' table buttons
     highlighted: {
@@ -50,7 +54,7 @@ const variantClasses = computed(() => {
 
 <template>
     <button
-        type="button"
+        :type="type"
         class="flex items-center gap-2 max-w-md rounded-lg border transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         :class="[sizeClasses, variantClasses]"
     >

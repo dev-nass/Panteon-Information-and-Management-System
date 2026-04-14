@@ -1,16 +1,15 @@
 <script setup>
-import { ref } from "vue";
-import { router, Link } from "@inertiajs/vue3";
+import { useForm, Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 
-const form = ref({
+const form = useForm({
     email: "",
     password: "",
 });
 
 const handleSubmit = () => {
-    router.post(route("login.store"), form.value);
+    form.post(route("login.store"));
 };
 </script>
 
@@ -74,6 +73,9 @@ const handleSubmit = () => {
                             placeholder="Enter your email"
                             required
                         />
+                        <p v-if="form.errors.email" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.email }}
+                        </p>
                     </div>
 
                     <!-- Password -->
@@ -91,12 +93,20 @@ const handleSubmit = () => {
                             placeholder="Enter your password"
                             required
                         />
+                        <p v-if="form.errors.password" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.password }}
+                        </p>
                     </div>
 
                     <!-- Submit Button -->
                     <div>
-                        <Button :highlighted="true" class="w-full justify-center">
-                            Sign In
+                        <Button
+                            type="submit"
+                            :highlighted="true"
+                            class="w-full justify-center"
+                            :disabled="form.processing"
+                        >
+                            {{ form.processing ? 'Signing In...' : 'Sign In' }}
                         </Button>
                     </div>
                 </form>
