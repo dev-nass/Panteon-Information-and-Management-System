@@ -9,7 +9,7 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 
 const handleLogout = () => {
-    router.post(route('logout'));
+    router.post(route("logout"));
 };
 </script>
 
@@ -168,7 +168,8 @@ const handleLogout = () => {
                                 </svg>
                                 <span
                                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300"
-                                    >{{ user.first_name }} {{ user.last_name }}</span
+                                    >{{ user.first_name }}
+                                    {{ user.last_name }}</span
                                 >
                             </div>
 
@@ -381,7 +382,7 @@ const handleLogout = () => {
                                 </a>
                                 <button
                                     @click="handleLogout"
-                                    class="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
+                                    class="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-red-50 dark:focus:bg-red-900/20"
                                 >
                                     <svg
                                         class="shrink-0 mt-0.5 size-4"
