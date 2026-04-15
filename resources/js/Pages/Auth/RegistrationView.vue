@@ -4,7 +4,10 @@ import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 
 const form = useForm({
-    name: "",
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    contact_number: "",
     email: "",
     password: "",
     password_confirmation: "",
@@ -60,23 +63,82 @@ const handleSubmit = () => {
 
                 <!-- Form -->
                 <form @submit.prevent="handleSubmit" class="space-y-6">
-                    <!-- Name -->
+                    <!-- First Name -->
                     <div>
                         <label
-                            for="name"
+                            for="first_name"
                             class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2"
                         >
-                            Full Name
+                            First Name
                         </label>
                         <Input
-                            id="name"
-                            v-model="form.name"
+                            id="first_name"
+                            v-model="form.first_name"
                             type="text"
-                            placeholder="Enter your full name"
+                            placeholder="Enter your first name"
                             required
                         />
-                        <p v-if="form.errors.name" class="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {{ form.errors.name }}
+                        <p v-if="form.errors.first_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.first_name }}
+                        </p>
+                    </div>
+
+                    <!-- Middle Name -->
+                    <div>
+                        <label
+                            for="middle_name"
+                            class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2"
+                        >
+                            Middle Name
+                        </label>
+                        <Input
+                            id="middle_name"
+                            v-model="form.middle_name"
+                            type="text"
+                            placeholder="Enter your middle name (optional)"
+                        />
+                        <p v-if="form.errors.middle_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.middle_name }}
+                        </p>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                        <label
+                            for="last_name"
+                            class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2"
+                        >
+                            Last Name
+                        </label>
+                        <Input
+                            id="last_name"
+                            v-model="form.last_name"
+                            type="text"
+                            placeholder="Enter your last name"
+                            required
+                        />
+                        <p v-if="form.errors.last_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.last_name }}
+                        </p>
+                    </div>
+
+                    <!-- Contact Number -->
+                    <div>
+                        <label
+                            for="contact_number"
+                            class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2"
+                        >
+                            Contact Number
+                        </label>
+                        <Input
+                            id="contact_number"
+                            v-model="form.contact_number"
+                            type="text"
+                            placeholder="Enter your contact number"
+                            required
+                        />
+                        <p v-if="form.errors.contact_number" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {{ form.errors.contact_number }}
                         </p>
                     </div>
 
