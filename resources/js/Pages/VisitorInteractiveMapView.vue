@@ -97,7 +97,6 @@ onBeforeUnmount(() => {
                 </Link>
 
                 <Button
-                    v-if="!isOnSearchMode"
                     aria-haspopup="dialog"
                     aria-expanded="false"
                     aria-controls="hs-search-modal"
