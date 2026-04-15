@@ -163,6 +163,7 @@ class BurialRecordController extends Controller
         $burialRecord = BurialRecord::create([
             'deceased_record_id' => $deceasedRecord->id,
             'lot_id' => $validated['lot_id'],
+            'user_id' => auth()->id(),
         ]);
 
         Applicant::create([
@@ -231,7 +232,7 @@ class BurialRecordController extends Controller
                         $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                     },
                     'lot.cluster.phase:id,phase_name',
-                    'user'
+                    'user:id,first_name,middle_name,last_name,role'
                 ])
             ),
             'phases' => $phases,
@@ -301,7 +302,14 @@ class BurialRecordController extends Controller
         ]);
 
         if (isset($validated['lot_id'])) {
-            $burial_record->update(['lot_id' => $validated['lot_id']]);
+            $burial_record->update([
+                'lot_id' => $validated['lot_id'],
+                'user_id' => auth()->id(),
+            ]);
+        } else {
+            $burial_record->update([
+                'user_id' => auth()->id(),
+            ]);
         }
 
         $applicant = $deceasedRecord->applicant;

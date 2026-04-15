@@ -33,6 +33,7 @@ const tabs = [
     { key: "family", label: "Family & Company" },
     { key: "applicant", label: "Applicant" },
     { key: "location", label: "Location" },
+    { key: "imported", label: "Imported By" },
 ];
 
 const back = () => {
@@ -909,6 +910,32 @@ onBeforeUnmount(() => {
                         }}
                     </p>
                 </div>
+            </div>
+
+            <!-- IMPORTED BY -->
+            <div
+                v-if="activeTab === 'imported'"
+                class="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+                <Display
+                    label="Imported/Created By"
+                    :modelValue="
+                        burial_record.data.imported_by
+                            ? burial_record.data.imported_by.full_name
+                            : 'N/A'
+                    "
+                    :editing="false"
+                />
+
+                <Display
+                    label="Role"
+                    :modelValue="
+                        burial_record.data.imported_by
+                            ? burial_record.data.imported_by.role
+                            : 'N/A'
+                    "
+                    :editing="false"
+                />
             </div>
         </div>
     </div>

@@ -35,10 +35,7 @@ class BurialRecordResource extends JsonResource
             ),
 
             'imported_by' => $this->whenLoaded('user', function () {
-                return [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
-                ];
+                return new UserResource($this->user);
             }),
         ];
     }
