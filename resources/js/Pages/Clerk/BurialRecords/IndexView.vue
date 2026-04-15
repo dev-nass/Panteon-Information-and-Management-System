@@ -82,7 +82,7 @@ window.addEventListener("load", () => {
 });
 
 onMounted(() => {
-    router.reload({ only: ['burial_records'] });
+    router.reload({ only: ["burial_records"] });
 });
 
 defineOptions({
@@ -347,7 +347,7 @@ defineOptions({
                                 class="divide-y divide-gray-200 dark:divide-neutral-700"
                             >
                                 <tr
-                                    v-if="burial_records.data"
+                                    v-if="burial_records.data.length > 0"
                                     v-for="record in burial_records.data"
                                     :key="record.id"
                                     class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
@@ -387,7 +387,10 @@ defineOptions({
 
                                     <TableData>
                                         <span
-                                            v-if="record.lot?.lot?.properties?.lot_id"
+                                            v-if="
+                                                record.lot?.lot?.properties
+                                                    ?.lot_id
+                                            "
                                             class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
                                         >
                                             <svg
