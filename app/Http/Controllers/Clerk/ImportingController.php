@@ -34,10 +34,6 @@ class ImportingController extends Controller
         }
 
         try {
-            // TODO: Change this when Registration is done
-            // if (!auth()->check()) {
-            //     return back()->with('error', 'You must be logged in to import records');
-            // }
 
             $file = $request->file('file');
             $fileName = $file->getClientOriginalName();
@@ -56,10 +52,9 @@ class ImportingController extends Controller
 
             DB::beginTransaction();
 
-            // TODO: Change this when Registration is done
             $importLog = ImportedLog::create([
                 'file_name' => $fileName,
-                'imported_by' => null, // if logged in
+                'imported_by' => auth()->id(),
                 'status' => 'processing',
             ]);
 
@@ -119,11 +114,11 @@ class ImportingController extends Controller
                         'date_of_depository' => $burialDate,
                     ]);
 
-                    // Create burial record with null lot and current user
+                    // Create burial record with lot_id and user_id
                     BurialRecord::create([
                         'deceased_record_id' => $deceased->id,
                         'lot_id' => null,
-                        'user_id' => null,
+                        'user_id' => auth()->id(),
                     ]);
 
                     $imported++;
@@ -173,14 +168,11 @@ class ImportingController extends Controller
             return ['first_name' => null, 'middle_name' => null, 'last_name' => null];
         } elseif ($count === 1) {
             return ['first_name' => $parts[0], 'middle_name' => null, 'last_name' => null];
-        } elseif ($count === 2) {
-            return ['first_name' => $parts[0], 'middle_name' => null, 'last_name' => $parts[1]];
         } else {
-            // First name, middle name(s), last name
+            // First name and last name only, disregard middle name
             $firstName = array_shift($parts);
             $lastName = array_pop($parts);
-            $middleName = implode(' ', $parts);
-            return ['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName];
+            return ['first_name' => $firstName, 'middle_name' => null, 'last_name' => $lastName];
         }
     }
 
