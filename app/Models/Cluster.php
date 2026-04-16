@@ -16,6 +16,7 @@ class Cluster extends Model
         'phase_id',
         'cluster_name',
         'cluster_type',
+        'total_capacity',
         'coordinates',
     ];
 

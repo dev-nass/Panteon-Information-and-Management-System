@@ -43,8 +43,9 @@ class LotManagementController extends Controller
         $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->with([
                 'clusters' => function ($query) {
-                    $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
-                }
+                    $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', 'total_capacity', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                },
+                'clusters.lots.burialRecords'
             ])
             ->get()
             ->map(function ($phase) {
@@ -52,14 +53,20 @@ class LotManagementController extends Controller
                     'id' => $phase->id,
                     'name' => $phase->phase_name,
                     'coordinates' => $phase->coordinates,
-                    'clusters' => $phase->clusters->map(function ($cluster) {
+                    'clusters' => $phase->clusters->filter(function ($cluster) {
+                        // Only include clusters that have capacity for more lots
+                        $totalLots = $cluster->lots->count();
+                        
+                        return $cluster->total_capacity === null || $totalLots < $cluster->total_capacity;
+                    })->map(function ($cluster) {
                         return [
                             'id' => $cluster->id,
                             'name' => $cluster->cluster_name,
                             'type' => $cluster->cluster_type,
+                            'total_capacity' => $cluster->total_capacity,
                             'coordinates' => $cluster->coordinates,
                         ];
-                    }),
+                    })->values(),
                 ];
             });
 
@@ -101,6 +108,7 @@ class LotManagementController extends Controller
             'phase_id' => $validated['phase_id'],
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
+            'total_capacity' => $validated['occupants'],
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
