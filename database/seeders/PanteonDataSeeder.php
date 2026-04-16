@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\BurialRecord;
+use App\Models\Cluster;
 use App\Models\DeceasedRecord;
 use App\Models\Phase;
 use App\Models\Lot;
@@ -143,6 +144,7 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Seeding lots from GeoJSON files...");
 
         $counter = 0;
+        $clusterCapacities = [];
 
         foreach ($lotFiles as $file) {
             $geoJsonData = json_decode(file_get_contents($file), true);
@@ -163,6 +165,7 @@ class PanteonDataSeeder extends Seeder
 
                 $attributes = $feature['properties'];
                 $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $clusterId = $attributes['cluster_id'];
 
                 DB::statement("
                     INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
@@ -170,15 +173,26 @@ class PanteonDataSeeder extends Seeder
                 ", [
                     $attributes['row'] ?? null,
                     $attributes['id'] ?? null,
-                    $attributes['cluster_id'],
+                    $clusterId,
                     $geometryJson,
                 ]);
 
+                // Track capacity per cluster
+                if (!isset($clusterCapacities[$clusterId])) {
+                    $clusterCapacities[$clusterId] = 0;
+                }
+                $clusterCapacities[$clusterId]++;
                 $counter++;
             }
         }
 
+        // Update total_capacity for each cluster
+        foreach ($clusterCapacities as $clusterId => $capacity) {
+            Cluster::where('id', $clusterId)->update(['total_capacity' => $capacity]);
+        }
+
         $this->command->info("Total lots imported: {$counter}");
+        $this->command->info("Updated capacity for " . count($clusterCapacities) . " clusters");
     }
 
     /**
