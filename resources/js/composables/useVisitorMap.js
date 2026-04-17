@@ -25,7 +25,7 @@ export function useVisitorMap() {
             {
                 maxZoom: 30,
                 subdomains: ["mt0", "mt1", "mt2", "mt3"],
-            }
+            },
         );
         googleLayer.value.addTo(map.value);
 
@@ -47,7 +47,12 @@ export function useVisitorMap() {
         }
     };
 
-    const searchBurialRecord = async (searchParams, normalizeCoordinates, markBurialRecordClusterPolygon, markBurialRecordLotPoint) => {
+    const searchBurialRecord = async (
+        searchParams,
+        normalizeCoordinates,
+        markBurialRecordClusterPolygon,
+        markBurialRecordLotPoint,
+    ) => {
         try {
             // Clear previous search results
             if (searchResultLayer.value) {
@@ -60,13 +65,16 @@ export function useVisitorMap() {
                 {
                     headers: { Accept: "application/json" },
                     credentials: "same-origin",
-                }
+                },
             );
-            if (!response.ok) throw new Error("Failed to search burial records");
+            if (!response.ok)
+                throw new Error("Failed to search burial records");
             const data = await response.json();
             if (data.data && data.data.length > 0) {
                 data.data.forEach((cluster) => {
-                    const clusterCoords = normalizeCoordinates(cluster.cluster.geometry.coordinates);
+                    const clusterCoords = normalizeCoordinates(
+                        cluster.cluster.geometry.coordinates,
+                    );
                     markBurialRecordClusterPolygon(cluster, clusterCoords);
 
                     // Mark lot points

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\PhaseResource;
 use App\Models\Cluster;
 use App\Models\Lot;
 use App\Models\Phase;
@@ -13,7 +12,6 @@ use Inertia\Inertia;
 
 class LotManagementController extends Controller
 {
-
     public function index()
     {
         $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
@@ -25,7 +23,7 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => !is_null($phase->coordinates),
+                    'isPhase_mapped' => ! is_null($phase->coordinates),
                 ];
             });
 
@@ -45,7 +43,7 @@ class LotManagementController extends Controller
                 'clusters' => function ($query) {
                     $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', 'total_capacity', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                 },
-                'clusters.lots.burialRecords'
+                'clusters.lots.burialRecords',
             ])
             ->get()
             ->map(function ($phase) {
@@ -56,7 +54,7 @@ class LotManagementController extends Controller
                     'clusters' => $phase->clusters->filter(function ($cluster) {
                         // Only include clusters that have capacity for more lots
                         $totalLots = $cluster->lots->count();
-                        
+
                         return $cluster->total_capacity === null || $totalLots < $cluster->total_capacity;
                     })->map(function ($cluster) {
                         return [
@@ -87,7 +85,7 @@ class LotManagementController extends Controller
 
         Phase::create([
             'phase_name' => $validated['name'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -109,7 +107,7 @@ class LotManagementController extends Controller
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
             'total_capacity' => $validated['occupants'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -142,7 +140,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -157,7 +155,7 @@ class LotManagementController extends Controller
         ]);
 
         DB::update(
-            "UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            'UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
             [$validated['name'], $validated['coordinates'], $phase->id]
         );
 
@@ -173,7 +171,7 @@ class LotManagementController extends Controller
         ]);
 
         DB::update(
-            "UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            'UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
             [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
         );
 
@@ -189,7 +187,7 @@ class LotManagementController extends Controller
         ]);
 
         DB::update(
-            "UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?",
+            'UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
             [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
         );
 
@@ -227,7 +225,7 @@ class LotManagementController extends Controller
     {
         $burialRecord = $lot->burialRecords()->first();
 
-        if (!$burialRecord) {
+        if (! $burialRecord) {
             return to_route('clerk.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }
