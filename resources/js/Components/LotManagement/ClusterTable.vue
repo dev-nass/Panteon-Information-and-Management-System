@@ -212,7 +212,17 @@ const redirectToClerkMap = (id) => {
                     <span v-else>{{ cluster.name }}</span>
                 </TableData>
                 <TableData>{{ cluster.occupants }}</TableData>
-                <TableData>{{ cluster.total_lots }}</TableData>
+                <TableData>
+                    <input
+                        v-if="editingRow?.id === cluster.id"
+                        v-model.number="editingRow.total_capacity"
+                        type="number"
+                        min="1"
+                        @click.stop
+                        class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
+                    />
+                    <span v-else>{{ cluster.total_lots }}</span>
+                </TableData>
                 <TableData>
                     <input
                         v-if="editingRow?.id === cluster.id"

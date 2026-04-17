@@ -167,13 +167,21 @@ class LotManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|in:apartment,underground',
+            'total_capacity' => 'nullable|integer|min:1',
             'coordinates' => 'nullable|json',
         ]);
 
-        DB::update(
-            'UPDATE clusters SET cluster_name = ?, cluster_type = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
-            [$validated['name'], $validated['type'], $validated['coordinates'], $cluster->id]
-        );
+        if (isset($validated['coordinates'])) {
+            DB::update(
+                'UPDATE clusters SET cluster_name = ?, cluster_type = ?, total_capacity = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
+                [$validated['name'], $validated['type'], $validated['total_capacity'] ?? null, $validated['coordinates'], $cluster->id]
+            );
+        } else {
+            DB::update(
+                'UPDATE clusters SET cluster_name = ?, cluster_type = ?, total_capacity = ? WHERE id = ?',
+                [$validated['name'], $validated['type'], $validated['total_capacity'] ?? null, $cluster->id]
+            );
+        }
 
         return to_route('clerk.lot_management.index')->with('success', 'Cluster updated successfully.');
     }
