@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BurialRecordResource;
-use App\Http\Resources\DeceasedRecordResource;
 use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
@@ -55,7 +54,7 @@ class BurialRecordController extends Controller
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
-                ? "deceased_records." . str_replace('deceased_', '', $sortField)
+                ? 'deceased_records.' . str_replace('deceased_', '', $sortField)
                 : "burial_records.$sortField",
                 $sortDirection
             );
@@ -82,6 +81,7 @@ class BurialRecordController extends Controller
                         'cluster_type' => $cluster->cluster_type,
                         'lots' => $cluster->lots->map(function ($lot) {
                             $isOccupied = $lot->burialRecords->isNotEmpty();
+
                             return [
                                 'id' => $lot->id,
                                 'column' => $lot->column,
@@ -191,7 +191,7 @@ class BurialRecordController extends Controller
                 'clusters.lots' => function ($query) {
                     $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                 },
-                'clusters.lots.burialRecords'
+                'clusters.lots.burialRecords',
             ])
             ->get()
             ->map(function ($phase) use ($currentBurialRecordId) {
@@ -207,6 +207,7 @@ class BurialRecordController extends Controller
                             'coordinates' => $cluster->coordinates,
                             'lots' => $cluster->lots->map(function ($lot) use ($currentBurialRecordId) {
                                 $isOccupied = $lot->burialRecords->where('id', '!=', $currentBurialRecordId)->isNotEmpty();
+
                                 return [
                                     'id' => $lot->id,
                                     'column' => $lot->column,
@@ -232,7 +233,7 @@ class BurialRecordController extends Controller
                         $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                     },
                     'lot.cluster.phase:id,phase_name',
-                    'user:id,first_name,middle_name,last_name,role'
+                    'user:id,first_name,middle_name,last_name,role',
                 ])
             ),
             'phases' => $phases,
