@@ -3,17 +3,21 @@
 namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Clerk\BurialRecordStoreRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\Phase;
+use app\Services\BurialRecordService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BurialRecordController extends Controller
 {
+    public function __construct(protected BurialRecordService $service) {}
+
     // handles tha diplay of table view, any form of filter is present or not
     public function index()
     {
@@ -54,7 +58,7 @@ class BurialRecordController extends Controller
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
-                ? 'deceased_records.' . str_replace('deceased_', '', $sortField)
+                ? 'deceased_records.'.str_replace('deceased_', '', $sortField)
                 : "burial_records.$sortField",
                 $sortDirection
             );
@@ -99,8 +103,12 @@ class BurialRecordController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(BurialRecordStoreRequest $request)
     {
+        $burialRecord = $this->service->store(
+            deceasedData: $request->deceasedData(),
+            applicantData: $request->applicantData(),
+        );
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
