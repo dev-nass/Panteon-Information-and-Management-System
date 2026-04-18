@@ -16,6 +16,11 @@ class BurialRecordService
         protected BurialRecordRepository $burial_repo,
     ) {}
 
+    /**
+     * @param  array  $applicantData  validated data of applicant,
+     * @param  array  $deceasedData  validated data of deceased,
+     * @param  int  $createdBy  user ID of the login clerk
+     * */
     public function store(array $applicantData, array $deceasedData, int $createdBy): Model
     {
         return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData) {
@@ -32,6 +37,11 @@ class BurialRecordService
         });
     }
 
+    /**
+     * @param  Model  $burialRecord  model instance of the burial record,
+     * @param  array  $deceasedData  validated data of deceased
+     * @param  int  $updatedBy  user id of the login clerk
+     * */
     public function update(Model $burialRecord, array $deceasedData, int $updatedBy)
     {
         return DB::transaction(function () use ($burialRecord, $deceasedData, $updatedBy) {
