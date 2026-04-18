@@ -13,6 +13,7 @@ import { useSearch } from "@/composables/map/search/useSearch";
 const props = defineProps({
     burial_record: { type: Object, required: true },
     phases: { type: Array, required: true },
+    current_selection: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -37,7 +38,7 @@ const tabs = [
 ];
 
 const back = () => {
-    window.history.back();
+    router.visit(route("clerk.burial_records.index"));
 };
 
 const editing = ref(false);
@@ -48,10 +49,10 @@ const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
 const localData = ref(JSON.parse(JSON.stringify(originalData.value)));
 console.log(localData.value);
 
-const selectedPhaseId = ref(null);
-const selectedClusterId = ref(null);
-const selectedLotId = ref(null);
-const originalLotId = ref(props.burial_record.data.lot?.lot?.id || null);
+const selectedPhaseId = ref(props.current_selection?.phase_id || null);
+const selectedClusterId = ref(props.current_selection?.cluster_id || null);
+const selectedLotId = ref(props.current_selection?.lot_id || null);
+const originalLotId = ref(props.current_selection?.lot_id || null);
 
 watch(
     [localData, selectedLotId],
@@ -74,7 +75,10 @@ const discardChanges = () => {
 
 const confirmDiscard = () => {
     localData.value = JSON.parse(JSON.stringify(originalData.value));
-    selectedLotId.value = originalLotId.value;
+    selectedPhaseId.value = props.current_selection?.phase_id || null;
+    selectedClusterId.value = props.current_selection?.cluster_id || null;
+    selectedLotId.value = props.current_selection?.lot_id || null;
+    originalLotId.value = props.current_selection?.lot_id || null;
     hasChanges.value = false;
     editing.value = false;
 
@@ -151,25 +155,25 @@ const saveChanges = () => {
 };
 
 // Initialize location selections based on current burial record
-const initializeLocationSelections = () => {
-    const currentLotId = props.burial_record.data.lot?.lot?.id;
-    const currentClusterId = props.burial_record.data.lot?.cluster?.id;
-
-    if (currentLotId && currentClusterId) {
-        // Find the phase that contains this cluster
-        for (const phase of props.phases) {
-            const cluster = phase.clusters.find(
-                (c) => c.id == currentClusterId,
-            );
-            if (cluster) {
-                selectedPhaseId.value = phase.id;
-                selectedClusterId.value = currentClusterId;
-                selectedLotId.value = currentLotId;
-                break;
-            }
-        }
-    }
-};
+// const initializeLocationSelections = () => {
+//     const currentLotId = props.burial_record.data.lot?.lot?.id;
+//     const currentClusterId = props.burial_record.data.lot?.cluster?.id;
+//
+//     if (currentLotId && currentClusterId) {
+//         // Find the phase that contains this cluster
+//         for (const phase of props.phases) {
+//             const cluster = phase.clusters.find(
+//                 (c) => c.id == currentClusterId,
+//             );
+//             if (cluster) {
+//                 selectedPhaseId.value = phase.id;
+//                 selectedClusterId.value = currentClusterId;
+//                 selectedLotId.value = currentLotId;
+//                 break;
+//             }
+//         }
+//     }
+// };
 
 const availableClusters = computed(() => {
     if (!selectedPhaseId.value) return [];
@@ -216,7 +220,7 @@ defineOptions({
 // added to close the modal from Clerk/Map/IndexView
 onMounted(() => {
     // initializeMap(mapContainer.value);
-    initializeLocationSelections();
+    // initializeLocationSelections();
 
     document
         .querySelectorAll("#hs-scroll-inside-body-modal")
