@@ -20,4 +20,12 @@ class BurialRecordRepository extends Repository
             'user_id' => $createdBy,
         ]);
     }
+
+    public function updateBurialRecord(Model $burialRecord, int $lotId, int $updatedBy): bool
+    {
+        return $this->update($burialRecord, [
+            'lot_id' => $lotId,
+            'user_id' => $updatedBy,
+        ]);
+    }
 }

@@ -42,4 +42,34 @@ class DeceasedRecordRepository extends Repository
             'precinct_num' => $validated['precinct_num'] ?? null,
         ]);
     }
+
+    public function updateDeceasedRecord(Model $deceased, array $data): bool
+    {
+        return $this->update($deceased, [
+            'first_name' => $data['first_name'],
+            'middle_name' => $data['middle_name'] ?? null,
+            'last_name' => $data['last_name'],
+            'age' => $data['age'] ?? null,
+            'date_of_birth' => $data['birth']['date'] ?? null,
+            'civil_status' => $data['civil_status'] ?? null,
+            'religion' => $data['religion'] ?? null,
+            'nationality' => $data['nationality'] ?? null,
+            'occupation' => $data['occupation']['name'] ?? null,
+            'address' => $data['address'] ?? null,
+            'part_of_LGBTQ' => $data['lgbtq'] ?? null,
+            'precinct_num' => $data['precinct_num'] ?? null,
+            'date_of_death' => $data['death']['date'] ?? null,
+            'cause_of_death' => $data['death']['cause'] ?? null,
+            'place_of_death' => $data['death']['place'] ?? null,
+            'corpse_disposal' => $data['corpse_disposal'] ?? null,
+            'cremation_place' => $data['cremation']['place'] ?? null,
+            'cremation_date' => $data['cremation']['date'] ?? null,
+            'burial_place' => $data['burial_place'] ?? null,
+            'date_of_depository' => $data['burial']['date'] ?? null,
+            'father_name' => $data['family']['father'] ?? null,
+            'mother_maiden_name' => $data['family']['mother_maiden'] ?? null,
+            'company_address' => $data['occupation']['address'] ?? null,
+            'company_supervisor_name' => $data['occupation']['supervisor'] ?? null,
+        ]);
+    }
 }

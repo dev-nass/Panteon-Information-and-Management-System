@@ -34,4 +34,14 @@ class ApplicantRepository extends Repository
             ->where('contact_number', $contactNumber)
             ->first($columns);
     }
+
+    public function updateApplicant(Model $applicant, array $data): bool
+    {
+        return $this->update($applicant, [
+            'first_name' => $data['first_name'],
+            'middle_name' => $data['middle_name'] ?? null,
+            'last_name' => $data['last_name'],
+            'contact_number' => $data['contact_number'],
+        ]);
+    }
 }

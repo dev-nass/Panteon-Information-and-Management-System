@@ -31,4 +31,30 @@ class BurialRecordService
             );
         });
     }
+
+    public function update(Model $burialRecord, array $deceasedData, int $updatedBy)
+    {
+        return DB::transaction(function () use ($burialRecord, $deceasedData, $updatedBy) {
+            $this->deceased_repo->updateDeceasedRecord(
+                $burialRecord->deceasedRecord,
+                $deceasedData['deceased']
+            );
+
+            $applicant = $burialRecord->deceasedRecord->applicant;
+            if ($applicant) {
+                $this->applicant_repo->updateApplicant(
+                    $applicant,
+                    $deceasedData['deceased']['applicant']
+                );
+            }
+
+            if (isset($deceasedData['lot_id'])) {
+                $this->burial_repo->updateBurialRecord(
+                    $burialRecord, $deceasedData['lot_id'], $updatedBy
+                );
+            }
+
+        });
+
+    }
 }

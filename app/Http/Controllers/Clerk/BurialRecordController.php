@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Clerk\BurialRecordStoreRequest;
+use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
 use App\Models\Phase;
 use App\Services\BurialRecordService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -175,88 +175,9 @@ class BurialRecordController extends Controller
         ]);
     }
 
-    public function update(Request $request, BurialRecord $burial_record)
+    public function update(BurialRecordUpdateRequest $request, BurialRecord $burial_record)
     {
-        $validated = $request->validate([
-            'deceased.first_name' => 'required|string|max:255',
-            'deceased.middle_name' => 'nullable|string|max:255',
-            'deceased.last_name' => 'required|string|max:255',
-            'deceased.age' => 'nullable|integer',
-            'deceased.birth.date' => 'nullable|date',
-            'deceased.civil_status' => 'nullable|string|max:255',
-            'deceased.religion' => 'nullable|string|max:255',
-            'deceased.nationality' => 'nullable|string|max:255',
-            'deceased.occupation.name' => 'nullable|string|max:255',
-            'deceased.address' => 'nullable|string|max:255',
-            'deceased.lgbtq' => 'nullable|string|max:255',
-            'deceased.precinct_num' => 'nullable|integer',
-            'deceased.death.date' => 'nullable|date',
-            'deceased.death.cause' => 'nullable|string|max:255',
-            'deceased.death.place' => 'nullable|string|max:255',
-            'deceased.corpse_disposal' => 'nullable|string|max:255',
-            'deceased.cremation.place' => 'nullable|string|max:255',
-            'deceased.cremation.date' => 'nullable|date',
-            'deceased.burial_place' => 'nullable|string|max:255',
-            'deceased.burial.date' => 'required|date',
-            'deceased.family.father' => 'nullable|string|max:255',
-            'deceased.family.mother_maiden' => 'nullable|string|max:255',
-            'deceased.occupation.address' => 'nullable|string|max:255',
-            'deceased.occupation.supervisor' => 'nullable|string|max:255',
-            'deceased.applicant.first_name' => 'required|string|max:255',
-            'deceased.applicant.middle_name' => 'nullable|string|max:255',
-            'deceased.applicant.last_name' => 'required|string|max:255',
-            'deceased.applicant.contact_number' => 'nullable|string|max:255',
-            'lot_id' => 'nullable|exists:lots,id',
-        ]);
-
-        $deceasedRecord = $burial_record->deceasedRecord;
-        $deceasedRecord->update([
-            'first_name' => $validated['deceased']['first_name'],
-            'middle_name' => $validated['deceased']['middle_name'] ?? null,
-            'last_name' => $validated['deceased']['last_name'],
-            'age' => $validated['deceased']['age'] ?? null,
-            'date_of_birth' => $validated['deceased']['birth']['date'] ?? null,
-            'civil_status' => $validated['deceased']['civil_status'] ?? null,
-            'religion' => $validated['deceased']['religion'] ?? null,
-            'nationality' => $validated['deceased']['nationality'] ?? null,
-            'occupation' => $validated['deceased']['occupation']['name'] ?? null,
-            'address' => $validated['deceased']['address'] ?? null,
-            'part_of_LGBTQ' => $validated['deceased']['lgbtq'] ?? null,
-            'precinct_num' => $validated['deceased']['precinct_num'] ?? null,
-            'date_of_death' => $validated['deceased']['death']['date'] ?? null,
-            'cause_of_death' => $validated['deceased']['death']['cause'] ?? null,
-            'place_of_death' => $validated['deceased']['death']['place'] ?? null,
-            'corpse_disposal' => $validated['deceased']['corpse_disposal'] ?? null,
-            'cremation_place' => $validated['deceased']['cremation']['place'] ?? null,
-            'cremation_date' => $validated['deceased']['cremation']['date'] ?? null,
-            'burial_place' => $validated['deceased']['burial_place'] ?? null,
-            'date_of_depository' => $validated['deceased']['burial']['date'],
-            'father_name' => $validated['deceased']['family']['father'] ?? null,
-            'mother_maiden_name' => $validated['deceased']['family']['mother_maiden'] ?? null,
-            'company_address' => $validated['deceased']['occupation']['address'] ?? null,
-            'company_supervisor_name' => $validated['deceased']['occupation']['supervisor'] ?? null,
-        ]);
-
-        if (isset($validated['lot_id'])) {
-            $burial_record->update([
-                'lot_id' => $validated['lot_id'],
-                'user_id' => auth()->id(),
-            ]);
-        } else {
-            $burial_record->update([
-                'user_id' => auth()->id(),
-            ]);
-        }
-
-        $applicant = $deceasedRecord->applicant;
-        if ($applicant) {
-            $applicant->update([
-                'first_name' => $validated['deceased']['applicant']['first_name'],
-                'middle_name' => $validated['deceased']['applicant']['middle_name'] ?? null,
-                'last_name' => $validated['deceased']['applicant']['last_name'],
-                'contact_number' => $validated['deceased']['applicant']['contact_number'] ?? null,
-            ]);
-        }
+        $this->service->update($burial_record, $request->validated(), auth()->id());
 
         return back()->with('success', 'Burial record updated successfully.');
     }

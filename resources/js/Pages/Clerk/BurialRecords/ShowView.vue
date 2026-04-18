@@ -60,7 +60,7 @@ watch(
         const lotChanged = newLotId !== originalLotId.value;
         hasChanges.value = dataChanged || lotChanged;
     },
-    { deep: true }
+    { deep: true },
 );
 
 const discardChanges = () => {
@@ -100,13 +100,13 @@ const redirectToClerkMap = () => {
 const deleteBurialRecord = () => {
     if (
         confirm(
-            "Are you sure you want to delete this burial record? This action cannot be undone."
+            "Are you sure you want to delete this burial record? This action cannot be undone.",
         )
     ) {
         router.delete(
             route(
                 "clerk.burial_records.destroy",
-                props.burial_record.data.burial.id
+                props.burial_record.data.burial.id,
             ),
             {
                 onSuccess: () => {
@@ -115,7 +115,7 @@ const deleteBurialRecord = () => {
                 onError: () => {
                     $toast.error("Failed to delete burial record.");
                 },
-            }
+            },
         );
     }
 };
@@ -124,7 +124,7 @@ const saveChanges = () => {
     router.post(
         route(
             "clerk.burial_records.update",
-            props.burial_record.data.burial.id
+            props.burial_record.data.burial.id,
         ),
         {
             deceased: localData.value.deceased,
@@ -133,7 +133,7 @@ const saveChanges = () => {
         {
             onSuccess: () => {
                 originalData.value = JSON.parse(
-                    JSON.stringify(localData.value)
+                    JSON.stringify(localData.value),
                 );
                 originalLotId.value = selectedLotId.value;
                 hasChanges.value = false;
@@ -142,11 +142,11 @@ const saveChanges = () => {
             },
             onError: () => {
                 $toast.error(
-                    "Failed to update burial record. Please check the form for errors."
+                    "Failed to update burial record. Please check the form for errors.",
                 );
             },
             preserveScroll: true,
-        }
+        },
     );
 };
 
@@ -159,7 +159,7 @@ const initializeLocationSelections = () => {
         // Find the phase that contains this cluster
         for (const phase of props.phases) {
             const cluster = phase.clusters.find(
-                (c) => c.id == currentClusterId
+                (c) => c.id == currentClusterId,
             );
             if (cluster) {
                 selectedPhaseId.value = phase.id;
@@ -180,11 +180,11 @@ const availableClusters = computed(() => {
 const availableLots = computed(() => {
     if (!selectedClusterId.value) return [];
     const cluster = availableClusters.value.find(
-        (c) => c.id == selectedClusterId.value
+        (c) => c.id == selectedClusterId.value,
     );
     return (
         cluster?.lots.filter(
-            (lot) => !lot.is_occupied || lot.id == selectedLotId.value
+            (lot) => !lot.is_occupied || lot.id == selectedLotId.value,
         ) || []
     );
 });
@@ -204,7 +204,7 @@ const selectedLotRow = computed(() => {
 const selectedClusterType = computed(() => {
     if (!selectedClusterId.value) return null;
     const cluster = availableClusters.value.find(
-        (c) => c.id == selectedClusterId.value
+        (c) => c.id == selectedClusterId.value,
     );
     return cluster?.cluster_type || null;
 });
@@ -749,6 +749,7 @@ onBeforeUnmount(() => {
                     label="Contact Number"
                     :modelValue="localData.deceased?.applicant?.contact_number"
                     :editing="editing"
+                    :error="errors['deceased.applicant.contact_number']"
                     @update:modelValue="
                         (val) =>
                             (localData.deceased.applicant.contact_number = val)
