@@ -1,8 +1,9 @@
 <?php
 
-namespace app\Services;
+namespace App\Services;
 
 use App\Repositories\ApplicantRepository;
+use App\Repositories\BurialRecordRepository;
 use App\Repositories\DeceasedRecordRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -11,18 +12,22 @@ class BurialRecordService
 {
     public function __construct(
         protected DeceasedRecordRepository $deceased_repo,
-        protected ApplicantRepository $applicant_repo
+        protected ApplicantRepository $applicant_repo,
+        protected BurialRecordRepository $burial_repo,
     ) {}
 
-    public function store(array $applicantData, array $deceasedData): Model
+    public function store(array $applicantData, array $deceasedData, int $createdBy): Model
     {
-        return DB::transaction(function () use ($applicantData, $deceasedData) {
+        return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData) {
 
             $applicant = $this->applicant_repo->findOrCreateApplicant($applicantData);
 
-            return $this->deceased_repo->createDeceasedRecord(
-                $deceasedData,
-                $applicant->id
+            $deceased = $this->deceased_repo->createDeceasedRecord($deceasedData, $applicant->id);
+
+            return $this->burial_repo->createBurialRecord(
+                $deceased->id,
+                $applicant->id,
+                $createdBy
             );
         });
     }
