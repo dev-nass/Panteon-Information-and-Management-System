@@ -52,7 +52,7 @@ class BurialRecordStoreRequest extends FormRequest
             'applicant_first_name' => 'required|string|max:255',
             'applicant_middle_name' => 'nullable|string|max:255',
             'applicant_last_name' => 'required|string|max:255',
-            'applicant_contact_number' => 'required', 'string', 'regex:/^09\d{9}$/',
+            'applicant_contact_number' => 'required|string|regex:/^09\d{9}$/',
         ];
     }
 
