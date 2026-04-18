@@ -567,7 +567,7 @@ defineOptions({
                         </label>
                         <Input
                             v-model="form.applicant_contact_number"
-                            placeholder="Enter contact number"
+                            placeholder="09XXXXXXXXX"
                             required
                         />
                         <span
