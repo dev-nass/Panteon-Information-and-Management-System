@@ -69,7 +69,7 @@ class BurialRecordController extends Controller
         ]);
     }
 
-    // turn this into its own service method getCreateData
+    // TODO: turn this into its own service method getCreateData
     public function create()
     {
         $phases = Phase::with(['clusters.lots.burialRecords'])->get()->map(function ($phase) {
