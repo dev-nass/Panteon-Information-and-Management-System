@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
@@ -51,6 +51,11 @@ const fetchClusters = async () => {
         );
         const data = await response.json();
         clusters.value = data;
+        setTimeout(() => {
+            if (window.HSTooltip) {
+                window.HSTooltip.autoInit();
+            }
+        }, 100);
     } catch (error) {
         console.error("Error fetching clusters:", error);
         clusters.value = [];
@@ -149,6 +154,12 @@ const redirectToClerkMap = (id) => {
         },
     });
 };
+
+onMounted(() => {
+    if (window.HSTooltip) {
+        window.HSTooltip.autoInit();
+    }
+});
 </script>
 
 <template>
@@ -187,8 +198,36 @@ const redirectToClerkMap = (id) => {
             <tr>
                 <TableHeader>ID</TableHeader>
                 <TableHeader>Name</TableHeader>
-                <TableHeader>Occupants</TableHeader>
-                <TableHeader>Total Lots</TableHeader>
+                <TableHeader>
+                    Occupants
+                    <span class="hs-tooltip inline-block ml-1">
+                        <span
+                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                            >*</span
+                        >
+                        <span
+                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                            role="tooltip"
+                        >
+                            Occupied lots by burial record
+                        </span>
+                    </span>
+                </TableHeader>
+                <TableHeader>
+                    Total Lots
+                    <span class="hs-tooltip inline-block ml-1">
+                        <span
+                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                            >*</span
+                        >
+                        <span
+                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                            role="tooltip"
+                        >
+                            Allowed lots for cluster
+                        </span>
+                    </span>
+                </TableHeader>
                 <TableHeader>Type</TableHeader>
                 <TableHeader>Coordinate</TableHeader>
                 <TableHeader>Actions</TableHeader>
