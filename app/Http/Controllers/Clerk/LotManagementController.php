@@ -98,7 +98,7 @@ class LotManagementController extends Controller
             'phase_id' => 'required|exists:phases,id',
             'name' => 'required|string|max:255',
             'type' => 'required|in:apartment,underground',
-            'occupants' => 'required|integer|min:5',
+            'total_capacity' => 'required|integer|min:5',
             'coordinates' => 'required|json',
         ]);
 
@@ -106,7 +106,7 @@ class LotManagementController extends Controller
             'phase_id' => $validated['phase_id'],
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
-            'total_capacity' => $validated['occupants'],
+            'total_capacity' => $validated['total_capacity'],
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 

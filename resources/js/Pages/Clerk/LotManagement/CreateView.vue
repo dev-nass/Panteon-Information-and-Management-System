@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 
@@ -30,7 +30,7 @@ const clusterForm = useForm({
     phase_id: "",
     name: "",
     type: "",
-    occupants: 0,
+    total_capacity: 0,
     coordinates: null,
 });
 
@@ -72,7 +72,7 @@ const openPhaseModal = () => {
 
 const handlePhaseCoordinatesSet = (coords) => {
     phaseForm.coordinates = JSON.stringify(coords);
-    toast.success('Coordinates set successfully!');
+    toast.success("Coordinates set successfully!");
 };
 
 const submitCluster = () => {
@@ -89,7 +89,7 @@ const submitCluster = () => {
 
 const openClusterModal = () => {
     if (!clusterForm.phase_id) {
-        toast.error('Please select a phase first');
+        toast.error("Please select a phase first");
         return;
     }
     showClusterModal.value = true;
@@ -97,7 +97,7 @@ const openClusterModal = () => {
 
 const handleClusterCoordinatesSet = (coords) => {
     clusterForm.coordinates = JSON.stringify(coords);
-    toast.success('Coordinates set successfully!');
+    toast.success("Coordinates set successfully!");
 };
 
 const submitLot = () => {
@@ -114,7 +114,7 @@ const submitLot = () => {
 
 const openPlottingModal = () => {
     if (!lotForm.cluster_id) {
-        toast.error('Please select a cluster first');
+        toast.error("Please select a cluster first");
         return;
     }
     showLotModal.value = true;
@@ -122,7 +122,7 @@ const openPlottingModal = () => {
 
 const handleCoordinatesSet = (coords) => {
     lotForm.coordinates = JSON.stringify(coords);
-    toast.success('Coordinates set successfully!');
+    toast.success("Coordinates set successfully!");
 };
 
 const closePhaseModal = () => {
@@ -143,6 +143,12 @@ const goBack = () => {
 
 defineOptions({
     layout: Dashboard,
+});
+
+onMounted(() => {
+    if (window.HSTooltip) {
+        window.HSTooltip.autoInit();
+    }
 });
 </script>
 
@@ -227,10 +233,18 @@ defineOptions({
                                 @click="openPhaseModal"
                                 class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
                             >
-                                📍 {{ phaseForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                                📍
+                                {{
+                                    phaseForm.coordinates
+                                        ? "Update Location"
+                                        : "Plot on Map"
+                                }}
                             </button>
                         </div>
-                        <div v-if="phaseForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                        <div
+                            v-if="phaseForm.coordinates"
+                            class="mt-2 text-sm text-green-600 dark:text-green-400"
+                        >
                             ✓ Coordinates set
                         </div>
                         <span
@@ -326,19 +340,31 @@ defineOptions({
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
-                            Occupants
+                            Total Capacity
+                            <span class="hs-tooltip inline-block ml-1">
+                                <span
+                                    class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                                    >*</span
+                                >
+                                <span
+                                    class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                                    role="tooltip"
+                                >
+                                    Allowed lots for this cluster
+                                </span>
+                            </span>
                         </label>
                         <Input
-                            v-model="clusterForm.occupants"
+                            v-model="clusterForm.total_capacity"
                             type="number"
                             placeholder="Enter number of occupants"
                             required
                         />
                         <span
-                            v-if="clusterForm.errors.occupants"
+                            v-if="clusterForm.errors.total_capacity"
                             class="text-red-500 text-sm"
                         >
-                            {{ clusterForm.errors.occupants }}
+                            {{ clusterForm.errors.total_capacity }}
                         </span>
                     </div>
 
@@ -355,10 +381,18 @@ defineOptions({
                                 @click="openClusterModal"
                                 class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
                             >
-                                📍 {{ clusterForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                                📍
+                                {{
+                                    clusterForm.coordinates
+                                        ? "Update Location"
+                                        : "Plot on Map"
+                                }}
                             </button>
                         </div>
-                        <div v-if="clusterForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                        <div
+                            v-if="clusterForm.coordinates"
+                            class="mt-2 text-sm text-green-600 dark:text-green-400"
+                        >
                             ✓ Coordinates set
                         </div>
                         <span
@@ -485,10 +519,18 @@ defineOptions({
                                 @click="openPlottingModal"
                                 class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
                             >
-                                📍 {{ lotForm.coordinates ? 'Update Location' : 'Plot on Map' }}
+                                📍
+                                {{
+                                    lotForm.coordinates
+                                        ? "Update Location"
+                                        : "Plot on Map"
+                                }}
                             </button>
                         </div>
-                        <div v-if="lotForm.coordinates" class="mt-2 text-sm text-green-600 dark:text-green-400">
+                        <div
+                            v-if="lotForm.coordinates"
+                            class="mt-2 text-sm text-green-600 dark:text-green-400"
+                        >
                             ✓ Coordinates set
                         </div>
                         <span
