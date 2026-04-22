@@ -49,7 +49,7 @@ class BurialRecordUpdateRequest extends FormRequest
             'deceased.applicant.first_name' => 'required|string|max:255',
             'deceased.applicant.middle_name' => 'nullable|string|max:255',
             'deceased.applicant.last_name' => 'required|string|max:255',
-            'deceased.applicant.contact_number' => ['nullable', 'string', 'regex:/^09\d{9}$/'],
+            'deceased.applicant.contact_number' => 'required|string|regex:/^09\d{9}$/',
             'lot_id' => 'nullable|exists:lots,id',
         ];
     }
