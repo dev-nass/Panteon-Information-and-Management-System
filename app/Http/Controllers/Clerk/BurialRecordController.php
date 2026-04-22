@@ -7,7 +7,6 @@ use App\Http\Requests\Clerk\BurialRecordStoreRequest;
 use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
-use App\Models\Phase;
 use App\Services\BurialRecordService;
 use Inertia\Inertia;
 
@@ -69,35 +68,10 @@ class BurialRecordController extends Controller
         ]);
     }
 
-    // TODO: turn this into its own service method getCreateData
     public function create()
     {
-        $phases = Phase::with(['clusters.lots.burialRecords'])->get()->map(function ($phase) {
-            return [
-                'id' => $phase->id,
-                'name' => $phase->phase_name,
-                'clusters' => $phase->clusters->map(function ($cluster) {
-                    return [
-                        'id' => $cluster->id,
-                        'name' => $cluster->cluster_name,
-                        'cluster_type' => $cluster->cluster_type,
-                        'lots' => $cluster->lots->map(function ($lot) {
-                            $isOccupied = $lot->burialRecords->isNotEmpty();
-
-                            return [
-                                'id' => $lot->id,
-                                'column' => $lot->column,
-                                'row' => $lot->row,
-                                'is_occupied' => $isOccupied,
-                            ];
-                        }),
-                    ];
-                }),
-            ];
-        });
-
         return Inertia::render('Clerk/BurialRecords/CreateView', [
-            'phases' => $phases,
+            'phases' => $this->service->getCreateData(),
         ]);
     }
 

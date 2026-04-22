@@ -70,6 +70,38 @@ class BurialRecordService
 
     }
 
+    public function getCreateData()
+    {
+        return $this->phase_repo->getPhasesWithAvailableLotsForCreate()
+            ->with('clusters.lots.burialRecords')
+            ->get()
+            ->map(function ($phase) {
+                return [
+                    'id' => $phase->id,
+                    'name' => $phase->phase_name,
+                    'clusters' => $phase->clusters->map(function ($cluster) {
+                        return [
+                            'id' => $cluster->id,
+                            'name' => $cluster->cluster_name,
+                            'cluster_type' => $cluster->cluster_type,
+                            'lots' => $cluster->lots->map(function ($lot) {
+                                return [
+                                    'id' => $lot->id,
+                                    'column' => $lot->column,
+                                    'row' => $lot->row,
+                                    'is_occupied' => $lot->burialRecords->isNotEmpty(),
+                                ];
+                            }),
+                        ];
+                    }),
+                ];
+            });
+
+    }
+
+    /**
+     * Description: For the showing and editing of burial record
+     * */
     public function getShowData(Model $burialRecord): array
     {
         $burialRecord->load([
@@ -97,7 +129,7 @@ class BurialRecordService
             ] : null,
 
             'phases' => $this->phase_repo
-                ->getPhasesWithAvailableLots($burialRecord->id)
+                ->getPhasesWithAvailableLotsForShow($burialRecord->id)
                 ->map(function ($phase) {
                     return [
                         'id' => $phase->id,
