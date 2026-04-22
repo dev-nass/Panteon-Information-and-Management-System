@@ -23,7 +23,7 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => ! is_null($phase->coordinates),
+                    'isPhase_mapped' => !is_null($phase->coordinates),
                 ];
             });
 
@@ -85,7 +85,7 @@ class LotManagementController extends Controller
 
         Phase::create([
             'phase_name' => $validated['name'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -107,7 +107,7 @@ class LotManagementController extends Controller
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
             'total_capacity' => $validated['occupants'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -140,7 +140,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -233,7 +233,7 @@ class LotManagementController extends Controller
     {
         $burialRecord = $lot->burialRecords()->first();
 
-        if (! $burialRecord) {
+        if (!$burialRecord) {
             return to_route('clerk.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }

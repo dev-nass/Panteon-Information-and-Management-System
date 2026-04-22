@@ -47,7 +47,7 @@ const fetchClusters = async () => {
     loading.value = true;
     try {
         const response = await fetch(
-            route("api.lot.management.clusters", props.phaseId)
+            route("api.lot.management.clusters", props.phaseId),
         );
         const data = await response.json();
         clusters.value = data;
@@ -66,13 +66,13 @@ watch(
     () => props.search,
     () => {
         currentPage.value = 1;
-    }
+    },
 );
 
 const filteredClusters = computed(() =>
     clusters.value.filter((c) =>
-        c.name.toLowerCase().includes(props.search.toLowerCase())
-    )
+        c.name.toLowerCase().includes(props.search.toLowerCase()),
+    ),
 );
 
 const startEditRow = (cluster) => {
@@ -96,10 +96,10 @@ const saveEditRow = () => {
                     `Cluster "${clusterName}" updated successfully!`,
                     {
                         duration: 3000,
-                    }
+                    },
                 );
             },
-        }
+        },
     );
 };
 
@@ -123,14 +123,14 @@ const handleClusterCoordinatesSet = (coords) => {
                 editingItem.value = null;
                 fetchClusters();
             },
-        }
+        },
     );
 };
 
 const deleteCluster = (clusterId) => {
     if (
         confirm(
-            "Are you sure you want to delete this cluster? This will also delete all lots within it."
+            "Are you sure you want to delete this cluster? This will also delete all lots within it.",
         )
     ) {
         router.delete(route("clerk.lot_management.delete.cluster", clusterId), {
@@ -213,6 +213,7 @@ const redirectToClerkMap = (id) => {
                 </TableData>
                 <TableData>{{ cluster.occupants }}</TableData>
                 <TableData>
+                    <span>{{ cluster.total_lots }} / </span>
                     <input
                         v-if="editingRow?.id === cluster.id"
                         v-model.number="editingRow.total_capacity"
@@ -221,7 +222,7 @@ const redirectToClerkMap = (id) => {
                         @click.stop
                         class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                     />
-                    <span v-else>{{ cluster.total_lots }}</span>
+                    <span v-else>{{ cluster.total_capacity }}</span>
                 </TableData>
                 <TableData>
                     <input
