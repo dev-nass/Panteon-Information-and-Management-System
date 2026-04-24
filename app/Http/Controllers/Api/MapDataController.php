@@ -144,7 +144,7 @@ class MapDataController extends Controller
                     $query->select('id', 'deceased_record_id', 'lot_id', 'user_id');
                 },
                 'lots.burialRecords.deceasedRecord:id,first_name,middle_name,last_name,date_of_birth,date_of_death',
-                'lots.burialRecords.user:id,name',
+                'lots.burialRecords.user:id,first_name,last_name',
             ])
             ->first();
 
