@@ -73,7 +73,10 @@ const handleSubmit = () => {
                             placeholder="Enter your email"
                             required
                         />
-                        <p v-if="form.errors.email" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.email"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.email }}
                         </p>
                     </div>
@@ -93,7 +96,10 @@ const handleSubmit = () => {
                             placeholder="Enter your password"
                             required
                         />
-                        <p v-if="form.errors.password" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.password"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.password }}
                         </p>
                     </div>
@@ -106,7 +112,7 @@ const handleSubmit = () => {
                             class="w-full justify-center"
                             :disabled="form.processing"
                         >
-                            {{ form.processing ? 'Signing In...' : 'Sign In' }}
+                            {{ form.processing ? "Signing In..." : "Sign In" }}
                         </Button>
                     </div>
                 </form>

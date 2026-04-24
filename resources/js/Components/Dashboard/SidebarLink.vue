@@ -13,8 +13,8 @@ const props = defineProps({
         :class="[
             'group relative w-full flex items-center gap-1 py-1.5 px-2.5 text-sm rounded-lg before:absolute before:inset-y-0 before:-start-2 before:rounded-e-full before:w-1 before:h-full',
             isActive
-                ? 'bg-green-500 dark:bg-green-900 text-gray-900 dark:text-green-200'
-                : 'text-gray-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700',
+                ? 'bg-green-400 dark:bg-green-900 text-gray-900 dark:text-green-200'
+                : 'text-gray-600 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700',
         ]"
     >
         <span

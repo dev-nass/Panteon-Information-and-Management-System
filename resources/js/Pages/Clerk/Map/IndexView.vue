@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <section id="map-wrapper" class="relative w-full" style="height: 98vh">
+    <section id="map-wrapper" class="relative w-full" style="height: 100vh">
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
         <BurialRecordModal
