@@ -128,7 +128,7 @@ export function useFeatureProcessing() {
     const separateClustersByType = (features) => {
         const types = [
             ...new Set(
-                features.map((feature) => feature.cluster.properties.type)
+                features.map((feature) => feature.cluster.properties.type),
             ),
         ];
 
@@ -150,7 +150,7 @@ export function useFeatureProcessing() {
         types.forEach((type) => {
             // holds bunch of same type lots
             const typeFeatures = features.filter(
-                (f) => f.cluster.properties.type === type
+                (f) => f.cluster.properties.type === type,
             );
 
             // apply style to those same type lots
@@ -159,7 +159,7 @@ export function useFeatureProcessing() {
                 {
                     style: getLotStyle,
                     onEachFeature: onEachFeatureCustom,
-                }
+                },
             );
 
             // since we set clusterLayers hash map values to L.layerGroup() above, we are just accessing
@@ -183,7 +183,7 @@ export function useFeatureProcessing() {
 
         // Updates the visibility
         toggleMapFeaturesState.value = Array.from(
-            clusterVisibility.value.values()
+            clusterVisibility.value.values(),
         ).some((v) => v);
     };
 
@@ -201,7 +201,7 @@ export function useFeatureProcessing() {
             {
                 style: getPhaseStyle,
                 onEachFeature: onEachPhaseFeature,
-            }
+            },
         );
 
         geoJsonLayer.addTo(phaseLayerGroup.value);
@@ -277,8 +277,8 @@ export function useFeatureProcessing() {
     };
 
     /**
+     * Description: responsible for cluster styling based on their status
      * @param feature the actual rendered polygon (cluster)
-     * Description: responsible for cluster styling
      */
     const getLotStyle = (feature) => {
         const colors = {

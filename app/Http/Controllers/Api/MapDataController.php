@@ -107,6 +107,7 @@ class MapDataController extends Controller
             ->limit($limit)
             ->get();
 
+        // Format the selected data
         return ClusterResource::collection($clusters);
     }
 
