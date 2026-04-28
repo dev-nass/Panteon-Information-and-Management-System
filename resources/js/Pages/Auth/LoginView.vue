@@ -104,6 +104,16 @@ const handleSubmit = () => {
                         </p>
                     </div>
 
+                    <div
+                        class="text-end text-sm text-gray-600 dark:text-neutral-400"
+                    >
+                        <Link
+                            href="#"
+                            class="text-green-600 dark:text-green-500 hover:underline font-medium"
+                        >
+                            Forgot Passwrod?
+                        </Link>
+                    </div>
                     <!-- Submit Button -->
                     <div>
                         <Button
