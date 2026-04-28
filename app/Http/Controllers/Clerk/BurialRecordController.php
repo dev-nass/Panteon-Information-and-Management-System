@@ -12,7 +12,9 @@ use Inertia\Inertia;
 
 class BurialRecordController extends Controller
 {
-    public function __construct(protected BurialRecordService $service) {}
+    public function __construct(protected BurialRecordService $service)
+    {
+    }
 
     // handles tha diplay of table view, any form of filter is present or not
     public function index()
@@ -54,7 +56,7 @@ class BurialRecordController extends Controller
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
-                ? 'deceased_records.'.str_replace('deceased_', '', $sortField)
+                ? 'deceased_records.' . str_replace('deceased_', '', $sortField)
                 : "burial_records.$sortField",
                 $sortDirection
             );

@@ -16,7 +16,8 @@ class BurialRecordService
         protected ApplicantRepository $applicant_repo,
         protected BurialRecordRepository $burial_repo,
         protected PhaseRepository $phase_repo,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  array  $applicantData  validated data of applicant,
@@ -62,7 +63,9 @@ class BurialRecordService
 
             if (isset($deceasedData['lot_id'])) {
                 $this->burial_repo->updateBurialRecord(
-                    $burialRecord, $deceasedData['lot_id'], $updatedBy
+                    $burialRecord,
+                    $deceasedData['lot_id'],
+                    $updatedBy
                 );
             }
 
