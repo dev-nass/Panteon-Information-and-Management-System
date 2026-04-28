@@ -82,6 +82,7 @@ class BurialRecordController extends Controller
         $burialRecord = $this->service->store(
             deceasedData: $request->deceasedData(),
             applicantData: $request->applicantData(),
+            lotData: $request->lotData(),
             createdBy: auth()->id(),
         );
 

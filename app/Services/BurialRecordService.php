@@ -24,9 +24,9 @@ class BurialRecordService
      * @param  array  $deceasedData  validated data of deceased,
      * @param  int  $createdBy  user ID of the login clerk
      * */
-    public function store(array $applicantData, array $deceasedData, int $createdBy): Model
+    public function store(array $applicantData, array $deceasedData, array $lotData, int $createdBy): Model
     {
-        return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData) {
+        return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData, $lotData) {
 
             $applicant = $this->applicant_repo->findOrCreateApplicant($applicantData);
 
@@ -34,7 +34,7 @@ class BurialRecordService
 
             return $this->burial_repo->createBurialRecord(
                 $deceased->id,
-                $applicant->id,
+                $lotData['lot_id'],
                 $createdBy
             );
         });

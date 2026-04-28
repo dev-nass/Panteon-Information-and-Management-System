@@ -53,6 +53,9 @@ class BurialRecordStoreRequest extends FormRequest
             'applicant_middle_name' => 'nullable|string|max:255',
             'applicant_last_name' => 'required|string|max:255',
             'applicant_contact_number' => 'required|string|regex:/^09\d{9}$/',
+
+            // lot
+            'lot_id' => 'required|integer',
         ];
     }
 
@@ -66,20 +69,45 @@ class BurialRecordStoreRequest extends FormRequest
     public function deceasedData(): array
     {
         return $this->only([
-            'first_name', 'middle_name', 'last_name', 'age',
-            'birth_date', 'civil_status', 'religion', 'nationality',
-            'occupation_name', 'address', 'lgbtq', 'precinct_num',
-            'death_date', 'death_cause', 'death_place', 'corpse_disposal',
-            'cremation_place', 'cremation_date', 'burial_place', 'burial_date',
-            'father_name', 'mother_maiden_name', 'company_address', 'company_supervisor',
+            'first_name',
+            'middle_name',
+            'last_name',
+            'age',
+            'birth_date',
+            'civil_status',
+            'religion',
+            'nationality',
+            'occupation_name',
+            'address',
+            'lgbtq',
+            'precinct_num',
+            'death_date',
+            'death_cause',
+            'death_place',
+            'corpse_disposal',
+            'cremation_place',
+            'cremation_date',
+            'burial_place',
+            'burial_date',
+            'father_name',
+            'mother_maiden_name',
+            'company_address',
+            'company_supervisor',
         ]);
     }
 
     public function applicantData(): array
     {
         return $this->only([
-            'applicant_first_name', 'applicant_middle_name',
-            'applicant_last_name',  'applicant_contact_number',
+            'applicant_first_name',
+            'applicant_middle_name',
+            'applicant_last_name',
+            'applicant_contact_number',
         ]);
+    }
+
+    public function lotData(): array
+    {
+        return $this->only('lot_id');
     }
 }
