@@ -113,8 +113,7 @@ class ImportingController extends Controller
                         ->first();
 
                     if (!$lot) {
-                        $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber})";
-                        continue;
+                        $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber}) Unssagined";
                     }
 
                     // Create applicant if data exists (index 3)
@@ -144,7 +143,7 @@ class ImportingController extends Controller
                     // Create burial record with lot_id and user_id
                     BurialRecord::create([
                         'deceased_record_id' => $deceased->id,
-                        'lot_id' => $lot->id,
+                        'lot_id' => $lot?->id,
                         'user_id' => auth()->id(),
                     ]);
 

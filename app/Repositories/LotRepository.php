@@ -15,7 +15,7 @@ class LotRepository extends Repository
 
     /**
      * Description: Used before the createBurialRecord
-     * on BurialRecordService
+     * on BurialRecordService; Check the lot avalability and returns it
      */
     public function validateLotAvailability(int $lotId): Model
     {
