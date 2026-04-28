@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\ApplicantRepository;
 use App\Repositories\BurialRecordRepository;
 use App\Repositories\DeceasedRecordRepository;
+use App\Repositories\LotRepository;
 use App\Repositories\PhaseRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ class BurialRecordService
         protected ApplicantRepository $applicant_repo,
         protected BurialRecordRepository $burial_repo,
         protected PhaseRepository $phase_repo,
+        protected LotRepository $lot_repo
     ) {
     }
 
@@ -28,13 +30,15 @@ class BurialRecordService
     {
         return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData, $lotData) {
 
+            $lot = $this->lot_repo->validateLotAvailability($lotData['lot_id']);
+
             $applicant = $this->applicant_repo->findOrCreateApplicant($applicantData);
 
             $deceased = $this->deceased_repo->createDeceasedRecord($deceasedData, $applicant->id);
 
             return $this->burial_repo->createBurialRecord(
                 $deceased->id,
-                $lotData['lot_id'],
+                $lot->id,
                 $createdBy
             );
         });

@@ -21,6 +21,7 @@ class BurialRecordRepository extends Repository
         ]);
     }
 
+
     public function updateBurialRecord(Model $burialRecord, int $lotId, int $updatedBy): bool
     {
         return $this->update($burialRecord, [
