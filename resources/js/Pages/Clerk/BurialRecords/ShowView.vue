@@ -150,6 +150,7 @@ const saveChanges = () => {
                 );
             },
             preserveScroll: true,
+            preserveState: false, // updates the record on show after updating
         },
     );
 };
