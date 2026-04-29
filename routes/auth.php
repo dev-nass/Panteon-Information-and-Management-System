@@ -2,8 +2,6 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegistrationController;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Http\Request;
 
 Route::controller(LoginController::class)->group(function () {
     Route::get('/login', 'create')->name('login');
