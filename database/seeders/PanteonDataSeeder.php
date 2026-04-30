@@ -144,7 +144,10 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Seeding lots from GeoJSON files...");
 
         $counter = 0;
-        $clusterCapacities = [];
+        // Initialize all clusters to 0
+        $clusterCapacities = Cluster::pluck('id')->mapWithKeys(function ($id) {
+            return [$id => 0];
+        })->toArray();
 
         foreach ($lotFiles as $file) {
             $geoJsonData = json_decode(file_get_contents($file), true);
@@ -177,10 +180,7 @@ class PanteonDataSeeder extends Seeder
                     $geometryJson,
                 ]);
 
-                // Track capacity per cluster
-                if (!isset($clusterCapacities[$clusterId])) {
-                    $clusterCapacities[$clusterId] = 0;
-                }
+                // Increment capacity for this cluster
                 $clusterCapacities[$clusterId]++;
                 $counter++;
             }
