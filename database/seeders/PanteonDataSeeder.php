@@ -124,7 +124,7 @@ class PanteonDataSeeder extends Seeder
         $this->command->info("Total clusters imported: {$counter}");
     }
 
-
+    // seed lots
     private function seedLots(): void
     {
         $lotsDirectory = public_path('data/lots');
