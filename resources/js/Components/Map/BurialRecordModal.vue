@@ -414,7 +414,8 @@ const paginatedBurials = computed(() => {
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.burial?.date ?? "N/A"
+                                            selectedBurial.deceased?.burial
+                                                ?.date ?? "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -443,8 +444,8 @@ const paginatedBurials = computed(() => {
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.imported_by?.name ??
-                                            "N/A"
+                                            selectedBurial.imported_by
+                                                ?.full_name ?? "N/A"
                                         }}
                                     </div>
                                 </div>
