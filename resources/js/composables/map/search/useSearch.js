@@ -174,8 +174,8 @@ export function useSearch() {
      */
     const showSearchResult = (data, type = "burial_record") => {
         searchResultLayer.value.clearLayers();
-        toggleMapFeatures();
         togglePhaseVisibility();
+        toggleMapFeatures();
 
         if (type === "burial_record") {
             // Current process for burial records

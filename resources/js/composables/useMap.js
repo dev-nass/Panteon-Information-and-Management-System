@@ -25,7 +25,7 @@ export function useMap() {
 
         toggleMapFeaturesState,
     } = useMapStates();
-    const { isOnSearchMode } = useMapSearchStates();
+    const { isOnSearchMode, searchResultLayer } = useMapSearchStates();
     const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     /**
@@ -95,6 +95,7 @@ export function useMap() {
         googleLayer.value = null;
         phaseLayerGroup.value = null;
         clusterLayers.value.clear();
+        searchResultLayer.value = null;
     };
 
     /**
