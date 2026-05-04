@@ -177,7 +177,7 @@ watch(activeTab, () => {
                     Create New
                 </h2>
 
-                <Button @click="goBack"> Back </Button>
+                <Button class="dark:text-white" @click="goBack"> Back </Button>
             </div>
 
             <!-- TABS -->

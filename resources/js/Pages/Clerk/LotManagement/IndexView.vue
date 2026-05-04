@@ -31,8 +31,8 @@ const selectedCluster = ref(null);
 
 const filteredPhases = computed(() =>
     props.phases.filter((p) =>
-        p.name.toLowerCase().includes(search.value.toLowerCase())
-    )
+        p.name.toLowerCase().includes(search.value.toLowerCase()),
+    ),
 );
 
 const currentPhaseName = computed(() => selectedPhase.value?.name || null);
@@ -64,13 +64,13 @@ const goBack = () => {
 
 const goToCreate = () => {
     const params = { type: activeTab.value };
-    
+
     if (activeTab.value === "cluster" && selectedPhase.value) {
         params.phase_id = selectedPhase.value.id;
     } else if (activeTab.value === "lot" && selectedCluster.value) {
         params.cluster_id = selectedCluster.value.id;
     }
-    
+
     router.visit(route("clerk.lot_management.create", params));
 };
 
@@ -121,7 +121,11 @@ defineOptions({
 
                 <!-- ACTION BUTTONS -->
                 <div class="flex gap-2">
-                    <Button v-if="activeTab !== 'phase'" @click="goBack">
+                    <Button
+                        v-if="activeTab !== 'phase'"
+                        class="dark:text-white"
+                        @click="goBack"
+                    >
                         Back
                     </Button>
 
@@ -192,10 +196,7 @@ defineOptions({
             </div>
 
             <div v-else>
-                <LotTable
-                    :cluster-id="selectedCluster?.id"
-                    :search="search"
-                />
+                <LotTable :cluster-id="selectedCluster?.id" :search="search" />
             </div>
         </div>
     </div>

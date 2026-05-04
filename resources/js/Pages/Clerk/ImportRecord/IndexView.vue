@@ -39,7 +39,7 @@ watch(
             });
         }
     },
-    { deep: true }
+    { deep: true },
 );
 
 const handleFileSelect = (event) => {
@@ -78,7 +78,7 @@ const validateAndSetFile = (file) => {
     const validExtensions = [".csv", ".xlsx", ".xls"];
     const hasValidType = validTypes.includes(file.type);
     const hasValidExtension = validExtensions.some((ext) =>
-        file.name.toLowerCase().endsWith(ext)
+        file.name.toLowerCase().endsWith(ext),
     );
 
     if (!hasValidType && !hasValidExtension) {
@@ -437,7 +437,9 @@ const startImport = () => {
                         <!-- Actions -->
                         <div class="flex justify-between items-center pt-2">
                             <Button data-hs-overlay="#import-logs-modal">
-                                View Import Logs
+                                <span class="dark:text-white">
+                                    View Import Logs
+                                </span>
                             </Button>
 
                             <Button
@@ -467,7 +469,9 @@ const startImport = () => {
                 stroke="currentColor"
                 stroke-width="2"
             >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
                 <polyline points="14 2 14 8 20 8" />
                 <line x1="16" y1="13" x2="8" y2="13" />
                 <line x1="16" y1="17" x2="8" y2="17" />
@@ -507,7 +511,11 @@ const startImport = () => {
                                     {{ log.file_name }}
                                 </p>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    {{ new Date(log.created_at).toLocaleString() }}
+                                    {{
+                                        new Date(
+                                            log.created_at,
+                                        ).toLocaleString()
+                                    }}
                                 </p>
                             </div>
                             <span
@@ -516,8 +524,8 @@ const startImport = () => {
                                     log.status === 'successful'
                                         ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                                         : log.status === 'failed'
-                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                          : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
                                 ]"
                             >
                                 {{ log.status }}
