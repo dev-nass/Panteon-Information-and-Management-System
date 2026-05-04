@@ -55,7 +55,7 @@ class LotManagementController extends Controller
                         // Only include clusters that have capacity for more lots
                         $totalLots = $cluster->lots->count();
 
-                        return $cluster->total_capacity === null || $totalLots < $cluster->total_capacity;
+                        return $totalLots < $cluster->total_capacity;
                     })->map(function ($cluster) {
                         return [
                             'id' => $cluster->id,
