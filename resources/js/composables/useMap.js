@@ -147,10 +147,11 @@ export function useMap() {
     /**
      * Description: Toggle map 'phase' features on/off for filtering
      */
-    const togglePhaseVisibility = (type = "off") => {
-        if (type == "off") {
+    const togglePhaseVisibility = () => {
+        phaseVisibility.value = !phaseVisibility.value;
+        if (!phaseVisibility.value) {
             map.value.removeLayer(phaseLayerGroup.value);
-        } else if (type == "on") {
+        } else if (phaseVisibility.value) {
             phaseLayerGroup.value.addTo(map.value);
         }
     };

@@ -147,11 +147,6 @@ const setViewMode = () => {
     context.value = "burial";
 };
 
-const setManageMode = (type) => {
-    mode.value = "manage";
-    context.value = type;
-};
-
 /**
  * Styling
  */
