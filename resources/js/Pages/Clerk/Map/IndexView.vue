@@ -335,7 +335,7 @@ onBeforeUnmount(() => {
                                         Mode
                                     </p>
 
-                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="grid grid-cols-1 gap-2">
                                         <button
                                             @click="setViewMode"
                                             :class="
@@ -345,17 +345,6 @@ onBeforeUnmount(() => {
                                             "
                                         >
                                             View
-                                        </button>
-
-                                        <button
-                                            @click="setManageMode('lot')"
-                                            :class="
-                                                mode === 'manage'
-                                                    ? activeBtn
-                                                    : inactiveBtn
-                                            "
-                                        >
-                                            Manage
                                         </button>
                                     </div>
                                 </div>
@@ -389,56 +378,6 @@ onBeforeUnmount(() => {
                                         :label="type"
                                         size="sm"
                                     />
-                                </div>
-
-                                <!-- ===================== -->
-                                <!-- 🛠️ MANAGE MODE -->
-                                <!-- ===================== -->
-                                <div v-else class="space-y-4">
-                                    <div>
-                                        <p
-                                            class="text-xs text-gray-400 mb-2 uppercase"
-                                        >
-                                            Manage Level
-                                        </p>
-
-                                        <div class="grid grid-cols-3 gap-2">
-                                            <button
-                                                @click="setManageMode('phase')"
-                                                :class="
-                                                    context === 'phase'
-                                                        ? activeBtn
-                                                        : inactiveBtn
-                                                "
-                                            >
-                                                Phase
-                                            </button>
-
-                                            <button
-                                                @click="
-                                                    setManageMode('cluster')
-                                                "
-                                                :class="
-                                                    context === 'cluster'
-                                                        ? activeBtn
-                                                        : inactiveBtn
-                                                "
-                                            >
-                                                Cluster
-                                            </button>
-
-                                            <button
-                                                @click="setManageMode('lot')"
-                                                :class="
-                                                    context === 'lot'
-                                                        ? activeBtn
-                                                        : inactiveBtn
-                                                "
-                                            >
-                                                Lot
-                                            </button>
-                                        </div>
-                                    </div>
                                 </div>
 
                                 <!-- STATUS INDICATOR -->
