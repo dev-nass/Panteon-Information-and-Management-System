@@ -23,7 +23,7 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => ! is_null($phase->coordinates),
+                    'isPhase_mapped' => !is_null($phase->coordinates),
                 ];
             });
 
@@ -55,7 +55,7 @@ class LotManagementController extends Controller
                         // Only include clusters that have capacity for more lots
                         $totalLots = $cluster->lots->count();
 
-                        return $cluster->total_capacity === null || $totalLots < $cluster->total_capacity;
+                        return $totalLots < $cluster->total_capacity;
                     })->map(function ($cluster) {
                         return [
                             'id' => $cluster->id,
@@ -85,7 +85,7 @@ class LotManagementController extends Controller
 
         Phase::create([
             'phase_name' => $validated['name'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -98,7 +98,7 @@ class LotManagementController extends Controller
             'phase_id' => 'required|exists:phases,id',
             'name' => 'required|string|max:255',
             'type' => 'required|in:apartment,underground',
-            'occupants' => 'required|integer|min:5',
+            'total_capacity' => 'required|integer|min:5',
             'coordinates' => 'required|json',
         ]);
 
@@ -106,8 +106,8 @@ class LotManagementController extends Controller
             'phase_id' => $validated['phase_id'],
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
-            'total_capacity' => $validated['occupants'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'total_capacity' => $validated['total_capacity'],
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -140,7 +140,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
         ]);
 
         return to_route('clerk.lot_management.index')
@@ -233,7 +233,7 @@ class LotManagementController extends Controller
     {
         $burialRecord = $lot->burialRecords()->first();
 
-        if (! $burialRecord) {
+        if (!$burialRecord) {
             return to_route('clerk.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }

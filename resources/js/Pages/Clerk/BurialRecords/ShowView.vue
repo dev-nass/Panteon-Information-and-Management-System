@@ -13,6 +13,7 @@ import { useSearch } from "@/composables/map/search/useSearch";
 const props = defineProps({
     burial_record: { type: Object, required: true },
     phases: { type: Array, required: true },
+    current_selection: { type: Object, default: null },
 });
 
 const page = usePage();
@@ -37,7 +38,7 @@ const tabs = [
 ];
 
 const back = () => {
-    window.history.back();
+    router.visit(route("clerk.burial_records.index"));
 };
 
 const editing = ref(false);
@@ -48,10 +49,10 @@ const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
 const localData = ref(JSON.parse(JSON.stringify(originalData.value)));
 console.log(localData.value);
 
-const selectedPhaseId = ref(null);
-const selectedClusterId = ref(null);
-const selectedLotId = ref(null);
-const originalLotId = ref(props.burial_record.data.lot?.lot?.id || null);
+const selectedPhaseId = ref(props.current_selection?.phase_id || null);
+const selectedClusterId = ref(props.current_selection?.cluster_id || null);
+const selectedLotId = ref(props.current_selection?.lot_id || null);
+const originalLotId = ref(props.current_selection?.lot_id || null);
 
 watch(
     [localData, selectedLotId],
@@ -60,7 +61,7 @@ watch(
         const lotChanged = newLotId !== originalLotId.value;
         hasChanges.value = dataChanged || lotChanged;
     },
-    { deep: true }
+    { deep: true },
 );
 
 const discardChanges = () => {
@@ -74,7 +75,10 @@ const discardChanges = () => {
 
 const confirmDiscard = () => {
     localData.value = JSON.parse(JSON.stringify(originalData.value));
-    selectedLotId.value = originalLotId.value;
+    selectedPhaseId.value = props.current_selection?.phase_id || null;
+    selectedClusterId.value = props.current_selection?.cluster_id || null;
+    selectedLotId.value = props.current_selection?.lot_id || null;
+    originalLotId.value = props.current_selection?.lot_id || null;
     hasChanges.value = false;
     editing.value = false;
 
@@ -100,13 +104,13 @@ const redirectToClerkMap = () => {
 const deleteBurialRecord = () => {
     if (
         confirm(
-            "Are you sure you want to delete this burial record? This action cannot be undone."
+            "Are you sure you want to delete this burial record? This action cannot be undone.",
         )
     ) {
         router.delete(
             route(
                 "clerk.burial_records.destroy",
-                props.burial_record.data.burial.id
+                props.burial_record.data.burial.id,
             ),
             {
                 onSuccess: () => {
@@ -115,7 +119,7 @@ const deleteBurialRecord = () => {
                 onError: () => {
                     $toast.error("Failed to delete burial record.");
                 },
-            }
+            },
         );
     }
 };
@@ -124,7 +128,7 @@ const saveChanges = () => {
     router.post(
         route(
             "clerk.burial_records.update",
-            props.burial_record.data.burial.id
+            props.burial_record.data.burial.id,
         ),
         {
             deceased: localData.value.deceased,
@@ -133,7 +137,7 @@ const saveChanges = () => {
         {
             onSuccess: () => {
                 originalData.value = JSON.parse(
-                    JSON.stringify(localData.value)
+                    JSON.stringify(localData.value),
                 );
                 originalLotId.value = selectedLotId.value;
                 hasChanges.value = false;
@@ -142,34 +146,35 @@ const saveChanges = () => {
             },
             onError: () => {
                 $toast.error(
-                    "Failed to update burial record. Please check the form for errors."
+                    "Failed to update burial record. Please check the form for errors.",
                 );
             },
             preserveScroll: true,
-        }
+            preserveState: false, // updates the record on show after updating
+        },
     );
 };
 
 // Initialize location selections based on current burial record
-const initializeLocationSelections = () => {
-    const currentLotId = props.burial_record.data.lot?.lot?.id;
-    const currentClusterId = props.burial_record.data.lot?.cluster?.id;
-
-    if (currentLotId && currentClusterId) {
-        // Find the phase that contains this cluster
-        for (const phase of props.phases) {
-            const cluster = phase.clusters.find(
-                (c) => c.id == currentClusterId
-            );
-            if (cluster) {
-                selectedPhaseId.value = phase.id;
-                selectedClusterId.value = currentClusterId;
-                selectedLotId.value = currentLotId;
-                break;
-            }
-        }
-    }
-};
+// const initializeLocationSelections = () => {
+//     const currentLotId = props.burial_record.data.lot?.lot?.id;
+//     const currentClusterId = props.burial_record.data.lot?.cluster?.id;
+//
+//     if (currentLotId && currentClusterId) {
+//         // Find the phase that contains this cluster
+//         for (const phase of props.phases) {
+//             const cluster = phase.clusters.find(
+//                 (c) => c.id == currentClusterId,
+//             );
+//             if (cluster) {
+//                 selectedPhaseId.value = phase.id;
+//                 selectedClusterId.value = currentClusterId;
+//                 selectedLotId.value = currentLotId;
+//                 break;
+//             }
+//         }
+//     }
+// };
 
 const availableClusters = computed(() => {
     if (!selectedPhaseId.value) return [];
@@ -180,11 +185,11 @@ const availableClusters = computed(() => {
 const availableLots = computed(() => {
     if (!selectedClusterId.value) return [];
     const cluster = availableClusters.value.find(
-        (c) => c.id == selectedClusterId.value
+        (c) => c.id == selectedClusterId.value,
     );
     return (
         cluster?.lots.filter(
-            (lot) => !lot.is_occupied || lot.id == selectedLotId.value
+            (lot) => !lot.is_occupied || lot.id == selectedLotId.value,
         ) || []
     );
 });
@@ -204,7 +209,7 @@ const selectedLotRow = computed(() => {
 const selectedClusterType = computed(() => {
     if (!selectedClusterId.value) return null;
     const cluster = availableClusters.value.find(
-        (c) => c.id == selectedClusterId.value
+        (c) => c.id == selectedClusterId.value,
     );
     return cluster?.cluster_type || null;
 });
@@ -216,7 +221,7 @@ defineOptions({
 // added to close the modal from Clerk/Map/IndexView
 onMounted(() => {
     // initializeMap(mapContainer.value);
-    initializeLocationSelections();
+    // initializeLocationSelections();
 
     document
         .querySelectorAll("#hs-scroll-inside-body-modal")
@@ -390,7 +395,7 @@ onBeforeUnmount(() => {
                                 !burial_record.data.lot?.lot?.geometry
                                     ?.coordinates?.length,
                         }"
-                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
+                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:text-white dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
                         View on Map
                     </button>
@@ -749,6 +754,7 @@ onBeforeUnmount(() => {
                     label="Contact Number"
                     :modelValue="localData.deceased?.applicant?.contact_number"
                     :editing="editing"
+                    :error="errors['deceased.applicant.contact_number']"
                     @update:modelValue="
                         (val) =>
                             (localData.deceased.applicant.contact_number = val)

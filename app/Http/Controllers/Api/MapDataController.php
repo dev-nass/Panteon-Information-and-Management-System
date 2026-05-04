@@ -107,6 +107,7 @@ class MapDataController extends Controller
             ->limit($limit)
             ->get();
 
+        // Format the selected data
         return ClusterResource::collection($clusters);
     }
 
@@ -143,8 +144,8 @@ class MapDataController extends Controller
                 'lots.burialRecords' => function ($query) {
                     $query->select('id', 'deceased_record_id', 'lot_id', 'user_id');
                 },
-                'lots.burialRecords.deceasedRecord:id,first_name,middle_name,last_name,date_of_birth,date_of_death',
-                'lots.burialRecords.user:id,name',
+                'lots.burialRecords.deceasedRecord:id,first_name,middle_name,last_name,date_of_birth,date_of_death,date_of_depository',
+                'lots.burialRecords.user:id,first_name,last_name',
             ])
             ->first();
 

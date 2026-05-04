@@ -20,7 +20,7 @@ import Header from "@/Components/Dashboard/Header.vue";
 
     <!-- ========== MAIN CONTENT ========== -->
     <main
-        class="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 min-h-screen bg-white dark:bg-neutral-900"
+        class="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 min-h-screen bg-zinc-50 text-gray-600 dark:bg-neutral-900"
     >
         <Header />
         <slot />

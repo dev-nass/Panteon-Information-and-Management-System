@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\Lot; //Noel
 
 class ImportingController extends Controller
 {
@@ -90,6 +91,31 @@ class ImportingController extends Controller
                         continue;
                     }
 
+                    // NOEL - Find lot based on PHASE, CLUSTER, and APT. NUMBER BEFORE creating records
+                    $phaseName = trim($row[4] ?? '');
+                    $clusterName = trim($row[5] ?? '');
+                    $aptNumber = trim($row[6] ?? ''); // e.g. 12A or 2B
+
+                    // NOEL - Extract column number and row letter from APT. NUMBER
+                    $column = preg_replace('/\D/', '', $aptNumber);
+                    $rowLetter = preg_replace('/\d/', '', $aptNumber);
+
+                    // NOEL - Find the lot based on the provided phase, cluster, column, and row
+                    $lot = Lot::where('column', $column)
+                        ->where('row', $rowLetter)
+                        ->whereHas('cluster', function ($query) use ($clusterName, $phaseName) {
+                            $query->where('cluster_name', $clusterName)
+                                ->whereHas('phase', function ($phaseQuery) use ($phaseName) {
+                                    $phaseQuery->where('phase_name', $phaseName);
+                                });
+                        })
+                        ->whereDoesntHave('burialRecords')
+                        ->first();
+
+                    if (!$lot) {
+                        $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber}) Unssagined";
+                    }
+
                     // Create applicant if data exists (index 3)
                     $applicantId = null;
                     $applicantName = trim($row[3] ?? ''); // APPLICANT (index 3)
@@ -117,7 +143,7 @@ class ImportingController extends Controller
                     // Create burial record with lot_id and user_id
                     BurialRecord::create([
                         'deceased_record_id' => $deceased->id,
-                        'lot_id' => null,
+                        'lot_id' => $lot?->id,
                         'user_id' => auth()->id(),
                     ]);
 

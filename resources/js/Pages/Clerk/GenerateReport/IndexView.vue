@@ -39,8 +39,9 @@ const generateReport = () => {
     });
 
     // Create a temporary link and trigger download
-    const url = route('clerk.generate_report.generate') + '?' + params.toString();
-    window.open(url, '_blank');
+    const url =
+        route("clerk.generate_report.generate") + "?" + params.toString();
+    window.open(url, "_blank");
 
     setTimeout(() => {
         isGenerating.value = false;
@@ -164,25 +165,33 @@ const generateReport = () => {
                                 </label>
 
                                 <div class="flex gap-4">
-                                    <label class="flex items-center gap-2 cursor-pointer">
+                                    <label
+                                        class="flex items-center gap-2 cursor-pointer"
+                                    >
                                         <input
                                             type="radio"
                                             v-model="format"
                                             value="pdf"
                                             class="w-4 h-4 text-green-600 focus:ring-green-500"
                                         />
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">
+                                        <span
+                                            class="text-sm text-gray-700 dark:text-gray-300"
+                                        >
                                             PDF (Recommended)
                                         </span>
                                     </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
+                                    <label
+                                        class="flex items-center gap-2 cursor-pointer"
+                                    >
                                         <input
                                             type="radio"
                                             v-model="format"
                                             value="excel"
                                             class="w-4 h-4 text-green-600 focus:ring-green-500"
                                         />
-                                        <span class="text-sm text-gray-700 dark:text-gray-300">
+                                        <span
+                                            class="text-sm text-gray-700 dark:text-gray-300"
+                                        >
                                             Excel
                                         </span>
                                     </label>
@@ -192,9 +201,11 @@ const generateReport = () => {
 
                         <!-- Buttons -->
                         <div class="flex justify-end gap-3 pt-2">
-                            <Button @click="resetForm"> Reset </Button>
-                            <Button 
-                                @click="generateReport" 
+                            <Button @click="resetForm">
+                                <span class="dark:text-white"> Reset </span>
+                            </Button>
+                            <Button
+                                @click="generateReport"
                                 :highlighted="true"
                                 :disabled="isGenerating"
                             >

@@ -19,9 +19,9 @@ export function useSearchBurialRecords(route_name) {
                     // 'replace' ensure that only one history is make every time
                     // 'user-vet' is visited, ensures that when previous is clicked
                     // on the browser it won't delete the letters
-                }
+                },
             );
-        }, 1000)
+        }, 500),
     );
 
     return { search };

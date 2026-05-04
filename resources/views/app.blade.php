@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html class="dark scroll-smooth">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        @routes <!-- Ziggy routes -->
-        @vite(['resources/css/app.css' ,'resources/js/app.js'])
-        @inertiaHead
-    </head>
-    <body class="bg-white dark:bg-neutral-900 text-gray-800 dark:text-white transition-colors duration-300 m-0 p-0 overflow-x-hidden">
-        @inertia
-    </body>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @routes <!-- Ziggy routes -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @inertiaHead
+</head>
+
+<body
+    class="bg-white dark:bg-neutral-900 text-gray-800 dark:text-white transition-colors duration-300 m-0 p-0 overflow-x-hidden">
+    @inertia
+</body>
+
 </html>

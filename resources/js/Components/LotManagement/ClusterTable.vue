@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
@@ -47,10 +47,15 @@ const fetchClusters = async () => {
     loading.value = true;
     try {
         const response = await fetch(
-            route("api.lot.management.clusters", props.phaseId)
+            route("api.lot.management.clusters", props.phaseId),
         );
         const data = await response.json();
         clusters.value = data;
+        setTimeout(() => {
+            if (window.HSTooltip) {
+                window.HSTooltip.autoInit();
+            }
+        }, 100);
     } catch (error) {
         console.error("Error fetching clusters:", error);
         clusters.value = [];
@@ -66,13 +71,13 @@ watch(
     () => props.search,
     () => {
         currentPage.value = 1;
-    }
+    },
 );
 
 const filteredClusters = computed(() =>
     clusters.value.filter((c) =>
-        c.name.toLowerCase().includes(props.search.toLowerCase())
-    )
+        c.name.toLowerCase().includes(props.search.toLowerCase()),
+    ),
 );
 
 const startEditRow = (cluster) => {
@@ -96,10 +101,10 @@ const saveEditRow = () => {
                     `Cluster "${clusterName}" updated successfully!`,
                     {
                         duration: 3000,
-                    }
+                    },
                 );
             },
-        }
+        },
     );
 };
 
@@ -123,14 +128,14 @@ const handleClusterCoordinatesSet = (coords) => {
                 editingItem.value = null;
                 fetchClusters();
             },
-        }
+        },
     );
 };
 
 const deleteCluster = (clusterId) => {
     if (
         confirm(
-            "Are you sure you want to delete this cluster? This will also delete all lots within it."
+            "Are you sure you want to delete this cluster? This will also delete all lots within it.",
         )
     ) {
         router.delete(route("clerk.lot_management.delete.cluster", clusterId), {
@@ -149,6 +154,12 @@ const redirectToClerkMap = (id) => {
         },
     });
 };
+
+onMounted(() => {
+    if (window.HSTooltip) {
+        window.HSTooltip.autoInit();
+    }
+});
 </script>
 
 <template>
@@ -187,8 +198,36 @@ const redirectToClerkMap = (id) => {
             <tr>
                 <TableHeader>ID</TableHeader>
                 <TableHeader>Name</TableHeader>
-                <TableHeader>Occupants</TableHeader>
-                <TableHeader>Total Lots</TableHeader>
+                <TableHeader>
+                    Occupants
+                    <span class="hs-tooltip inline-block ml-1">
+                        <span
+                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                            >*</span
+                        >
+                        <span
+                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                            role="tooltip"
+                        >
+                            Occupied lots by burial record
+                        </span>
+                    </span>
+                </TableHeader>
+                <TableHeader>
+                    Total Lots
+                    <span class="hs-tooltip inline-block ml-1">
+                        <span
+                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                            >*</span
+                        >
+                        <span
+                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                            role="tooltip"
+                        >
+                            Allowed lots for cluster
+                        </span>
+                    </span>
+                </TableHeader>
                 <TableHeader>Type</TableHeader>
                 <TableHeader>Coordinate</TableHeader>
                 <TableHeader>Actions</TableHeader>
@@ -213,6 +252,7 @@ const redirectToClerkMap = (id) => {
                 </TableData>
                 <TableData>{{ cluster.occupants }}</TableData>
                 <TableData>
+                    <span>{{ cluster.total_lots }} / </span>
                     <input
                         v-if="editingRow?.id === cluster.id"
                         v-model.number="editingRow.total_capacity"
@@ -221,7 +261,7 @@ const redirectToClerkMap = (id) => {
                         @click.stop
                         class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
                     />
-                    <span v-else>{{ cluster.total_lots }}</span>
+                    <span v-else>{{ cluster.total_capacity }}</span>
                 </TableData>
                 <TableData>
                     <input

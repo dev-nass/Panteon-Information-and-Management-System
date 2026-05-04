@@ -41,7 +41,7 @@ watch(
 
         try {
             const response = await fetch(
-                route("api.map.cluster.burials", { clusterId: newClusterId })
+                route("api.map.cluster.burials", { clusterId: newClusterId }),
             );
             const data = await response.json();
             fetchedFeature.value = data.data;
@@ -51,7 +51,7 @@ watch(
             isLoading.value = false;
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 // Reset state when feature prop changes
@@ -60,7 +60,7 @@ watch(
     () => {
         searchTerm.value = "";
         selectedBurial.value = null;
-    }
+    },
 );
 
 const filteredBurials = computed(() => {
@@ -70,7 +70,7 @@ const filteredBurials = computed(() => {
         (lot.burial_records || []).map((burial) => ({
             ...burial,
             lot: lot.lot,
-        }))
+        })),
     );
 
     const term = searchTerm.value.toLowerCase().trim();
@@ -92,7 +92,7 @@ watch([searchTerm, activeFeature], () => {
 });
 
 const totalPages = computed(() =>
-    Math.ceil(filteredBurials.value.length / ITEMS_PER_PAGE)
+    Math.ceil(filteredBurials.value.length / ITEMS_PER_PAGE),
 );
 
 const paginatedBurials = computed(() => {
@@ -382,7 +382,7 @@ const paginatedBurials = computed(() => {
                                         :href="
                                             route(
                                                 'clerk.burial_records.show',
-                                                selectedBurial.burial?.id
+                                                selectedBurial.burial?.id,
                                             )
                                         "
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
@@ -395,7 +395,7 @@ const paginatedBurials = computed(() => {
                                         @click="
                                             emit(
                                                 'viewPath',
-                                                selectedBurial.burial?.id
+                                                selectedBurial.burial?.id,
                                             )
                                         "
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
@@ -414,7 +414,8 @@ const paginatedBurials = computed(() => {
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.burial?.date ?? "N/A"
+                                            selectedBurial.deceased?.burial
+                                                ?.date ?? "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -443,8 +444,8 @@ const paginatedBurials = computed(() => {
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            selectedBurial.imported_by?.name ??
-                                            "N/A"
+                                            selectedBurial.imported_by
+                                                ?.full_name ?? "N/A"
                                         }}
                                     </div>
                                 </div>

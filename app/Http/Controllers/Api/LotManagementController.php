@@ -18,7 +18,7 @@ class LotManagementController extends Controller
      */
     public function getClusters($phaseId)
     {
-        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+        $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', 'total_capacity', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->where('phase_id', $phaseId)
             ->withCount('lots')
             ->withCount([
@@ -33,8 +33,9 @@ class LotManagementController extends Controller
                     'phase_id' => $cluster->phase_id,
                     'name' => $cluster->cluster_name,
                     'type' => $cluster->cluster_type,
-                    'occupants' => $cluster->occupied_lots,
-                    'total_lots' => $cluster->lots_count,
+                    'occupants' => $cluster->occupied_lots, // asscoaited burial recod
+                    'total_lots' => $cluster->lots_count, // num of lots
+                    'total_capacity' => $cluster->total_capacity, // max num of lots
                     'coordinates' => $cluster->coordinates,
                     'isCluster_mapped' => !is_null($cluster->coordinates),
                 ];

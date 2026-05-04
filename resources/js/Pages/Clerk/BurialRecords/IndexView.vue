@@ -40,7 +40,7 @@ const applyFilter = (filterValue) => {
         {
             preserveState: true,
             replace: true,
-        }
+        },
     );
 };
 
@@ -69,7 +69,7 @@ const sort = (field) => {
         {
             preserveState: true,
             replace: true,
-        }
+        },
     );
 };
 
@@ -116,10 +116,10 @@ defineOptions({
                                         <Link
                                             :href="
                                                 route(
-                                                    'clerk.burial_records.create'
+                                                    'clerk.burial_records.create',
                                                 )
                                             "
-                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
+                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 dark:text-white focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
                                         >
                                             Create
 
@@ -156,23 +156,9 @@ defineOptions({
                                             aria-expanded="false"
                                             aria-label="Dropdown"
                                         >
-                                            <svg
-                                                class="shrink-0 size-3.5"
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                width="24"
-                                                height="24"
-                                                viewBox="0 0 24 24"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                stroke-width="2"
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                            >
-                                                <path d="M3 6h18" />
-                                                <path d="M7 12h10" />
-                                                <path d="M10 18h4" />
-                                            </svg>
-                                            Filter
+                                            <span class="dark:text-white">
+                                                Filter
+                                            </span>
 
                                             <span
                                                 class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
@@ -181,9 +167,9 @@ defineOptions({
                                                     filters.filter === "buried"
                                                         ? "Buried"
                                                         : filters.filter ===
-                                                          "pending"
-                                                        ? "Pending"
-                                                        : "All"
+                                                            "pending"
+                                                          ? "Pending"
+                                                          : "All"
                                                 }}
                                             </span>
                                         </Button>
@@ -238,7 +224,7 @@ defineOptions({
                                                         "
                                                         @change="
                                                             applyFilter(
-                                                                'buried'
+                                                                'buried',
                                                             )
                                                         "
                                                     />
@@ -264,7 +250,7 @@ defineOptions({
                                                         "
                                                         @change="
                                                             applyFilter(
-                                                                'pending'
+                                                                'pending',
                                                             )
                                                         "
                                                     />
@@ -281,7 +267,7 @@ defineOptions({
                                     <div>
                                         <Link
                                             :href="route('clerk.map.index')"
-                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
+                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 dark:text-white focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -356,8 +342,8 @@ defineOptions({
                                             $inertia.visit(
                                                 route(
                                                     'clerk.burial_records.show',
-                                                    record.burial.id
-                                                )
+                                                    record.burial.id,
+                                                ),
                                             )
                                     "
                                 >
