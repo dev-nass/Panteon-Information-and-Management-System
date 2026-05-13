@@ -58,7 +58,7 @@ defineOptions({
                         class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
                     >
                         <div class="p-6 overflow-x-auto">
-                            <div class="min-w-[800px]">
+                            <div class="min-w-200">
                                 <FullCalendar :options="calendarOptions" />
                             </div>
                         </div>

@@ -29,7 +29,7 @@ const handleLogout = () => {
                             src="/public/images/dasmarinas-logo.png"
                             alt="Dasmariñas Logo"
                         />
-                        <p class="mt-[2px]">panteon.</p>
+                        <p class="mt-0.5">panteon.</p>
                     </Link>
                 </div>
 
@@ -422,7 +422,7 @@ const handleLogout = () => {
                     >
                         <template v-slot:icon>
                             <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -454,7 +454,7 @@ const handleLogout = () => {
                     >
                         <template v-slot:icon>
                             <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -486,7 +486,7 @@ const handleLogout = () => {
                     >
                         <template v-slot:icon>
                             <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
@@ -637,7 +637,7 @@ const handleLogout = () => {
                     >
                         <template v-slot:icon>
                             <span
-                                class="-ms-[5px] flex shrink-0 justify-center items-center size-6"
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
