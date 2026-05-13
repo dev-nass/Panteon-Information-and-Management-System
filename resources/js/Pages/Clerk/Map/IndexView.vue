@@ -17,6 +17,7 @@ import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import ClusterModal from "@/Components/Map/ClusterModal.vue";
 import LotModal from "@/Components/Map/LotModal.vue";
+import JunctionLandMarkModal from "@/Components/Map/JunctionLandMarkModal.vue";
 import Modal from "@/Components/Modal.vue";
 import Button from "@/Components/Form/Button.vue";
 import Search from "@/Components/Map/Search.vue";
@@ -123,6 +124,13 @@ window.openLotDetailsModal = function (feature) {
 const clusterIdForModal = ref(null);
 const featureForModal = ref(null);
 
+// Junction modal state
+const junctionModalData = ref({
+    junctionId: null,
+    junctionNumber: null,
+    junctionType: null,
+});
+
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
@@ -140,6 +148,22 @@ window.openBurialRecordModal = function (clusterIdOrFeature) {
     }
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
+};
+
+/**
+ * Description: Global function to open junction modal
+ */
+window.openJunctionLandMarkModal = function (
+    junctionId,
+    junctionNumber,
+    junctionType,
+) {
+    junctionModalData.value = {
+        junctionId,
+        junctionNumber,
+        junctionType,
+    };
+    HSOverlay.open("#junction-modal");
 };
 
 const setViewMode = () => {
@@ -197,6 +221,11 @@ onBeforeUnmount(() => {
         <LotModal
             :feature="lotModalFeature"
             @view-on-table="handleViewLotOnTable"
+        />
+        <JunctionLandMarkModal
+            :junction-id="junctionModalData.junctionId"
+            :junction-number="junctionModalData.junctionNumber"
+            :junction-type="junctionModalData.junctionType"
         />
         <!--     <Modal> -->
         <!--         <template v-slot:header> -->

@@ -138,13 +138,13 @@ export function useDrawProcessedPath() {
         if (!window.junctionMarkers) {
             window.junctionMarkers = [];
         }
-        
+
         const marker = L.marker([targetLat, targetLng])
             .bindPopup(
                 `Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`,
             )
             .addTo(map.value);
-        
+
         window.junctionMarkers.push(marker);
     };
 
@@ -171,7 +171,9 @@ export function useDrawProcessedPath() {
 
         // Clear previous junction markers
         if (window.junctionMarkers) {
-            window.junctionMarkers.forEach(marker => map.value.removeLayer(marker));
+            window.junctionMarkers.forEach((marker) =>
+                map.value.removeLayer(marker),
+            );
         }
         window.junctionMarkers = [];
 
@@ -184,13 +186,19 @@ export function useDrawProcessedPath() {
         ].filter(Boolean); // Remove undefined if no 3 or 89 found
 
         markersToShow.forEach((detail) => {
-            const marker = L.marker([
-                detail.latitude,
-                detail.longitude,
-            ])
+            const marker = L.marker([detail.latitude, detail.longitude])
                 .bindPopup(`Junction ${detail.junctionNumber} (${detail.type})`)
                 .addTo(map.value);
-            
+
+            // Add click event to open modal
+            marker.on("click", () => {
+                window.openJunctionLandMarkModal(
+                    detail.junctionId,
+                    detail.junctionNumber,
+                    detail.type,
+                );
+            });
+
             window.junctionMarkers.push(marker);
         });
 
@@ -218,7 +226,9 @@ export function useDrawProcessedPath() {
 
         // Remove junction markers
         if (window.junctionMarkers) {
-            window.junctionMarkers.forEach(marker => map.value.removeLayer(marker));
+            window.junctionMarkers.forEach((marker) =>
+                map.value.removeLayer(marker),
+            );
             window.junctionMarkers = [];
         }
     };
