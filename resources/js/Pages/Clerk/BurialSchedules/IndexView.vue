@@ -14,15 +14,18 @@ const calendarOptions = ref({
     plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     headerToolbar: {
-        left: 'prev,next today',
+        left: 'prev,next',
         center: 'title',
-        right: 'dayGridMonth,dayGridYear,dayGridDay'
+        right: 'dayGridDay,dayGridMonth,dayGridYear'
     },
     views: {
         dayGridYear: {
             type: 'dayGrid',
             duration: { years: 1 },
-            buttonText: 'Year'
+            buttonText: 'Yearly'
+        },
+        dayGridMonth: {
+            buttonText: 'Monthly'
         },
         dayGridDay: {
             type: 'dayGrid',
