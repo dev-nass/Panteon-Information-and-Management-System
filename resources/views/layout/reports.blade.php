@@ -230,9 +230,14 @@
         <div class="header-divider"></div>
         <div class="report-info">
             <p class="font-bold">@yield('report-title')</p>
+            @if(isset($startDate) && isset($endDate))
             <p>Period: {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to
                 {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
             </p>
+            @endif
+            @if(isset($monthDate))
+            <p>Month: {{ \Carbon\Carbon::parse($monthDate)->format('F Y') }}</p>
+            @endif
             <p>Generated on: {{ date('F d, Y') }}</p>
         </div>
     </div>
@@ -240,7 +245,9 @@
     @yield('content')
 
     <div class="footer">
+        @hasSection('total-records')
         <p>Total Records: @yield('total-records')</p>
+        @endif
         <p class="disclaimer">This is a system-generated report from the Panteon Information and Management System.</p>
         <p>Panteon Information and Management System</p>
     </div>

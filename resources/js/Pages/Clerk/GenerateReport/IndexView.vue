@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -12,35 +12,72 @@ defineOptions({
 const reportType = ref("");
 const startDate = ref("");
 const endDate = ref("");
+const monthDate = ref("");
 const format = ref("pdf");
 const isGenerating = ref(false);
+
+// Computed property to determine which date fields to show
+const showDateRange = computed(() => {
+    return reportType.value === 'burial' || reportType.value === 'deceased';
+});
+
+const showMonthPicker = computed(() => {
+    return reportType.value === 'summary';
+});
+
+const showNoDates = computed(() => {
+    return reportType.value === 'phase';
+});
+
+// Reset date fields when report type changes
+watch(reportType, () => {
+    startDate.value = "";
+    endDate.value = "";
+    monthDate.value = "";
+});
 
 const resetForm = () => {
     reportType.value = "";
     startDate.value = "";
     endDate.value = "";
+    monthDate.value = "";
     format.value = "pdf";
 };
 
 const generateReport = () => {
-    if (!reportType.value || !startDate.value || !endDate.value) {
-        alert("Please fill in all fields");
+    // Validation based on report type
+    if (!reportType.value) {
+        alert("Please select a report type");
+        return;
+    }
+
+    if (showDateRange.value && (!startDate.value || !endDate.value)) {
+        alert("Please fill in start and end dates");
+        return;
+    }
+
+    if (showMonthPicker.value && !monthDate.value) {
+        alert("Please select a month");
         return;
     }
 
     isGenerating.value = true;
 
-    // Build query parameters
-    const params = new URLSearchParams({
+    // Build query parameters based on report type
+    const params = {
         reportType: reportType.value,
-        startDate: startDate.value,
-        endDate: endDate.value,
         format: format.value,
-    });
+    };
 
-    // Create a temporary link and trigger download
-    const url =
-        route("clerk.generate_report.generate") + "?" + params.toString();
+    if (showDateRange.value) {
+        params.startDate = startDate.value;
+        params.endDate = endDate.value;
+    } else if (showMonthPicker.value) {
+        params.monthDate = monthDate.value;
+    }
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = route("clerk.generate_report.generate") + "?" + queryString;
     window.open(url, "_blank");
 
     setTimeout(() => {
@@ -123,37 +160,65 @@ const generateReport = () => {
                                     <option value="summary">
                                         Monthly Summary
                                     </option>
+                                    <option value="phase">
+                                        Phase Availability
+                                    </option>
                                 </select>
                             </div>
 
-                            <!-- Start Date -->
-                            <div class="flex flex-col gap-1">
+                            <!-- Date Range (for burial and deceased) -->
+                            <template v-if="showDateRange">
+                                <!-- Start Date -->
+                                <div class="flex flex-col gap-1">
+                                    <label
+                                        class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                    >
+                                        Start Date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        v-model="startDate"
+                                        class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                                    />
+                                </div>
+
+                                <!-- End Date -->
+                                <div class="flex flex-col gap-1">
+                                    <label
+                                        class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                    >
+                                        End Date
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        v-model="endDate"
+                                        class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                                    />
+                                </div>
+                            </template>
+
+                            <!-- Month Picker (for monthly summary) -->
+                            <div v-if="showMonthPicker" class="flex flex-col col-span-full gap-1">
                                 <label
                                     class="text-sm font-medium text-gray-600 dark:text-gray-300"
                                 >
-                                    Start Date
+                                    Select Month
                                 </label>
 
                                 <input
-                                    type="date"
-                                    v-model="startDate"
+                                    type="month"
+                                    v-model="monthDate"
                                     class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                 />
                             </div>
 
-                            <!-- End Date -->
-                            <div class="flex flex-col gap-1">
-                                <label
-                                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
-                                >
-                                    End Date
-                                </label>
-
-                                <input
-                                    type="date"
-                                    v-model="endDate"
-                                    class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
-                                />
+                            <!-- No Date Fields (for phase availability) -->
+                            <div v-if="showNoDates" class="col-span-full">
+                                <p class="text-sm text-gray-500 dark:text-gray-400 italic">
+                                    This report shows current phase availability data.
+                                </p>
                             </div>
 
                             <!-- Export Format -->

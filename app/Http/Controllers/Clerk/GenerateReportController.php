@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Clerk;
 use App\Http\Controllers\Controller;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
+use App\Models\Phase;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,18 +20,52 @@ class GenerateReportController extends Controller
 
     public function generate(Request $request)
     {
-        $request->validate([
-            'reportType' => 'required|in:burial,deceased,summary',
-            'startDate' => 'required|date',
-            'endDate' => 'required|date|after_or_equal:startDate',
-            'format' => 'required|in:pdf,excel',
-        ]);
-
         $reportType = $request->reportType;
-        $startDate = $request->startDate;
-        $endDate = $request->endDate;
+        
+        // Validate based on report type
+        if (in_array($reportType, ['burial', 'deceased'])) {
+            $request->validate([
+                'reportType' => 'required|in:burial,deceased,summary,phase',
+                'startDate' => 'required|date',
+                'endDate' => 'required|date|after_or_equal:startDate',
+                'format' => 'required|in:pdf,excel',
+            ]);
+        } elseif ($reportType === 'summary') {
+            $request->validate([
+                'reportType' => 'required|in:burial,deceased,summary,phase',
+                'monthDate' => 'required|date',
+                'format' => 'required|in:pdf,excel',
+            ]);
+        } elseif ($reportType === 'phase') {
+            $request->validate([
+                'reportType' => 'required|in:burial,deceased,summary,phase',
+                'format' => 'required|in:pdf,excel',
+            ]);
+        }
+
         $format = $request->format;
 
+        if ($reportType === 'phase') {
+            $data = $this->getPhaseAvailabilityData();
+            
+            if ($format === 'pdf') {
+                return $this->generatePhasePDF($data);
+            }
+            return $this->generatePhaseExcel($data);
+        }
+
+        if ($reportType === 'summary') {
+            $monthDate = $request->monthDate;
+            $data = $this->getMonthlySummaryData($monthDate);
+            
+            if ($format === 'pdf') {
+                return $this->generateMonthlySummaryPDF($data, $monthDate);
+            }
+            return $this->generateMonthlySummaryExcel($data, $monthDate);
+        }
+
+        $startDate = $request->startDate;
+        $endDate = $request->endDate;
         $data = $this->getReportData($reportType, $startDate, $endDate);
 
         if ($format === 'pdf') {
@@ -54,19 +89,53 @@ class GenerateReportController extends Controller
                 return DeceasedRecord::with(['applicant'])
                     ->whereBetween('date_of_depository', [$startDate, $endDate])
                     ->get();
-
-            case 'summary':
-                return [
-                    'total_burials' => BurialRecord::whereHas('deceasedRecord', function ($query) use ($startDate, $endDate) {
-                        $query->whereBetween('date_of_depository', [$startDate, $endDate]);
-                    })->count(),
-                    'total_deceased' => DeceasedRecord::whereBetween('date_of_depository', [$startDate, $endDate])->count(),
-                    'by_month' => DeceasedRecord::whereBetween('date_of_depository', [$startDate, $endDate])
-                        ->selectRaw('DATE_FORMAT(date_of_depository, "%Y-%m") as month, COUNT(*) as count')
-                        ->groupBy('month')
-                        ->get(),
-                ];
         }
+    }
+
+    private function getMonthlySummaryData($monthDate)
+    {
+        $startOfMonth = date('Y-m-01', strtotime($monthDate));
+        $endOfMonth = date('Y-m-t', strtotime($monthDate));
+
+        return [
+            'month' => date('F Y', strtotime($monthDate)),
+            'total_burials' => BurialRecord::whereHas('deceasedRecord', function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->whereBetween('date_of_depository', [$startOfMonth, $endOfMonth]);
+            })->count(),
+            'total_deceased' => DeceasedRecord::whereBetween('date_of_depository', [$startOfMonth, $endOfMonth])->count(),
+            'by_day' => DeceasedRecord::whereBetween('date_of_depository', [$startOfMonth, $endOfMonth])
+                ->selectRaw('DATE(date_of_depository) as day, COUNT(*) as count')
+                ->groupBy('day')
+                ->orderBy('day')
+                ->get(),
+        ];
+    }
+
+    private function getPhaseAvailabilityData()
+    {
+        return Phase::with(['clusters.lots.burialRecords'])
+            ->get()
+            ->map(function ($phase) {
+                $totalClusters = $phase->clusters->count();
+                $totalLots = $phase->clusters->sum(function ($cluster) {
+                    return $cluster->lots->count();
+                });
+                $totalOccupants = $phase->clusters->sum(function ($cluster) {
+                    return $cluster->lots->sum(function ($lot) {
+                        return $lot->burialRecords->count();
+                    });
+                });
+                $availableLots = $totalLots - $totalOccupants;
+
+                return [
+                    'phase_name' => $phase->phase_name,
+                    'total_clusters' => $totalClusters,
+                    'total_lots' => $totalLots,
+                    'total_occupants' => $totalOccupants,
+                    'available_lots' => $availableLots,
+                    'occupancy_rate' => $totalLots > 0 ? round(($totalOccupants / $totalLots) * 100, 2) : 0,
+                ];
+            });
     }
 
     private function generatePDF($reportType, $data, $startDate, $endDate)
@@ -81,11 +150,31 @@ class GenerateReportController extends Controller
         return $pdf->download($filename);
     }
 
+    private function generateMonthlySummaryPDF($data, $monthDate)
+    {
+        $pdf = Pdf::loadView('reports.summary', [
+            'data' => $data,
+            'monthDate' => $monthDate,
+        ]);
+
+        $filename = 'monthly_summary_' . date('Y-m', strtotime($monthDate)) . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    private function generatePhasePDF($data)
+    {
+        $pdf = Pdf::loadView('reports.phase', [
+            'data' => $data,
+        ]);
+
+        $filename = 'phase_availability_' . date('Y-m-d') . '.pdf';
+        return $pdf->download($filename);
+    }
+
     private function generateExcel($reportType, $data, $startDate, $endDate)
     {
         $filename = $reportType . '_report_' . date('Y-m-d') . '.xlsx';
         
-        // Add header row with date range
         $headerRow = [
             'Report Type' => ucfirst($reportType) . ' Report',
             'Period' => $startDate . ' to ' . $endDate,
@@ -95,8 +184,7 @@ class GenerateReportController extends Controller
         if ($reportType === 'burial') {
             $exportData = collect([]);
             $exportData->push($headerRow);
-            $exportData->push([]); // Empty row
-            // Column headers
+            $exportData->push([]);
             $exportData->push([
                 'Seq. No' => 'Seq. No',
                 'Deceased Name' => 'Deceased Name',
@@ -121,8 +209,7 @@ class GenerateReportController extends Controller
         } elseif ($reportType === 'deceased') {
             $exportData = collect([]);
             $exportData->push($headerRow);
-            $exportData->push([]); // Empty row
-            // Column headers
+            $exportData->push([]);
             $exportData->push([
                 'Seq. No' => 'Seq. No',
                 'Full Name' => 'Full Name',
@@ -141,14 +228,63 @@ class GenerateReportController extends Controller
                     'Applicant' => $deceased->applicant ? $deceased->applicant->first_name . ' ' . $deceased->applicant->last_name : 'N/A',
                 ]);
             }
-        } else {
-            $exportData = collect([]);
-            $exportData->push($headerRow);
-            $exportData->push([]); // Empty row
-            // Column headers
-            $exportData->push(['Metric' => 'Metric', 'Value' => 'Value']);
-            $exportData->push(['Metric' => 'Total Burials', 'Value' => $data['total_burials']]);
-            $exportData->push(['Metric' => 'Total Deceased', 'Value' => $data['total_deceased']]);
+        }
+
+        return (new FastExcel($exportData))->download($filename);
+    }
+
+    private function generateMonthlySummaryExcel($data, $monthDate)
+    {
+        $filename = 'monthly_summary_' . date('Y-m', strtotime($monthDate)) . '.xlsx';
+        
+        $exportData = collect([]);
+        $exportData->push([
+            'Report Type' => 'Monthly Summary',
+            'Month' => $data['month'],
+            'Generated' => date('Y-m-d H:i:s'),
+        ]);
+        $exportData->push([]);
+        $exportData->push(['Metric' => 'Metric', 'Value' => 'Value']);
+        $exportData->push(['Metric' => 'Total Burials', 'Value' => $data['total_burials']]);
+        $exportData->push(['Metric' => 'Total Deceased', 'Value' => $data['total_deceased']]);
+        $exportData->push([]);
+        $exportData->push(['Day' => 'Day', 'Count' => 'Count']);
+        
+        foreach ($data['by_day'] as $day) {
+            $exportData->push(['Day' => $day->day, 'Count' => $day->count]);
+        }
+
+        return (new FastExcel($exportData))->download($filename);
+    }
+
+    private function generatePhaseExcel($data)
+    {
+        $filename = 'phase_availability_' . date('Y-m-d') . '.xlsx';
+        
+        $exportData = collect([]);
+        $exportData->push([
+            'Report Type' => 'Phase Availability Report',
+            'Generated' => date('Y-m-d H:i:s'),
+        ]);
+        $exportData->push([]);
+        $exportData->push([
+            'Phase Name' => 'Phase Name',
+            'Total Clusters' => 'Total Clusters',
+            'Total Lots' => 'Total Lots',
+            'Total Occupants' => 'Total Occupants',
+            'Available Lots' => 'Available Lots',
+            'Occupancy Rate (%)' => 'Occupancy Rate (%)',
+        ]);
+        
+        foreach ($data as $phase) {
+            $exportData->push([
+                'Phase Name' => $phase['phase_name'],
+                'Total Clusters' => $phase['total_clusters'],
+                'Total Lots' => $phase['total_lots'],
+                'Total Occupants' => $phase['total_occupants'],
+                'Available Lots' => $phase['available_lots'],
+                'Occupancy Rate (%)' => $phase['occupancy_rate'],
+            ]);
         }
 
         return (new FastExcel($exportData))->download($filename);

@@ -18,21 +18,25 @@
     </div>
 </div>
 
-<h3>Monthly Breakdown</h3>
+<h3>Daily Breakdown for {{ $data['month'] }}</h3>
 <table>
     <thead>
         <tr>
-            <th>Month</th>
+            <th>Date</th>
             <th>Count</th>
         </tr>
     </thead>
     <tbody>
-        @foreach($data['by_month'] as $month)
+        @forelse($data['by_day'] as $day)
         <tr>
-            <td>{{ \Carbon\Carbon::parse($month->month . '-01')->format('F Y') }}</td>
-            <td>{{ $month->count }}</td>
+            <td>{{ \Carbon\Carbon::parse($day->day)->format('F d, Y') }}</td>
+            <td>{{ $day->count }}</td>
         </tr>
-        @endforeach
+        @empty
+        <tr>
+            <td colspan="2" style="text-align: center;">No records found for this month</td>
+        </tr>
+        @endforelse
     </tbody>
 </table>
 @endsection
