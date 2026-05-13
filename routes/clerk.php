@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Clerk\BurialRecordController;
+use App\Http\Controllers\Clerk\BurialScheduleController;
 use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\GenerateReportController;
 use App\Http\Controllers\Clerk\ImportingController;
@@ -27,6 +28,10 @@ Route::prefix('clerk')
         Route::get('/map', function () {
             return Inertia::render('Clerk/Map/IndexView');
         })->name('map.index');
+
+        Route::controller(BurialScheduleController::class)->group(function () {
+            Route::get('/burial-schedules', 'index')->name('burial_schedules.index');
+        });
 
         Route::controller(BurialRecordController::class)->group(function () {
             Route::get('/burial-records', 'index')->name('burial_records.index');

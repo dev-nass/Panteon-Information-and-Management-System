@@ -552,6 +552,46 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
+                <span
+                    class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 mb-1 text-sm text-gray-400 dark:text-neutral-500"
+                    >Burial</span
+                >
+
+                <li>
+                    <SidebarLink
+                        :href="route('clerk.burial_schedules.index')"
+                        :isActive="
+                            page.component === 'Clerk/BurialSchedules/IndexView'
+                        "
+                    >
+                        <template v-slot:icon>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-calendar-icon lucide-calendar"
+                            >
+                                <path d="M8 2v4" />
+                                <path d="M16 2v4" />
+                                <rect
+                                    width="18"
+                                    height="18"
+                                    x="3"
+                                    y="4"
+                                    rx="2"
+                                />
+                                <path d="M3 10h18" />
+                            </svg>
+                        </template>
+                        <template v-slot:text> Burial Schedules </template>
+                    </SidebarLink>
+                </li>
                 <li>
                     <SidebarLink
                         :href="route('clerk.burial_records.index')"
