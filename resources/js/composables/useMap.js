@@ -95,7 +95,6 @@ export function useMap() {
         googleLayer.value = null;
         phaseLayerGroup.value = null;
         clusterLayers.value.clear();
-        searchResultLayer.value = null;
     };
 
     /**
