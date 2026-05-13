@@ -1,51 +1,51 @@
 <script setup>
-import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import Dashboard from '@/Layouts/Dashboard.vue';
-import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
+import { ref } from "vue";
+import { router } from "@inertiajs/vue3";
+import Dashboard from "@/Layouts/Dashboard.vue";
+import FullCalendar from "@fullcalendar/vue3";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
 
 const props = defineProps({
-    burialSchedules: Array
+    burialSchedules: Array,
 });
 
 const calendarOptions = ref({
     plugins: [dayGridPlugin, interactionPlugin],
-    initialView: 'dayGridMonth',
+    initialView: "dayGridMonth",
     headerToolbar: {
-        left: 'prev,next',
-        center: 'title',
-        right: 'dayGridDay,dayGridMonth,dayGridYear'
+        left: "prev,next",
+        center: "title",
+        right: "dayGridDay,dayGridMonth,dayGridYear",
     },
     views: {
         dayGridYear: {
-            type: 'dayGrid',
+            type: "dayGrid",
             duration: { years: 1 },
-            buttonText: 'Yearly'
+            buttonText: "Yearly",
         },
         dayGridMonth: {
-            buttonText: 'Monthly'
+            buttonText: "Monthly",
         },
         dayGridDay: {
-            type: 'dayGrid',
+            type: "dayGrid",
             duration: { days: 1 },
-            buttonText: 'Today'
-        }
+            buttonText: "Today",
+        },
     },
     events: props.burialSchedules,
     eventClick: (info) => {
-        alert(`Deceased: ${info.event.extendedProps.deceased_name}\nLot: ${info.event.extendedProps.lot_info}\nBurial Date: ${info.event.start.toLocaleDateString()}`);
+        router.visit(route("clerk.burial_records.show", info.event.id));
     },
-    height: 'auto',
-    eventDisplay: 'block',
-    eventBackgroundColor: 'transparent',
-    eventBorderColor: '#16a34a',
-    eventTextColor: '#16a34a'
+    height: "auto",
+    eventDisplay: "block",
+    eventBackgroundColor: "transparent",
+    eventBorderColor: "#16a34a",
+    eventTextColor: "#16a34a",
 });
 
 defineOptions({
-    layout: Dashboard
+    layout: Dashboard,
 });
 </script>
 
@@ -54,7 +54,9 @@ defineOptions({
         <div class="flex flex-col">
             <div class="-m-1.5 overflow-x-auto">
                 <div class="p-1.5 min-w-full inline-block align-middle">
-                    <div class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden">
+                    <div
+                        class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
+                    >
                         <div class="p-6 overflow-x-auto">
                             <div class="min-w-[800px]">
                                 <FullCalendar :options="calendarOptions" />
@@ -238,10 +240,10 @@ defineOptions({
 
 /* Today highlight */
 .fc .fc-day-today {
-    background-color: rgba(34, 197, 94, 0.05) !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
 }
 
 .dark .fc .fc-day-today {
-    background-color: rgba(34, 197, 94, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
 }
 </style>
