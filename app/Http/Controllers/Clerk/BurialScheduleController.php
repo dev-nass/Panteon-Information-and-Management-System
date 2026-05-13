@@ -20,9 +20,12 @@ class BurialScheduleController extends Controller
         })
         ->get()
         ->map(function ($record) {
+            $fullName = $record->deceasedRecord->first_name . ' ' . $record->deceasedRecord->last_name;
+            $truncatedName = strlen($fullName) > 20 ? substr($fullName, 0, 20) . '...' : $fullName;
+            
             return [
                 'id' => $record->id,
-                'title' => $record->deceasedRecord->first_name . ' ' . $record->deceasedRecord->last_name,
+                'title' => $truncatedName,
                 'start' => $record->deceasedRecord->date_of_depository,
                 'lot' => $record->lot ? $record->lot->column . '-' . $record->lot->row : 'Unassigned',
                 'extendedProps' => [
