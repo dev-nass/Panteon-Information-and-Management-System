@@ -479,6 +479,11 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
+                <span
+                    class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 my-1 text-sm text-gray-400 dark:text-neutral-500"
+                    >Lot</span
+                >
+
                 <li>
                     <SidebarLink
                         :href="route('clerk.map.index')"
@@ -553,7 +558,7 @@ const handleLogout = () => {
                 </li>
 
                 <span
-                    class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 mb-1 text-sm text-gray-400 dark:text-neutral-500"
+                    class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 my-1 text-sm text-gray-400 dark:text-neutral-500"
                     >Burial</span
                 >
 
