@@ -99,6 +99,7 @@ export function useMap() {
 
     /**
      * Description: Used if the zoom level is too far
+     *              and for cleaning up layers
      */
     const cleanupLayers = () => {
         if (!map.value) return;
