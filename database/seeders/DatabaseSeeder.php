@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@panteon.com',
             'password' => bcrypt('admin123'),
             'contact_number' => '09123456789',
-            'role' => 'clerk',
+            'role' => 'admin',
         ]);
 
 
