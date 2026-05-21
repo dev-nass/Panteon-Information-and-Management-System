@@ -98,7 +98,11 @@ defineOptions({
                 class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
             >
                 <!-- Search -->
-                <Input placeholder="Search..." v-model="search" />
+                <Input
+                    class="max-w-md"
+                    placeholder="Search..."
+                    v-model="search"
+                />
 
                 <!-- Tabs -->
                 <div
