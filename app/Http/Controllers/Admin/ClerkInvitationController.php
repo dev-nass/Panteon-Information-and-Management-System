@@ -32,7 +32,7 @@ class ClerkInvitationController extends Controller
             ]
         );
 
-        $url = route('register', ['token' => $token]);
+        $url = route('clerk.register', ['token' => $token]);
 
         Mail::to($request->email)->send(new ClerkInvitationMail($url));
 

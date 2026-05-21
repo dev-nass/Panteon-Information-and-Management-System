@@ -1,6 +1,5 @@
 <script setup>
-import { ref } from "vue";
-import { router } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import Button from "@/Components/Form/Button.vue";
 import Input from "@/Components/Form/Input.vue";
@@ -10,29 +9,17 @@ defineOptions({
     layout: Dashboard,
 });
 
-const email = ref("");
-const isSubmitting = ref(false);
+const form = useForm({
+    email: "",
+});
 
 const submitInvitation = () => {
-    if (!email.value) return;
-
-    isSubmitting.value = true;
-
-    router.post(
-        route("admin.clerk_invitations.store"),
-        {
-            email: email.value,
+    form.post(route("admin.clerk_invitations.store"), {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
         },
-        {
-            onSuccess: () => {
-                email.value = "";
-                isSubmitting.value = false;
-            },
-            onError: () => {
-                isSubmitting.value = false;
-            },
-        },
-    );
+    });
 };
 </script>
 
@@ -100,21 +87,27 @@ const submitInvitation = () => {
                                 <div class="w-full">
                                     <Input
                                         id="email"
-                                        v-model="email"
+                                        v-model="form.email"
                                         type="email"
                                         placeholder="clerk@example.com"
                                         required
                                     />
                                 </div>
+                                <p
+                                    v-if="form.errors.email"
+                                    class="mt-2 text-sm text-red-600 dark:text-red-400"
+                                >
+                                    {{ form.errors.email }}
+                                </p>
                             </div>
 
                             <div class="flex justify-end pt-2">
                                 <Button
                                     type="submit"
                                     :highlighted="true"
-                                    :disabled="!email || isSubmitting"
+                                    :disabled="!form.email || form.processing"
                                 >
-                                    <span v-if="isSubmitting">Sending...</span>
+                                    <span v-if="form.processing">Sending...</span>
                                     <span v-else>Send Invitation</span>
                                 </Button>
                             </div>

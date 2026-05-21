@@ -19,7 +19,7 @@ const form = useForm({
 });
 
 const handleSubmit = () => {
-    form.post(route("register.store"));
+    form.post(route("clerk.register.store"));
 };
 </script>
 
