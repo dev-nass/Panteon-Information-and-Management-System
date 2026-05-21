@@ -1,6 +1,8 @@
 <script setup>
-import { useForm } from "@inertiajs/vue3";
+import { watch } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
+import { useToast } from "vue-toast-notification";
 import Button from "@/Components/Form/Button.vue";
 import Input from "@/Components/Form/Input.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -9,9 +11,28 @@ defineOptions({
     layout: Dashboard,
 });
 
+const page = usePage();
+const toast = useToast();
+
 const form = useForm({
     email: "",
 });
+
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            toast.success(flash.success, {
+                duration: 5000,
+            });
+        } else if (flash?.error) {
+            toast.error(flash.error, {
+                duration: 5000,
+            });
+        }
+    },
+    { deep: true },
+);
 
 const submitInvitation = () => {
     form.post(route("admin.clerk_invitations.store"), {

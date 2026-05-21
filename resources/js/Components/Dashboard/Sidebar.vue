@@ -483,7 +483,8 @@ const handleLogout = () => {
                     <SidebarLink
                         :href="route('admin.clerk_invitations.index')"
                         :isActive="
-                            page.component === 'Admin/ClerkInvitation/IndexView'
+                            page.component ===
+                            'Admin/ClerkInvitation/CreateView'
                         "
                     >
                         <template v-slot:icon>
