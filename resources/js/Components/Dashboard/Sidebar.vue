@@ -479,6 +479,44 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
+                <li>
+                    <SidebarLink
+                        :href="route('admin.clerk_invitations.index')"
+                        :isActive="
+                            page.component === 'Admin/ClerkInvitation/IndexView'
+                        "
+                    >
+                        <template v-slot:icon>
+                            <span
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-mail-plus-icon lucide-mail-plus"
+                                >
+                                    <path
+                                        d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"
+                                    />
+                                    <path
+                                        d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"
+                                    />
+                                    <path d="M19 16v6" />
+                                    <path d="M16 19h6" />
+                                </svg>
+                            </span>
+                        </template>
+                        <template v-slot:text> Clerk Invitation </template>
+                    </SidebarLink>
+                </li>
+
                 <span
                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 my-1 text-sm text-gray-400 dark:text-neutral-500"
                     >Lot</span

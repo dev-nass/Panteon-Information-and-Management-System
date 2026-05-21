@@ -16,7 +16,7 @@ const emits = defineEmits(["update:modelValue"]);
 
 <template>
     <div
-        class="flex items-center gap-2 w-full max-w-md px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
+        class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
     >
         <!-- Search Icon -->
         <svg

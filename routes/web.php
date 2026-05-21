@@ -13,6 +13,7 @@ Route::controller(VisitorInteractiveMapController::class)->group(function () {
     Route::get('/map/search', 'search')->name('visitor.map.search');
 });
 
-require __DIR__.'/auth.php';
-require __DIR__.'/api.php';
-require __DIR__.'/clerk.php';
+require __DIR__ . '/auth.php';
+require __DIR__ . '/api.php';
+require __DIR__ . '/clerk.php';
+require __DIR__ . '/admin.php';
