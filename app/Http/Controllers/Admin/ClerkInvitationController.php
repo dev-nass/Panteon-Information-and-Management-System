@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ClerkInvitationMail;
+use App\Models\ClerkInvitation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class ClerkInvitationController extends Controller
@@ -15,12 +19,23 @@ class ClerkInvitationController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        $request->validate(['email' => 'required|email|unique:users,email']);
 
-        // TODO: Implement invitation logic
-        
-        return back()->with('success', 'Invitation sent successfully!');
+        $token = Str::random(64);
+
+        ClerkInvitation::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'token' => $token,
+                'expires_at' => now()->addHours(24),
+                'used_at' => null,
+            ]
+        );
+
+        $url = route('register', ['token' => $token]);
+
+        Mail::to($request->email)->send(new ClerkInvitationMail($url));
+
+        return back()->with('success', "Invitation sent to {$request->email}");
     }
 }

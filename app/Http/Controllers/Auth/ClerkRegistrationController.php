@@ -4,20 +4,28 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegistrationRequest;
+use App\Models\ClerkInvitation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
-class RegistrationController extends Controller
+class ClerkRegistrationController extends Controller
 {
-    public function create()
+    public function create(string $token)
     {
+        $invitation_token = ClerkInvitation::firstOrFail(['token' => $token]);
+
+        abort_if(!$invitation_token->isValid(), 410, 'This invitation link has expired or already been used.');
+
         return Inertia::render('Auth/RegistrationView');
     }
 
-    public function store(RegistrationRequest $request)
+    public function store(RegistrationRequest $request, string $token)
     {
+        $invitation = ClerkInvitation::where('token', $token)->firstOrFail();
+
+        abort_if(!$invitation->isValid(), 410, 'This invitation link has expired or already been used.');
 
         $validated = $request->validated();
 
@@ -31,8 +39,8 @@ class RegistrationController extends Controller
             'role' => 'clerk',
         ]);
 
-        auth()->login($user);
+        $invitation->update(['used_at' => now()]);
 
-        return redirect()->route('clerk.dashboard');
+        return to_route('login')->with('success', 'Registration complete! You can now log in.');
     }
 }

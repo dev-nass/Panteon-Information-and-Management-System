@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\Auth\ClerkRegistrationController;
 
 Route::controller(LoginController::class)->group(function () {
     Route::get('/login', 'create')->name('login');
@@ -11,7 +11,7 @@ Route::controller(LoginController::class)->group(function () {
     Route::post('/logout', 'destroy')->name('logout');
 });
 
-Route::controller(RegistrationController::class)->group(function () {
+Route::controller(ClerkRegistrationController::class)->group(function () {
     Route::get('/registration', 'create')->name('register');
     Route::post('/registration', 'store')
         ->middleware('throttle:register')

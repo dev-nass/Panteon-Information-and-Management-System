@@ -10,6 +10,7 @@ Route::prefix('admin')
 
         Route::controller(ClerkInvitationController::class)->group(function () {
             Route::get('/clerk-invitations', 'index')->name('clerk_invitations.index');
+            Route::post('/clerk-invitations', 'store')->name('clerk_invitations.store');
         });
 
     });
