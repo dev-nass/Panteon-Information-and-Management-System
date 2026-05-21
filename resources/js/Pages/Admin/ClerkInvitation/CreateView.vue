@@ -19,7 +19,7 @@ const submitInvitation = () => {
     isSubmitting.value = true;
 
     router.post(
-        route("admin.clerk-invitation.store"),
+        route("admin.clerk_invitations.store"),
         {
             email: email.value,
         },

@@ -14,7 +14,7 @@ class ClerkInvitationController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Admin/ClerkInvitation/IndexView');
+        return Inertia::render('Admin/ClerkInvitation/CreateView');
     }
 
     public function store(Request $request)

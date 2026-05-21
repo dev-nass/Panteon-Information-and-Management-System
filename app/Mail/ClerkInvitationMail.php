@@ -34,7 +34,7 @@ class ClerkInvitationMail extends Mailable
      */
     public function content(): Content
     {
-        return new Content(view: 'emails.clerk-invitation');
+        return new Content(view: 'mails.clerk-invitation');
     }
 
     /**

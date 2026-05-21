@@ -3,6 +3,10 @@ import { useForm, Link } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 
+const props = defineProps({
+    token: String,
+});
+
 const form = useForm({
     first_name: "",
     middle_name: "",
@@ -11,6 +15,7 @@ const form = useForm({
     email: "",
     password: "",
     password_confirmation: "",
+    token: props.token,
 });
 
 const handleSubmit = () => {
@@ -78,7 +83,10 @@ const handleSubmit = () => {
                             placeholder="Enter your first name"
                             required
                         />
-                        <p v-if="form.errors.first_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.first_name"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.first_name }}
                         </p>
                     </div>
@@ -97,7 +105,10 @@ const handleSubmit = () => {
                             type="text"
                             placeholder="Enter your middle name (optional)"
                         />
-                        <p v-if="form.errors.middle_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.middle_name"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.middle_name }}
                         </p>
                     </div>
@@ -117,7 +128,10 @@ const handleSubmit = () => {
                             placeholder="Enter your last name"
                             required
                         />
-                        <p v-if="form.errors.last_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.last_name"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.last_name }}
                         </p>
                     </div>
@@ -137,7 +151,10 @@ const handleSubmit = () => {
                             placeholder="Enter your contact number"
                             required
                         />
-                        <p v-if="form.errors.contact_number" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.contact_number"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.contact_number }}
                         </p>
                     </div>
@@ -157,7 +174,10 @@ const handleSubmit = () => {
                             placeholder="Enter your email"
                             required
                         />
-                        <p v-if="form.errors.email" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.email"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.email }}
                         </p>
                     </div>
@@ -177,7 +197,10 @@ const handleSubmit = () => {
                             placeholder="Create a password"
                             required
                         />
-                        <p v-if="form.errors.password" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.password"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.password }}
                         </p>
                     </div>
@@ -197,15 +220,25 @@ const handleSubmit = () => {
                             placeholder="Confirm your password"
                             required
                         />
-                        <p v-if="form.errors.password_confirmation" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                        <p
+                            v-if="form.errors.password_confirmation"
+                            class="mt-1 text-sm text-red-600 dark:text-red-400"
+                        >
                             {{ form.errors.password_confirmation }}
                         </p>
                     </div>
 
                     <!-- Submit Button -->
                     <div>
-                        <Button type="submit" :highlighted="true" class="w-full justify-center" :disabled="form.processing">
-                            {{ form.processing ? 'Registering...' : 'Register' }}
+                        <Button
+                            type="submit"
+                            :highlighted="true"
+                            class="w-full justify-center"
+                            :disabled="form.processing"
+                        >
+                            {{
+                                form.processing ? "Registering..." : "Register"
+                            }}
                         </Button>
                     </div>
                 </form>

@@ -12,17 +12,21 @@ use Inertia\Inertia;
 
 class ClerkRegistrationController extends Controller
 {
-    public function create(string $token)
+    public function create(Request $request)
     {
-        $invitation_token = ClerkInvitation::firstOrFail(['token' => $token]);
+        $token = $request->route('token');
+        $invitation_token = ClerkInvitation::where('token', $token)->firstOrFail();
 
         abort_if(!$invitation_token->isValid(), 410, 'This invitation link has expired or already been used.');
 
-        return Inertia::render('Auth/RegistrationView');
+        return Inertia::render('Auth/RegistrationView', [
+            'token' => $token,
+        ]);
     }
 
-    public function store(RegistrationRequest $request, string $token)
+    public function store(RegistrationRequest $request)
     {
+        $token = $request->input('token');
         $invitation = ClerkInvitation::where('token', $token)->firstOrFail();
 
         abort_if(!$invitation->isValid(), 410, 'This invitation link has expired or already been used.');

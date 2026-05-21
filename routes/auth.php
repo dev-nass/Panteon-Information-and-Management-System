@@ -12,7 +12,7 @@ Route::controller(LoginController::class)->group(function () {
 });
 
 Route::controller(ClerkRegistrationController::class)->group(function () {
-    Route::get('/registration', 'create')->name('register');
+    Route::get('/registration/{token}', 'create')->name('register');
     Route::post('/registration', 'store')
         ->middleware('throttle:register')
         ->name('register.store');

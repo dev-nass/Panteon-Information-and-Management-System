@@ -126,19 +126,6 @@ const handleSubmit = () => {
                         </Button>
                     </div>
                 </form>
-
-                <!-- Footer -->
-                <div
-                    class="text-center text-sm text-gray-600 dark:text-neutral-400"
-                >
-                    Don't have an account?
-                    <Link
-                        :href="route('register')"
-                        class="text-green-600 dark:text-green-500 hover:underline font-medium"
-                    >
-                        Register
-                    </Link>
-                </div>
             </div>
         </div>
     </div>
