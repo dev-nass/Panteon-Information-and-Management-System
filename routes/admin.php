@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClerkInvitationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ImportingController;
 use App\Http\Controllers\Admin\InteractiveMapController;
 use App\Http\Controllers\Admin\LotManagementController;
 
@@ -36,4 +37,9 @@ Route::prefix('admin')
             Route::get('/lot-management/{lot}', 'show')->name('lot_management.show');
         });
 
+
+        Route::controller(ImportingController::class)->group(function () {
+            Route::get('/import', 'index')->name('import.index');
+            Route::post('/import', 'store')->name('import.store');
+        });
     });

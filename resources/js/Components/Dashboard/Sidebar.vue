@@ -720,9 +720,9 @@ const handleLogout = () => {
 
                 <li v-if="user.role === 'admin'">
                     <SidebarLink
-                        :href="route('clerk.import.index')"
+                        :href="route('admin.import.index')"
                         :isActive="
-                            page.component === 'Clerk/ImportRecord/IndexView'
+                            page.component === 'Admin/ImportRecord/IndexView'
                         "
                     >
                         <template v-slot:icon>

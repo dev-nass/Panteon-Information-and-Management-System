@@ -20,11 +20,6 @@ Route::prefix('clerk')
             Route::get('/generate-report/download', 'generate')->name('generate_report.generate');
         });
 
-        Route::controller(ImportingController::class)->group(function () {
-            Route::get('/import', 'index')->name('import.index');
-            Route::post('/import', 'store')->name('import.store');
-        });
-
         Route::get('/map', function () {
             return Inertia::render('Shared/Map/IndexView');
         })->name('map.index');

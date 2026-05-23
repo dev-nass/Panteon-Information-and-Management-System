@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Clerk;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Applicant;
@@ -19,7 +19,7 @@ class ImportingController extends Controller
     public function index()
     {
         $logs = ImportedLog::orderBy('created_at', 'desc')->limit(50)->get();
-        return Inertia::render('Clerk/ImportRecord/IndexView', [
+        return Inertia::render('Admin/ImportRecord/IndexView', [
             'importLogs' => $logs,
         ]);
     }

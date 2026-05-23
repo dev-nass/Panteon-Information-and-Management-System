@@ -122,7 +122,7 @@ const startImport = () => {
     const formData = new FormData();
     formData.append("file", selectedFile.value);
 
-    router.post(route("clerk.import.store"), formData, {
+    router.post(route("admin.import.store"), formData, {
         onSuccess: () => {
             isUploading.value = false;
             removeFile();
