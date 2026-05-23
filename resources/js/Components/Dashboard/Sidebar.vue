@@ -415,7 +415,37 @@ const handleLogout = () => {
                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 mb-1 text-sm text-gray-400 dark:text-neutral-500"
                     >Main</span
                 >
-                <li>
+
+                <li v-if="user.role == 'admin'">
+                    <SidebarLink
+                        :href="route('admin.dashboard')"
+                        :isActive="page.component === 'Admin/DashboardView'"
+                    >
+                        <template v-slot:icon>
+                            <span
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-gauge-icon lucide-gauge"
+                                >
+                                    <path d="m12 14 4-4" />
+                                    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+                                </svg>
+                            </span>
+                        </template>
+                        <template v-slot:text> Dashboard </template>
+                    </SidebarLink>
+                </li>
+                <li v-if="user.role == 'clerk'">
                     <SidebarLink
                         :href="route('clerk.dashboard')"
                         :isActive="page.component === 'Clerk/DashboardView'"
