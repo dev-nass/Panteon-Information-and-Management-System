@@ -22,8 +22,8 @@ const roleRoutes = {
             component: "Shared/Map/IndexView",
         },
         lot_management: {
-            route: "",
-            component: "",
+            route: "admin.lot_management.index",
+            component: "Shared/LotManagement/IndexView",
         },
         // other admin routes
     },
@@ -589,9 +589,10 @@ const handleLogout = () => {
 
                 <li>
                     <SidebarLink
-                        :href="route('clerk.lot_management.index')"
+                        :href="route(roleRoutes[userRole].lot_management.route)"
                         :isActive="
-                            page.component === 'Clerk/LotManagement/IndexView'
+                            page.component ===
+                            roleRoutes[userRole].lot_management.component
                         "
                     >
                         <template v-slot:icon>
