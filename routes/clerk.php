@@ -3,8 +3,6 @@
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\BurialScheduleController;
 use App\Http\Controllers\Clerk\DashboardController;
-use App\Http\Controllers\Clerk\GenerateReportController;
-use App\Http\Controllers\Clerk\ImportingController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use Inertia\Inertia;
 
@@ -14,11 +12,6 @@ Route::prefix('clerk')
     ->group(function () {
 
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        Route::controller(GenerateReportController::class)->group(function () {
-            Route::get('/generate-report', 'index')->name('generate_report.index');
-            Route::get('/generate-report/download', 'generate')->name('generate_report.generate');
-        });
 
         Route::get('/map', function () {
             return Inertia::render('Shared/Map/IndexView');

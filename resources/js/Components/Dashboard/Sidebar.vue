@@ -489,9 +489,9 @@ const handleLogout = () => {
 
                 <li v-if="user.role === 'admin'">
                     <SidebarLink
-                        :href="route('clerk.generate_report.index')"
+                        :href="route('admin.generate_report.index')"
                         :isActive="
-                            page.component === 'Clerk/GenerateReport/IndexView'
+                            page.component === 'Admin/GenerateReport/IndexView'
                         "
                     >
                         <template v-slot:icon>

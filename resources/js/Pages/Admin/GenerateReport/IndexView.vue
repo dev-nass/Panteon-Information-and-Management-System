@@ -18,15 +18,15 @@ const isGenerating = ref(false);
 
 // Computed property to determine which date fields to show
 const showDateRange = computed(() => {
-    return reportType.value === 'burial' || reportType.value === 'deceased';
+    return reportType.value === "burial" || reportType.value === "deceased";
 });
 
 const showMonthPicker = computed(() => {
-    return reportType.value === 'summary';
+    return reportType.value === "summary";
 });
 
 const showNoDates = computed(() => {
-    return reportType.value === 'phase';
+    return reportType.value === "phase";
 });
 
 // Reset date fields when report type changes
@@ -77,7 +77,7 @@ const generateReport = () => {
     }
 
     const queryString = new URLSearchParams(params).toString();
-    const url = route("clerk.generate_report.generate") + "?" + queryString;
+    const url = route("admin.generate_report.generate") + "?" + queryString;
     window.open(url, "_blank");
 
     setTimeout(() => {
@@ -200,7 +200,10 @@ const generateReport = () => {
                             </template>
 
                             <!-- Month Picker (for monthly summary) -->
-                            <div v-if="showMonthPicker" class="flex flex-col col-span-full gap-1">
+                            <div
+                                v-if="showMonthPicker"
+                                class="flex flex-col col-span-full gap-1"
+                            >
                                 <label
                                     class="text-sm font-medium text-gray-600 dark:text-gray-300"
                                 >
@@ -216,8 +219,11 @@ const generateReport = () => {
 
                             <!-- No Date Fields (for phase availability) -->
                             <div v-if="showNoDates" class="col-span-full">
-                                <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                                    This report shows current phase availability data.
+                                <p
+                                    class="text-sm text-gray-500 dark:text-gray-400 italic"
+                                >
+                                    This report shows current phase availability
+                                    data.
                                 </p>
                             </div>
 

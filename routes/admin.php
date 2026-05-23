@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClerkInvitationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GenerateReportController;
 use App\Http\Controllers\Admin\ImportingController;
 use App\Http\Controllers\Admin\InteractiveMapController;
 use App\Http\Controllers\Admin\LotManagementController;
@@ -13,6 +14,11 @@ Route::prefix('admin')
     ->group(function () {
 
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::controller(GenerateReportController::class)->group(function () {
+            Route::get('/generate-report', 'index')->name('generate_report.index');
+            Route::get('/generate-report/download', 'generate')->name('generate_report.generate');
+        });
 
         Route::controller(ClerkInvitationController::class)->group(function () {
             Route::get('/clerk-invitations', 'index')->name('clerk_invitations.index');

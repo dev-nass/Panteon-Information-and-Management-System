@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Clerk;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BurialRecord;
@@ -15,13 +15,13 @@ class GenerateReportController extends Controller
 {
     public function index()
     {
-        return Inertia::render('Clerk/GenerateReport/IndexView');
+        return Inertia::render('Admin/GenerateReport/IndexView');
     }
 
     public function generate(Request $request)
     {
         $reportType = $request->reportType;
-        
+
         // Validate based on report type
         if (in_array($reportType, ['burial', 'deceased'])) {
             $request->validate([
@@ -47,7 +47,7 @@ class GenerateReportController extends Controller
 
         if ($reportType === 'phase') {
             $data = $this->getPhaseAvailabilityData();
-            
+
             if ($format === 'pdf') {
                 return $this->generatePhasePDF($data);
             }
@@ -57,7 +57,7 @@ class GenerateReportController extends Controller
         if ($reportType === 'summary') {
             $monthDate = $request->monthDate;
             $data = $this->getMonthlySummaryData($monthDate);
-            
+
             if ($format === 'pdf') {
                 return $this->generateMonthlySummaryPDF($data, $monthDate);
             }
@@ -174,13 +174,13 @@ class GenerateReportController extends Controller
     private function generateExcel($reportType, $data, $startDate, $endDate)
     {
         $filename = $reportType . '_report_' . date('Y-m-d') . '.xlsx';
-        
+
         $headerRow = [
             'Report Type' => ucfirst($reportType) . ' Report',
             'Period' => $startDate . ' to ' . $endDate,
             'Generated' => date('Y-m-d H:i:s'),
         ];
-        
+
         if ($reportType === 'burial') {
             $exportData = collect([]);
             $exportData->push($headerRow);
@@ -194,7 +194,7 @@ class GenerateReportController extends Controller
                 'Lot' => 'Lot',
                 'Address' => 'Address',
             ]);
-            
+
             foreach ($data as $index => $burial) {
                 $exportData->push([
                     'Seq. No' => $index + 1,
@@ -217,7 +217,7 @@ class GenerateReportController extends Controller
                 'Address' => 'Address',
                 'Applicant' => 'Applicant',
             ]);
-            
+
             foreach ($data as $index => $deceased) {
                 $fullName = trim($deceased->first_name . ' ' . ($deceased->middle_name ?? '') . ' ' . $deceased->last_name);
                 $exportData->push([
@@ -236,7 +236,7 @@ class GenerateReportController extends Controller
     private function generateMonthlySummaryExcel($data, $monthDate)
     {
         $filename = 'monthly_summary_' . date('Y-m', strtotime($monthDate)) . '.xlsx';
-        
+
         $exportData = collect([]);
         $exportData->push([
             'Report Type' => 'Monthly Summary',
@@ -249,7 +249,7 @@ class GenerateReportController extends Controller
         $exportData->push(['Metric' => 'Total Deceased', 'Value' => $data['total_deceased']]);
         $exportData->push([]);
         $exportData->push(['Day' => 'Day', 'Count' => 'Count']);
-        
+
         foreach ($data['by_day'] as $day) {
             $exportData->push(['Day' => $day->day, 'Count' => $day->count]);
         }
@@ -260,7 +260,7 @@ class GenerateReportController extends Controller
     private function generatePhaseExcel($data)
     {
         $filename = 'phase_availability_' . date('Y-m-d') . '.xlsx';
-        
+
         $exportData = collect([]);
         $exportData->push([
             'Report Type' => 'Phase Availability Report',
@@ -275,7 +275,7 @@ class GenerateReportController extends Controller
             'Available Lots' => 'Available Lots',
             'Occupancy Rate (%)' => 'Occupancy Rate (%)',
         ]);
-        
+
         foreach ($data as $phase) {
             $exportData->push([
                 'Phase Name' => $phase['phase_name'],
