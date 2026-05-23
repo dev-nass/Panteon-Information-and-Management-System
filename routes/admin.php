@@ -7,9 +7,8 @@ use App\Http\Controllers\Admin\InteractiveMapController;
 use App\Http\Controllers\Admin\LotManagementController;
 
 
-// TODO: Create a separate middleware but for 'admin' similar on 'clerk' routes
 Route::prefix('admin')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'admin'])
     ->name('admin.')
     ->group(function () {
 
