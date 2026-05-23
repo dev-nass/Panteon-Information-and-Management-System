@@ -30,7 +30,7 @@ const yearOptions = Array.from(
 const changeFilter = (filter) => {
     activeTab.value = filter;
     router.get(
-        route("clerk.dashboard"),
+        route("admin.dashboard"),
         { filter, year: selectedYear.value },
         { preserveState: true },
     );
@@ -38,7 +38,7 @@ const changeFilter = (filter) => {
 
 const changeYear = () => {
     router.get(
-        route("clerk.dashboard"),
+        route("admin.dashboard"),
         { filter: activeTab.value, year: selectedYear.value },
         { preserveState: true },
     );
