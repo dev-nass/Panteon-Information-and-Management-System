@@ -47,7 +47,7 @@ defineOptions({
                     />
                 </svg>
                 Today is:
-                <span class="text-gray-800 dark:text-gray-200 font-semibold">
+                <span class="text-green-500 dark:text-green-400 font-semibold">
                     {{
                         new Date().toLocaleDateString("en-US", {
                             month: "long",
@@ -150,7 +150,7 @@ defineOptions({
                 </Link>
                 <Link
                     :href="route('clerk.lot_management.index')"
-                    class="flex items-center p-4 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600 rounded-xl shadow-sm hover:shadow transition group text-left"
+                    class="flex items-center p-4 bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 hover:border-green-500 dark:hover:border-green-400 rounded-xl shadow-sm hover:shadow transition group text-left"
                 >
                     <div
                         class="p-3 bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-400 rounded-lg group-hover:bg-green-600 group-hover:text-white transition mr-4"
@@ -311,7 +311,7 @@ defineOptions({
                             class="flex items-start text-sm"
                         >
                             <div
-                                class="w-2 h-2 rounded-full mt-1.5 mr-3 flex-shrink-0 bg-gray-500"
+                                class="w-2 h-2 rounded-full mt-1.5 mr-3 flex-shrink-0 bg-green-500"
                             ></div>
                             <div>
                                 <p
@@ -379,7 +379,7 @@ defineOptions({
                                 class="w-full bg-gray-100 dark:bg-neutral-700 rounded-full h-2"
                             >
                                 <div
-                                    class="h-2 rounded-full bg-gray-500"
+                                    class="h-2 rounded-full bg-green-500"
                                     :style="{
                                         width: cluster.occupancy_rate + '%',
                                     }"

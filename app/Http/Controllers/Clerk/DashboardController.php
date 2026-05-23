@@ -40,9 +40,10 @@ class DashboardController extends Controller
 
         // Today's burial schedules (upcoming burials for today)
         $todaySchedules = BurialRecord::with(['deceasedRecord.applicant', 'lot'])
-            ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-            ->whereDate('deceased_records.date_of_depository', Carbon::today())
-            ->orderBy('deceased_records.date_of_depository')
+            ->whereHas('deceasedRecord', function ($query) {
+                $query->whereDate('date_of_depository', Carbon::today());
+            })
+            ->orderBy('id')
             ->limit(5)
             ->get()
             ->map(function ($record) {
@@ -53,7 +54,7 @@ class DashboardController extends Controller
                                       ($record->deceasedRecord->middle_name ? substr($record->deceasedRecord->middle_name, 0, 1) . '. ' : '') . 
                                       $record->deceasedRecord->last_name,
                     'lot_number' => $record->lot->lot_number ?? 'N/A',
-                    'contact_name' => $record->deceasedRecord->applicant->first_name . ' ' . $record->deceasedRecord->applicant->last_name ?? 'N/A',
+                    'contact_name' => ($record->deceasedRecord->applicant->first_name ?? '') . ' ' . ($record->deceasedRecord->applicant->last_name ?? 'N/A'),
                     'contact_relationship' => $record->deceasedRecord->applicant->relationship ?? 'N/A',
                     'contact_phone' => $record->deceasedRecord->applicant->contact_number ?? 'N/A',
                     'status' => Carbon::parse($record->deceasedRecord->date_of_depository)->isPast() ? 'Completed' : 'Confirmed',
@@ -74,11 +75,16 @@ class DashboardController extends Controller
             });
 
         // Cluster statistics (section availability)
-        $clusterStats = Cluster::with('lots')
+        $clusterStats = Cluster::withCount([
+                'lots',
+                'lots as occupied_lots_count' => function ($query) {
+                    $query->has('burialRecords');
+                }
+            ])
             ->get()
             ->map(function ($cluster) {
-                $totalLots = $cluster->lots->count();
-                $occupiedLots = $cluster->lots()->has('burialRecords')->count();
+                $totalLots = $cluster->lots_count;
+                $occupiedLots = $cluster->occupied_lots_count;
                 $availableLots = $totalLots - $occupiedLots;
                 $occupancyRate = $totalLots > 0 ? ($occupiedLots / $totalLots) * 100 : 0;
 
