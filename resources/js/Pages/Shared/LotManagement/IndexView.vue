@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onBeforeUnmount } from "vue";
-import { router } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
@@ -11,6 +11,8 @@ import LotTable from "@/Components/LotManagement/LotTable.vue";
 
 import { useSearch } from "@/composables/map/search/useSearch";
 
+const page = usePage();
+const user = computed(() => page.props.auth.user);
 const props = defineProps({
     phases: Array,
 });
@@ -134,6 +136,7 @@ defineOptions({
                     </Button>
 
                     <Button
+                        v-if="user.role === 'admin'"
                         @click="goToCreate"
                         class="bg-green-500/10 text-green-400 hover:bg-green-500/20"
                     >
