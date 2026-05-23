@@ -25,7 +25,24 @@ const roleRoutes = {
             route: "admin.lot_management.index",
             component: "Shared/LotManagement/IndexView",
         },
-        // other admin routes
+    },
+    clerk: {
+        dashboard: {
+            route: "clerk.dashboard",
+            component: "Clerk/DashboardView",
+        },
+        map: {
+            route: "clerk.map.index",
+            component: "Shared/Map/IndexView",
+        },
+        lot_management: {
+            route: "clerk.lot_management.index",
+            component: "Shared/LotManagement/IndexView",
+        },
+        reports: {
+            route: "clerk.reports.index",
+            component: "Shared/Reports/IndexView",
+        },
     },
 };
 
@@ -470,7 +487,7 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
-                <li>
+                <li v-if="user.role === 'admin'">
                     <SidebarLink
                         :href="route('clerk.generate_report.index')"
                         :isActive="
@@ -504,7 +521,7 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
-                <li>
+                <li v-if="user.role === 'admin'">
                     <SidebarLink
                         :href="route('admin.clerk_invitations.index')"
                         :isActive="
@@ -701,7 +718,7 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
-                <li>
+                <li v-if="user.role === 'admin'">
                     <SidebarLink
                         :href="route('clerk.import.index')"
                         :isActive="

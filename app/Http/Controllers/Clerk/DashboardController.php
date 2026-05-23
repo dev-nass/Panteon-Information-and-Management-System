@@ -38,6 +38,60 @@ class DashboardController extends Controller
         // Monthly activity data
         $activityData = $this->getActivityData($filter, $year);
 
+        // Today's burial schedules (upcoming burials for today)
+        $todaySchedules = BurialRecord::with(['deceasedRecord.applicant', 'lot'])
+            ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+            ->whereDate('deceased_records.date_of_depository', Carbon::today())
+            ->orderBy('deceased_records.date_of_depository')
+            ->limit(5)
+            ->get()
+            ->map(function ($record) {
+                return [
+                    'id' => $record->id,
+                    'time' => Carbon::parse($record->deceasedRecord->date_of_depository)->format('h:i A'),
+                    'deceased_name' => $record->deceasedRecord->first_name . ' ' . 
+                                      ($record->deceasedRecord->middle_name ? substr($record->deceasedRecord->middle_name, 0, 1) . '. ' : '') . 
+                                      $record->deceasedRecord->last_name,
+                    'lot_number' => $record->lot->lot_number ?? 'N/A',
+                    'contact_name' => $record->deceasedRecord->applicant->first_name . ' ' . $record->deceasedRecord->applicant->last_name ?? 'N/A',
+                    'contact_relationship' => $record->deceasedRecord->applicant->relationship ?? 'N/A',
+                    'contact_phone' => $record->deceasedRecord->applicant->contact_number ?? 'N/A',
+                    'status' => Carbon::parse($record->deceasedRecord->date_of_depository)->isPast() ? 'Completed' : 'Confirmed',
+                ];
+            });
+
+        // Recent activities (last 5 burial records created)
+        $recentActivities = BurialRecord::with(['deceasedRecord', 'user'])
+            ->latest()
+            ->limit(5)
+            ->get()
+            ->map(function ($record) {
+                return [
+                    'action' => 'Registered profile: ' . $record->deceasedRecord->first_name . ' ' . $record->deceasedRecord->last_name,
+                    'time' => $record->created_at->diffForHumans(),
+                    'type' => 'burial',
+                ];
+            });
+
+        // Cluster statistics (section availability)
+        $clusterStats = Cluster::with('lots')
+            ->get()
+            ->map(function ($cluster) {
+                $totalLots = $cluster->lots->count();
+                $occupiedLots = $cluster->lots()->has('burialRecords')->count();
+                $availableLots = $totalLots - $occupiedLots;
+                $occupancyRate = $totalLots > 0 ? ($occupiedLots / $totalLots) * 100 : 0;
+
+                return [
+                    'name' => $cluster->cluster_name,
+                    'type' => $cluster->cluster_type,
+                    'available_lots' => $availableLots,
+                    'total_lots' => $totalLots,
+                    'occupancy_rate' => round($occupancyRate, 1),
+                ];
+            })
+            ->take(5);
+
         return Inertia::render('Clerk/DashboardView', [
             'stats' => [
                 'total_burial_records' => $totalBurialRecords,
@@ -52,6 +106,9 @@ class DashboardController extends Controller
             'activity_data' => $activityData,
             'current_filter' => $filter,
             'selected_year' => (int) $year,
+            'today_schedules' => $todaySchedules,
+            'recent_activities' => $recentActivities,
+            'cluster_stats' => $clusterStats,
         ]);
     }
 
