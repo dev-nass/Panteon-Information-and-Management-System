@@ -7,6 +7,27 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const userRole = computed(() =>
+    page.props.auth?.user?.role?.toLowerCase()?.trim(),
+);
+
+const roleRoutes = {
+    admin: {
+        dashboard: {
+            route: "admin.dashboard",
+            component: "Admin/DashboardView",
+        },
+        map: {
+            route: "admin.map.index",
+            component: "Shared/Map/IndexView",
+        },
+        lot_management: {
+            route: "",
+            component: "",
+        },
+        // other admin routes
+    },
+};
 
 const handleLogout = () => {
     router.post(route("logout"));
@@ -416,39 +437,13 @@ const handleLogout = () => {
                     >Main</span
                 >
 
-                <li v-if="user.role == 'admin'">
+                <li>
                     <SidebarLink
-                        :href="route('admin.dashboard')"
-                        :isActive="page.component === 'Admin/DashboardView'"
-                    >
-                        <template v-slot:icon>
-                            <span
-                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="18"
-                                    height="18"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    class="lucide lucide-gauge-icon lucide-gauge"
-                                >
-                                    <path d="m12 14 4-4" />
-                                    <path d="M3.34 19a10 10 0 1 1 17.32 0" />
-                                </svg>
-                            </span>
-                        </template>
-                        <template v-slot:text> Dashboard </template>
-                    </SidebarLink>
-                </li>
-                <li v-if="user.role == 'clerk'">
-                    <SidebarLink
-                        :href="route('clerk.dashboard')"
-                        :isActive="page.component === 'Clerk/DashboardView'"
+                        :href="route(roleRoutes[userRole].dashboard.route)"
+                        :isActive="
+                            page.component ===
+                            roleRoutes[userRole].dashboard.component
+                        "
                     >
                         <template v-slot:icon>
                             <span
@@ -555,8 +550,11 @@ const handleLogout = () => {
 
                 <li>
                     <SidebarLink
-                        :href="route('clerk.map.index')"
-                        :isActive="page.component === 'Clerk/Map/IndexView'"
+                        :href="route(roleRoutes[userRole].map.route)"
+                        :isActive="
+                            page.component ===
+                            roleRoutes[userRole].map.component
+                        "
                     >
                         <template v-slot:icon>
                             <span
@@ -585,7 +583,7 @@ const handleLogout = () => {
                                 </svg>
                             </span>
                         </template>
-                        <template v-slot:text> Intertactive Map </template>
+                        <template v-slot:text> Interactive Map </template>
                     </SidebarLink>
                 </li>
 
@@ -631,7 +629,7 @@ const handleLogout = () => {
                     >Burial</span
                 >
 
-                <li>
+                <li v-if="user.role === 'clerk'">
                     <SidebarLink
                         :href="route('clerk.burial_schedules.index')"
                         :isActive="
@@ -666,7 +664,7 @@ const handleLogout = () => {
                         <template v-slot:text> Burial Schedules </template>
                     </SidebarLink>
                 </li>
-                <li>
+                <li v-if="user.role === 'clerk'">
                     <SidebarLink
                         :href="route('clerk.burial_records.index')"
                         :isActive="
