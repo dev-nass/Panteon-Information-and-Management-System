@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\GenerateReportController;
 use App\Http\Controllers\Admin\ImportingController;
 use App\Http\Controllers\Admin\InteractiveMapController;
 use App\Http\Controllers\Admin\LotManagementController;
+use App\Http\Controllers\Admin\BurialRecordController;
 
 
 Route::prefix('admin')
@@ -40,6 +41,11 @@ Route::prefix('admin')
             Route::delete('/lot-management/cluster/{cluster}', 'deleteCluster')->name('lot_management.delete.cluster');
             Route::delete('/lot-management/lot/{lot}', 'deleteLot')->name('lot_management.delete.lot');
             Route::get('/lot-management/{lot}', 'show')->name('lot_management.show');
+        });
+
+        Route::controller(BurialRecordController::class)->group(function () {
+            Route::get('/burial-records', 'index')->name('burial_records.index');
+            Route::get('/burial-records/{burial_record}', 'show')->name('burial_records.show');
         });
 
 

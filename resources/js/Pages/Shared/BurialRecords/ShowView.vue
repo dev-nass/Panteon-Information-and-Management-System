@@ -17,6 +17,20 @@ const props = defineProps({
 });
 
 const page = usePage();
+// RBAC variables
+const user = computed(() => page.props.auth.user);
+const userRole = computed(() =>
+    page.props.auth?.user?.role?.toLowerCase()?.trim(),
+);
+const roleRoutes = {
+    admin: {
+        route: "admin.map.index",
+    },
+    clerk: {
+        route: "clerk.map.index",
+    },
+};
+// response variables
 const errors = computed(() => page.props.errors || {});
 const $toast = useToast();
 
@@ -38,7 +52,10 @@ const tabs = [
 ];
 
 const back = () => {
-    router.visit(route("clerk.burial_records.index"));
+    if (userRole.value === "clerk")
+        router.visit(route("clerk.burial_records.index"));
+    else if (userRole.value === "admin")
+        router.visit(route("admin.burial_records.index"));
 };
 
 const editing = ref(false);
@@ -89,9 +106,9 @@ const confirmDiscard = () => {
 * Description: Get the burial ID of the record being showng and pass
                it on the fetchClusterByBurialId()
 */
-const redirectToClerkMap = () => {
+const redirectToMap = () => {
     const burialId = props.burial_record.data.burial.id;
-    router.visit(route("clerk.map.index"), {
+    router.visit(route(roleRoutes[userRole.value].route), {
         data: { burialId },
         onSuccess: () => {
             setTimeout(() => {
@@ -385,7 +402,7 @@ onBeforeUnmount(() => {
                     class="flex space-x-3 items-center justify-center"
                 >
                     <button
-                        @click="redirectToClerkMap"
+                        @click="redirectToMap"
                         :disabled="
                             !burial_record.data.lot?.lot?.geometry?.coordinates
                                 ?.length
@@ -400,6 +417,7 @@ onBeforeUnmount(() => {
                         View on Map
                     </button>
                     <button
+                        v-if="userRole === 'clerk'"
                         @click="editing = !editing"
                         class="flex items-center justify-center gap-x-2 px-4 mt-4 py-2 bg-green-500/10 text-green-400 rounded-xl border border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200"
                     >
@@ -424,6 +442,7 @@ onBeforeUnmount(() => {
                     </button>
 
                     <button
+                        v-if="userRole === 'clerk'"
                         @click="deleteBurialRecord"
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200"
                     >

@@ -1,25 +1,24 @@
 <?php
 
-namespace App\Http\Controllers\Clerk;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Clerk\BurialRecordStoreRequest;
-use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
 use App\Services\BurialRecordService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BurialRecordController extends Controller
 {
+
     public function __construct(protected BurialRecordService $service)
     {
     }
 
-    // handles tha diplay of table view, any form of filter is present or not
+
     public function index()
     {
-
         $search = request('search');
         $filter = request('filter', 'all');
 
@@ -72,25 +71,6 @@ class BurialRecordController extends Controller
         ]);
     }
 
-    public function create()
-    {
-        return Inertia::render('Clerk/BurialRecords/CreateView', [
-            'phases' => $this->service->getCreateData(),
-        ]);
-    }
-
-    public function store(BurialRecordStoreRequest $request)
-    {
-        $burialRecord = $this->service->store(
-            deceasedData: $request->deceasedData(),
-            applicantData: $request->applicantData(),
-            lotData: $request->lotData(),
-            createdBy: auth()->id(),
-        );
-
-        return to_route('clerk.burial_records.show', $burialRecord->id)
-            ->with('success', 'Burial record created successfully.');
-    }
 
     public function show(BurialRecord $burial_record)
     {
@@ -101,20 +81,5 @@ class BurialRecordController extends Controller
             'current_selection' => $data['current_selection'],
             'phases' => $data['phases'],
         ]);
-    }
-
-    public function update(BurialRecordUpdateRequest $request, BurialRecord $burial_record)
-    {
-        $this->service->update($burial_record, $request->validated(), auth()->id());
-
-        return back()->with('success', 'Burial record updated successfully.');
-    }
-
-    public function destroy(BurialRecord $burial_record)
-    {
-        $burial_record->delete();
-
-        return to_route('clerk.burial_records.index')
-            ->with('success', 'Burial record deleted successfully.');
     }
 }

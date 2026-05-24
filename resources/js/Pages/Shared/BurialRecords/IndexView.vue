@@ -1,13 +1,13 @@
 <script setup>
 import { useSearchBurialRecords } from "@/composables/burial_records/useSearchBurialRecords";
 
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 
 // NOTE:(out for now since we ended up separating the MAP and TABLE)
 // const emit = defineEmits(["toggleTable"]);
@@ -15,6 +15,21 @@ import { onMounted } from "vue";
 // const toggleTableEvent = () => {
 //     emit("toggleTable");
 // };
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const userRole = computed(() =>
+    page.props.auth?.user?.role?.toLowerCase()?.trim(),
+);
+
+const roleRoutes = {
+    admin: {
+        route: "admin.burial_records.show",
+    },
+    clerk: {
+        route: "clerk.burial_records.show",
+    },
+};
 
 const props = defineProps({
     burial_records: {
@@ -118,6 +133,7 @@ defineOptions({
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                     >
                                         <Link
+                                            v-if="userRole === 'clerk'"
                                             :href="
                                                 route(
                                                     'clerk.burial_records.create',
@@ -345,7 +361,7 @@ defineOptions({
                                         () =>
                                             $inertia.visit(
                                                 route(
-                                                    'clerk.burial_records.show',
+                                                    roleRoutes[userRole].route,
                                                     record.burial.id,
                                                 ),
                                             )

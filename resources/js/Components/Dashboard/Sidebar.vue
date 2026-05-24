@@ -25,6 +25,10 @@ const roleRoutes = {
             route: "admin.lot_management.index",
             component: "Shared/LotManagement/IndexView",
         },
+        burial_record_management: {
+            route: "admin.burial_records.index",
+            component: "Shared/BurialRecords/IndexView",
+        },
     },
     clerk: {
         dashboard: {
@@ -39,9 +43,9 @@ const roleRoutes = {
             route: "clerk.lot_management.index",
             component: "Shared/LotManagement/IndexView",
         },
-        reports: {
-            route: "clerk.reports.index",
-            component: "Shared/Reports/IndexView",
+        burial_record_management: {
+            route: "clerk.burial_records.index",
+            component: "Shared/BurialRecords/IndexView",
         },
     },
 };
@@ -682,11 +686,16 @@ const handleLogout = () => {
                         <template v-slot:text> Burial Schedules </template>
                     </SidebarLink>
                 </li>
-                <li v-if="user.role === 'clerk'">
+                <li>
                     <SidebarLink
-                        :href="route('clerk.burial_records.index')"
+                        :href="
+                            route(
+                                roleRoutes[userRole].burial_record_management
+                                    .route,
+                            )
+                        "
                         :isActive="
-                            page.component === 'Clerk/BurialRecords/IndexView'
+                            page.component === 'Shared/BurialRecords/IndexView'
                         "
                     >
                         <template v-slot:icon>
