@@ -24,11 +24,13 @@ Route::prefix('admin')
 
         Route::controller(ClerkInvitationController::class)->group(function () {
             Route::get('/clerk-invitations', 'index')->name('clerk_invitations.index');
+            Route::get('/clerk-invitations/create', 'create')->name('clerk_invitations.create');
             Route::post('/clerk-invitations', 'store')->name('clerk_invitations.store');
         });
 
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/user-management', 'index')->name('user_management.index');
+            Route::delete('/user-management/{user}', 'destroy')->name('user_management.destroy');
         });
 
         Route::get('/map', [InteractiveMapController::class, 'index'])->name('map.index');

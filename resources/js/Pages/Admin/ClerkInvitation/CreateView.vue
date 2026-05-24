@@ -1,6 +1,6 @@
 <script setup>
 import { watch } from "vue";
-import { useForm, usePage } from "@inertiajs/vue3";
+import { useForm, usePage, Link } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "vue-toast-notification";
 import Button from "@/Components/Form/Button.vue";
@@ -122,13 +122,24 @@ const submitInvitation = () => {
                                 </p>
                             </div>
 
-                            <div class="flex justify-end pt-2">
+                            <div class="flex justify-between items-center pt-2">
+                                <Link
+                                    :href="
+                                        route('admin.clerk_invitations.index')
+                                    "
+                                    class="flex items-center gap-2 px-3 py-2.5 text-base rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 dark:text-white focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 hover:border-green-500"
+                                >
+                                    View Invitation Logs
+                                </Link>
+
                                 <Button
                                     type="submit"
                                     :highlighted="true"
                                     :disabled="!form.email || form.processing"
                                 >
-                                    <span v-if="form.processing">Sending...</span>
+                                    <span v-if="form.processing"
+                                        >Sending...</span
+                                    >
                                     <span v-else>Send Invitation</span>
                                 </Button>
                             </div>

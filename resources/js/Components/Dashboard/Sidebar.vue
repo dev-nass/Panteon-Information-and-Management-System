@@ -527,7 +527,7 @@ const handleLogout = () => {
 
                 <li v-if="user.role === 'admin'">
                     <SidebarLink
-                        :href="route('admin.clerk_invitations.index')"
+                        :href="route('admin.clerk_invitations.create')"
                         :isActive="
                             page.component ===
                             'Admin/ClerkInvitation/CreateView'
