@@ -7,8 +7,13 @@ import BarChart from "@/Components/Charts/BarChart.vue";
 import DoughnutChart from "@/Components/Charts/DoughnutChart.vue";
 import HorizontalBarChart from "@/Components/Charts/HorizontalBarChart.vue";
 
+import { Doughnut } from "vue-chartjs";
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from "chart.js";
+
 import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
+
+ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
 const props = defineProps({
     stats: { type: Object, required: true },
@@ -36,11 +41,7 @@ const yearOptions = Array.from(
 
 const changeTab = (tab) => {
     activeTab.value = tab;
-    router.get(
-        route("admin.dashboard"),
-        { tab },
-        { preserveState: true },
-    );
+    router.get(route("admin.dashboard"), { tab }, { preserveState: true });
 };
 
 const changeFilter = (filter) => {
@@ -55,7 +56,11 @@ const changeFilter = (filter) => {
 const changeYear = () => {
     router.get(
         route("admin.dashboard"),
-        { tab: activeTab.value, filter: activeFilter.value, year: selectedYear.value },
+        {
+            tab: activeTab.value,
+            filter: activeFilter.value,
+            year: selectedYear.value,
+        },
         { preserveState: true },
     );
 };
@@ -163,9 +168,19 @@ const phaseOccupancyOptions = {
 const clusterDonutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: "70%",
+    cutout: "65%",
     plugins: {
-        legend: { display: true, position: "bottom" },
+        legend: {
+            display: true,
+            position: "bottom",
+            labels: {
+                padding: 15,
+                font: {
+                    size: 13,
+                    weight: 500,
+                },
+            },
+        },
     },
 };
 
@@ -179,7 +194,9 @@ defineOptions({
         <!-- HEADER WITH TABS -->
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-green-600 dark:text-green-400">
+                <h1
+                    class="text-3xl font-bold text-green-600 dark:text-green-400"
+                >
                     Dashboard
                 </h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -337,16 +354,15 @@ defineOptions({
         <div v-if="activeTab === 'clusters'" class="space-y-6">
             <div class="flex items-center gap-2">
                 <label
-                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
                     Phase:
                 </label>
                 <select
                     v-model="selectedPhaseId"
                     @change="changePhase"
-                    class="px-3 py-2 border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                    class="px-4 py-2 border bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded-lg text-sm font-medium text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                 >
-                    <option :value="null">All Phases</option>
                     <option
                         v-for="phase in phases"
                         :key="phase.id"
@@ -359,43 +375,69 @@ defineOptions({
 
             <div
                 v-if="cluster_data && cluster_data.length > 0"
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-8 gap-x-4"
             >
                 <div
                     v-for="cluster in cluster_data"
                     :key="cluster.id"
-                    class="dashboard-card"
+                    class="dashboard-card flex flex-col p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
                 >
-                    <h3 class="font-semibold text-center mb-2">
-                        {{ cluster.name }}
-                    </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">
-                        {{ cluster.phase_name }}
-                    </p>
-                    <div class="h-48">
-                        <DoughnutChart
-                            :chartData="{
+                    <div class="text-center mb-3">
+                        <h3
+                            class="text-base font-bold text-gray-800 dark:text-gray-100"
+                        >
+                            {{ cluster.name }}
+                        </h3>
+                        <p
+                            class="text-xs text-gray-600 dark:text-gray-400 mt-0.5"
+                        >
+                            {{ cluster.phase_name }} • {{ cluster.type }}
+                        </p>
+                    </div>
+
+                    <div
+                        class="flex-1 min-h-0 flex items-center justify-center"
+                    >
+                        <Doughnut
+                            :data="{
                                 labels: ['Occupied', 'Available'],
                                 datasets: [
                                     {
-                                        data: [cluster.occupied, cluster.available],
+                                        data: [
+                                            cluster.occupied,
+                                            cluster.available,
+                                        ],
                                         backgroundColor: [
-                                            'rgba(34,197,94,0.7)',
-                                            'rgba(156,163,175,0.5)',
+                                            'rgba(34,197,94,0.8)',
+                                            'rgba(156,163,175,0.6)',
                                         ],
                                         borderColor: [
                                             'rgba(34,197,94,1)',
                                             'rgba(156,163,175,1)',
                                         ],
-                                        borderWidth: 1,
+                                        borderWidth: 2,
                                     },
                                 ],
                             }"
-                            :chartOptions="clusterDonutOptions"
+                            :options="clusterDonutOptions"
                         />
                     </div>
-                    <div class="text-center mt-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span class="font-semibold">{{ cluster.occupied }}</span> / {{ cluster.total }} lots
+
+                    <div
+                        class="text-center mt-3 pt-3 border-t border-gray-200 dark:border-neutral-700"
+                    >
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            <span
+                                class="text-lg font-bold text-green-600 dark:text-green-400"
+                                >{{ cluster.occupied }}</span
+                            >
+                            <span class="mx-1">/</span>
+                            <span
+                                class="text-lg font-semibold text-gray-700 dark:text-gray-300"
+                                >{{ cluster.total }}</span
+                            >
+                            <span class="ml-1">lots</span>
+                        </p>
                     </div>
                 </div>
             </div>

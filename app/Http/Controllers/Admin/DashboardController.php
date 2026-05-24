@@ -56,9 +56,9 @@ class DashboardController extends Controller
         } elseif ($tab === 'phases') {
             $data['phase_data'] = $this->getPhaseOccupancyData();
         } elseif ($tab === 'clusters') {
-            $data['phases'] = Phase::select('id', 'phase_name')->get();
-            $data['selected_phase_id'] = $phaseId;
-            $data['cluster_data'] = $this->getClusterOccupancyData($phaseId);
+            $data['phases'] = Phase::select('id', 'phase_name')->orderBy('phase_name')->get();
+            $data['selected_phase_id'] = $phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id;
+            $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id']);
         }
 
         return Inertia::render('Admin/DashboardView', $data);
@@ -103,7 +103,7 @@ class DashboardController extends Controller
 
     private function getClusterOccupancyData($phaseId = null)
     {
-        $query = Cluster::select('clusters.id', 'clusters.cluster_name', 'clusters.phase_id')
+        $query = Cluster::select('clusters.id', 'clusters.cluster_name', 'clusters.cluster_type', 'clusters.phase_id')
             ->with('phase:id,phase_name')
             ->withCount([
                 'lots as total_lots',
@@ -122,6 +122,7 @@ class DashboardController extends Controller
             return [
                 'id' => $cluster->id,
                 'name' => $cluster->cluster_name,
+                'type' => $cluster->cluster_type,
                 'phase_name' => $cluster->phase->phase_name,
                 'occupied' => $cluster->occupied_lots,
                 'available' => $cluster->total_lots - $cluster->occupied_lots,
