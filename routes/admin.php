@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ImportingController;
 use App\Http\Controllers\Admin\InteractiveMapController;
 use App\Http\Controllers\Admin\LotManagementController;
 use App\Http\Controllers\Admin\BurialRecordController;
+use App\Http\Controllers\Admin\UserManagementController;
 
 
 Route::prefix('admin')
@@ -24,6 +25,10 @@ Route::prefix('admin')
         Route::controller(ClerkInvitationController::class)->group(function () {
             Route::get('/clerk-invitations', 'index')->name('clerk_invitations.index');
             Route::post('/clerk-invitations', 'store')->name('clerk_invitations.store');
+        });
+
+        Route::controller(UserManagementController::class)->group(function () {
+            Route::get('/user-management', 'index')->name('user_management.index');
         });
 
         Route::get('/map', [InteractiveMapController::class, 'index'])->name('map.index');
