@@ -1,11 +1,12 @@
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
+import { debounce } from "lodash";
 
 const props = defineProps({
     users: Object,
@@ -28,7 +29,7 @@ const applyFilter = (filterValue) => {
         {
             preserveState: true,
             replace: true,
-        }
+        },
     );
 };
 
@@ -53,7 +54,7 @@ const sort = (field) => {
         {
             preserveState: true,
             replace: true,
-        }
+        },
     );
 };
 
@@ -76,21 +77,24 @@ const cancelDelete = () => {
     deleteUserId.value = null;
 };
 
-const searchUsers = () => {
-    router.get(
-        route("admin.user_management.index"),
-        {
-            search: search.value,
-            filter: props.filters.filter,
-            sort_field: props.filters.sort_field,
-            sort_direction: props.filters.sort_direction,
-        },
-        {
-            preserveState: true,
-            replace: true,
-        }
-    );
-};
+watch(
+    search,
+    debounce(function (value) {
+        router.get(
+            route("admin.user_management.index"),
+            {
+                search: value,
+                filter: props.filters.filter,
+                sort_field: props.filters.sort_field,
+                sort_direction: props.filters.sort_direction,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
+    }, 500),
+);
 
 defineOptions({
     layout: Dashboard,
@@ -149,7 +153,9 @@ defineOptions({
                                 stroke-linejoin="round"
                             >
                                 <circle cx="12" cy="12" r="10" />
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <path
+                                    d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"
+                                />
                                 <path d="M12 17h.01" />
                             </svg>
                         </div>
@@ -204,7 +210,6 @@ defineOptions({
                                 class="max-w-md"
                                 placeholder="Search by name or email"
                                 v-model="search"
-                                @keyup.enter="searchUsers"
                             />
 
                             <div class="sm:col-span-2 md:grow">
@@ -367,7 +372,9 @@ defineOptions({
                                     <TableHeader @click="sort('email')">
                                         Email
                                     </TableHeader>
-                                    <TableHeader @click="sort('contact_number')">
+                                    <TableHeader
+                                        @click="sort('contact_number')"
+                                    >
                                         Contact Number
                                     </TableHeader>
                                     <TableHeader @click="sort('role')">

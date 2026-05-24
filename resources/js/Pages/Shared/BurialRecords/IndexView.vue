@@ -25,9 +25,11 @@ const userRole = computed(() =>
 const roleRoutes = {
     admin: {
         route: "admin.burial_records.show",
+        route_search: "admin.burial_records.index",
     },
     clerk: {
         route: "clerk.burial_records.show",
+        route_search: "clerk.burial_records.index",
     },
 };
 
@@ -41,7 +43,9 @@ const props = defineProps({
 // TODO: Remove this
 console.log(props.burial_records);
 
-const { search } = useSearchBurialRecords("clerk.burial_records.index");
+const { search } = useSearchBurialRecords(
+    roleRoutes[userRole.value].route_search,
+);
 
 const applyFilter = (filterValue) => {
     router.get(
