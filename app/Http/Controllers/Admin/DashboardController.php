@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\Lot;
+use App\Models\Phase;
+use App\Models\Cluster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,11 +17,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $tab = $request->get('tab', 'summary');
         $filter = $request->get('filter', 'monthly');
         $year = $request->get('year', Carbon::now()->year);
-
-        // Get date range based on filter
-        $dateRange = $this->getDateRange($filter, $year);
+        $phaseId = $request->get('phase_id');
 
         // Total statistics
         $totalBurialRecords = BurialRecord::count();
@@ -34,10 +35,7 @@ class DashboardController extends Controller
             ->pluck('count', 'corpse_disposal')
             ->toArray();
 
-        // Monthly activity data
-        $activityData = $this->getActivityData($filter, $year);
-
-        return Inertia::render('Admin/DashboardView', [
+        $data = [
             'stats' => [
                 'total_burial_records' => $totalBurialRecords,
                 'total_lots' => $totalLots,
@@ -48,35 +46,88 @@ class DashboardController extends Controller
                 'burial' => $disposalStats['burial'] ?? 0,
                 'cremation' => $disposalStats['cremation'] ?? 0,
             ],
-            'activity_data' => $activityData,
+            'current_tab' => $tab,
             'current_filter' => $filter,
             'selected_year' => (int) $year,
-        ]);
+        ];
+
+        if ($tab === 'summary') {
+            $data['activity_data'] = $this->getActivityData($filter, $year);
+        } elseif ($tab === 'phases') {
+            $data['phase_data'] = $this->getPhaseOccupancyData();
+        } elseif ($tab === 'clusters') {
+            $data['phases'] = Phase::select('id', 'phase_name')->get();
+            $data['selected_phase_id'] = $phaseId;
+            $data['cluster_data'] = $this->getClusterOccupancyData($phaseId);
+        }
+
+        return Inertia::render('Admin/DashboardView', $data);
     }
 
-    private function getDateRange($filter, $year)
+    private function getPhaseOccupancyData()
     {
-        $now = Carbon::now();
-        $targetYear = Carbon::create($year);
+        $phases = Phase::select('id', 'phase_name')
+            ->withCount([
+                'clusters as total_lots' => function ($query) {
+                    $query->join('lots', 'clusters.id', '=', 'lots.cluster_id')
+                        ->select(DB::raw('count(lots.id)'));
+                },
+                'clusters as occupied_lots' => function ($query) {
+                    $query->join('lots', 'clusters.id', '=', 'lots.cluster_id')
+                        ->whereExists(function ($subQuery) {
+                            $subQuery->select(DB::raw(1))
+                                ->from('burial_records')
+                                ->whereColumn('burial_records.lot_id', 'lots.id');
+                        })
+                        ->select(DB::raw('count(lots.id)'));
+                },
+            ])
+            ->get();
 
-        return match ($filter) {
-            'today' => [
-                'start' => $now->copy()->startOfDay(),
-                'end' => $now->copy()->endOfDay(),
-            ],
-            'weekly' => [
-                'start' => $now->copy()->startOfWeek(),
-                'end' => $now->copy()->endOfWeek(),
-            ],
-            'yearly' => [
-                'start' => $targetYear->copy()->startOfYear(),
-                'end' => $targetYear->copy()->endOfYear(),
-            ],
-            default => [ // monthly
-                'start' => $now->copy()->startOfMonth(),
-                'end' => $now->copy()->endOfMonth(),
-            ],
-        };
+        $labels = [];
+        $occupied = [];
+        $available = [];
+
+        foreach ($phases as $phase) {
+            $labels[] = $phase->phase_name;
+            $occupied[] = $phase->occupied_lots;
+            $available[] = $phase->total_lots - $phase->occupied_lots;
+        }
+
+        return [
+            'labels' => $labels,
+            'occupied' => $occupied,
+            'available' => $available,
+        ];
+    }
+
+    private function getClusterOccupancyData($phaseId = null)
+    {
+        $query = Cluster::select('clusters.id', 'clusters.cluster_name', 'clusters.phase_id')
+            ->with('phase:id,phase_name')
+            ->withCount([
+                'lots as total_lots',
+                'lots as occupied_lots' => function ($query) {
+                    $query->whereHas('burialRecords');
+                },
+            ]);
+
+        if ($phaseId) {
+            $query->where('phase_id', $phaseId);
+        }
+
+        $clusters = $query->get();
+
+        return $clusters->map(function ($cluster) {
+            return [
+                'id' => $cluster->id,
+                'name' => $cluster->cluster_name,
+                'phase_name' => $cluster->phase->phase_name,
+                'occupied' => $cluster->occupied_lots,
+                'available' => $cluster->total_lots - $cluster->occupied_lots,
+                'total' => $cluster->total_lots,
+            ];
+        })->values()->toArray();
     }
 
     private function getActivityData($filter, $year)
@@ -84,7 +135,6 @@ class DashboardController extends Controller
         $now = Carbon::now();
 
         if ($filter === 'today') {
-            // Hourly data for today
             $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
                 ->select(
                     DB::raw('HOUR(deceased_records.date_of_depository) as period'),
@@ -102,7 +152,6 @@ class DashboardController extends Controller
             $labels = array_map(fn($hour) => sprintf('%02d:00', $hour), $labels);
 
         } elseif ($filter === 'weekly') {
-            // Daily data for this week
             $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
                 ->select(
                     DB::raw('DATE(deceased_records.date_of_depository) as period'),
@@ -125,7 +174,6 @@ class DashboardController extends Controller
             }
 
         } elseif ($filter === 'yearly') {
-            // Monthly data for selected year
             $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
                 ->select(
                     DB::raw('MONTH(deceased_records.date_of_depository) as period'),
@@ -141,8 +189,7 @@ class DashboardController extends Controller
             $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             $values = array_map(fn($month) => $data[$month] ?? 0, range(1, 12));
 
-        } else { // monthly
-            // Daily data for this month
+        } else {
             $daysInMonth = $now->daysInMonth;
             $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
                 ->select(
