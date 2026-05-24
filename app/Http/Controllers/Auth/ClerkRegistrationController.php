@@ -15,12 +15,13 @@ class ClerkRegistrationController extends Controller
     public function create(Request $request)
     {
         $token = $request->route('token');
-        $invitation_token = ClerkInvitation::where('token', $token)->firstOrFail();
+        $invitation = ClerkInvitation::where('token', $token)->firstOrFail();
 
-        abort_if(!$invitation_token->isValid(), 410, 'This invitation link has expired or already been used.');
+        abort_if(!$invitation->isValid(), 410, 'This invitation link has expired or already been used.');
 
         return Inertia::render('Auth/RegistrationView', [
             'token' => $token,
+            'email' => $invitation->email,
         ]);
     }
 
@@ -39,6 +40,7 @@ class ClerkRegistrationController extends Controller
             'last_name' => $validated['last_name'],
             'contact_number' => $validated['contact_number'],
             'email' => strtolower($validated['email']),
+            'email_verified_at' => now(),
             'password' => bcrypt($validated['password']),
             'role' => 'clerk',
         ]);

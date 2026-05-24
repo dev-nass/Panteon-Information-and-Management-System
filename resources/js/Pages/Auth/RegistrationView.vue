@@ -5,6 +5,7 @@ import Button from "@/Components/Form/Button.vue";
 
 const props = defineProps({
     token: String,
+    email: String,
 });
 
 const form = useForm({
@@ -12,7 +13,7 @@ const form = useForm({
     middle_name: "",
     last_name: "",
     contact_number: "",
-    email: "",
+    email: props.email,
     password: "",
     password_confirmation: "",
     token: props.token,
@@ -172,7 +173,8 @@ const handleSubmit = () => {
                             v-model="form.email"
                             type="email"
                             placeholder="Enter your email"
-                            required
+                            disabled
+                            readonly
                         />
                         <p
                             v-if="form.errors.email"
