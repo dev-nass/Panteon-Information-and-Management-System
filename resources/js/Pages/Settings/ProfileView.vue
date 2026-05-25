@@ -4,7 +4,7 @@ import { computed, ref, watch } from "vue";
 import { isEqual } from "lodash";
 import { useToast } from "vue-toast-notification";
 
-import Input from "@/Components/Form/Input.vue";
+import Display from "@/Components/Display.vue";
 
 const page = usePage();
 const $toast = useToast();
@@ -19,6 +19,7 @@ const userRole = computed(() =>
 const errors = computed(() => page.props.errors || {});
 
 // State management
+const editing = ref(false);
 const hasChanges = ref(false);
 
 // Deep copy original user data
@@ -55,7 +56,10 @@ const discardChanges = () => {
         if (confirm("Are you sure you want to discard your changes?")) {
             localData.value = JSON.parse(JSON.stringify(originalData.value));
             hasChanges.value = false;
+            editing.value = false;
         }
+    } else {
+        editing.value = false;
     }
 };
 
@@ -74,6 +78,7 @@ const saveChanges = () => {
                     JSON.stringify(localData.value),
                 );
                 hasChanges.value = false;
+                editing.value = false;
                 $toast.success("Profile updated successfully!");
             },
             onError: () => {
@@ -290,84 +295,71 @@ const saveChanges = () => {
                     <div class="space-y-4">
                         <div class="grid grid-cols-2 gap-4">
                             <!-- First Name -->
-                            <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1.5"
-                                >
-                                    First Name
-                                </label>
-                                <Input
-                                    v-model="localData.first_name"
-                                    placeholder="Enter first name"
-                                    :error="errors['first_name']"
-                                />
-                            </div>
+                            <Display
+                                v-model="localData.first_name"
+                                label="First Name"
+                                placeholder="Enter first name"
+                                :editing="editing"
+                                :error="errors['first_name']"
+                            />
                             <!-- Middle Name -->
-                            <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1.5"
-                                >
-                                    Middle Name
-                                </label>
-                                <Input
-                                    v-model="localData.middle_name"
-                                    placeholder="Enter middle name"
-                                    :error="errors['middle_name']"
-                                />
-                            </div>
+                            <Display
+                                v-model="localData.middle_name"
+                                label="Middle Name"
+                                placeholder="Enter middle name"
+                                :editing="editing"
+                                :error="errors['middle_name']"
+                            />
                         </div>
 
                         <!-- Last Name -->
-                        <div>
-                            <label
-                                class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1.5"
-                            >
-                                Last Name
-                            </label>
-                            <Input
-                                v-model="localData.last_name"
-                                placeholder="Enter last name"
-                                :error="errors['last_name']"
-                            />
-                        </div>
+                        <Display
+                            v-model="localData.last_name"
+                            label="Last Name"
+                            placeholder="Enter last name"
+                            :editing="editing"
+                            :error="errors['last_name']"
+                        />
 
                         <!-- Contact Number -->
-                        <div>
-                            <label
-                                class="block text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1.5"
-                            >
-                                Contact Number
-                            </label>
-                            <Input
-                                v-model="localData.contact_number"
-                                placeholder="09XXXXXXXXX"
-                                :error="errors['contact_number']"
-                            />
-                        </div>
+                        <Display
+                            v-model="localData.contact_number"
+                            label="Contact Number"
+                            placeholder="09XXXXXXXXX"
+                            :editing="editing"
+                            :error="errors['contact_number']"
+                        />
                     </div>
 
                     <!-- Action buttons -->
                     <div class="mt-6 flex justify-end gap-3">
                         <button
-                            @click="discardChanges"
-                            :disabled="!hasChanges"
-                            :class="{
-                                'opacity-50 cursor-not-allowed': !hasChanges,
-                            }"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-lg transition disabled:hover:bg-gray-100"
+                            v-if="!editing"
+                            @click="editing = true"
+                            class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-lg transition"
                         >
-                            Discard
+                            Edit Profile
                         </button>
-                        <button
-                            @click="saveChanges"
-                            :disabled="!hasChanges"
-                            :class="{
-                                'opacity-50 cursor-not-allowed': !hasChanges,
-                            }"
-                            class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-lg transition disabled:hover:bg-green-600"
-                        >
-                            Save Changes
-                        </button>
+
+                        <template v-else>
+                            <button
+                                @click="discardChanges"
+                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-lg transition"
+                            >
+                                Discard
+                            </button>
+                            <button
+                                @click="saveChanges"
+                                :disabled="!hasChanges"
+                                :class="{
+                                    'opacity-50 cursor-not-allowed':
+                                        !hasChanges,
+                                }"
+                                class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 rounded-lg transition disabled:hover:bg-green-600"
+                            >
+                                Save Changes
+                            </button>
+                        </template>
                     </div>
                 </section>
             </div>
