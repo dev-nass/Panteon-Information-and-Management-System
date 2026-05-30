@@ -9,6 +9,7 @@ import PhaseEditModal from "@/Components/Map/PhaseEditModal.vue";
 const props = defineProps({
     phases: Array,
     search: String,
+    userRole: String,
 });
 
 const emit = defineEmits(["select-phase"]);
@@ -38,7 +39,7 @@ const saveEditRow = () => {
                     duration: 3000,
                 });
             },
-        }
+        },
     );
 };
 
@@ -63,17 +64,17 @@ const handlePhaseCoordinatesSet = (coords) => {
                     `Phase "${editingItem.value.name}" updated coordinates successfully!`,
                     {
                         duration: 3000,
-                    }
+                    },
                 );
             },
-        }
+        },
     );
 };
 
 const deletePhase = (phaseId) => {
     if (
         confirm(
-            "Are you sure you want to delete this phase? This will also delete all clusters and lots within it."
+            "Are you sure you want to delete this phase? This will also delete all clusters and lots within it.",
         )
     ) {
         router.delete(route("clerk.lot_management.delete.phase", phaseId));
@@ -163,6 +164,7 @@ const redirectToClerkMap = (id) => {
                             Edit
                         </button>
                         <button
+                            v-if="userRole === 'admin'"
                             @click.stop="deletePhase(phase.id)"
                             class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                         >

@@ -9,6 +9,7 @@ import ClusterEditModal from "@/Components/Map/ClusterEditModal.vue";
 const props = defineProps({
     phaseId: Number,
     search: String,
+    userRole: String,
 });
 
 const emit = defineEmits(["select-cluster"]);
@@ -317,6 +318,7 @@ onMounted(() => {
                             Edit
                         </button>
                         <button
+                            v-if="userRole === 'admin'"
                             @click.stop="deleteCluster(cluster.id)"
                             class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                         >

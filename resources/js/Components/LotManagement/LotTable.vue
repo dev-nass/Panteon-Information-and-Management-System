@@ -9,6 +9,7 @@ import LotEditModal from "@/Components/Map/LotEditModal.vue";
 const props = defineProps({
     clusterId: Number,
     search: String,
+    userRole: String,
 });
 
 const toast = useToast();
@@ -45,7 +46,7 @@ const fetchLots = async () => {
     loading.value = true;
     try {
         const response = await fetch(
-            route("api.lot.management.lots", props.clusterId)
+            route("api.lot.management.lots", props.clusterId),
         );
         const data = await response.json();
         lots.value = data;
@@ -60,9 +61,12 @@ const fetchLots = async () => {
 watch(() => props.clusterId, fetchLots, { immediate: true });
 
 // Reset to page 1 when search changes
-watch(() => props.search, () => {
-    currentPage.value = 1;
-});
+watch(
+    () => props.search,
+    () => {
+        currentPage.value = 1;
+    },
+);
 
 const filteredLots = computed(() =>
     lots.value.filter(
@@ -71,8 +75,8 @@ const filteredLots = computed(() =>
             l.row.toLowerCase().includes(props.search.toLowerCase()) ||
             `${l.column}${l.row}`
                 .toLowerCase()
-                .includes(props.search.toLowerCase())
-    )
+                .includes(props.search.toLowerCase()),
+    ),
 );
 
 const startEditRow = (lot) => {
@@ -96,7 +100,7 @@ const saveEditRow = () => {
                     duration: 3000,
                 });
             },
-        }
+        },
     );
 };
 
@@ -121,7 +125,7 @@ const handleLotCoordinatesSet = (coords) => {
                 editingRow.value = false;
                 fetchLots();
             },
-        }
+        },
     );
 };
 
@@ -277,6 +281,7 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                             Edit
                         </button>
                         <button
+                            v-if="userRole === 'admin'"
                             @click.stop="deleteLot(lot.id)"
                             class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                         >
@@ -309,16 +314,25 @@ const redirectToClerkBurialRecordShow = (lotId) => {
     </table>
 
     <!-- Pagination -->
-    <div v-if="!loading && filteredLots.length > 0" class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between">
+    <div
+        v-if="!loading && filteredLots.length > 0"
+        class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between"
+    >
         <div class="text-sm text-gray-600 dark:text-gray-400">
-            Showing {{ ((currentPage - 1) * perPage) + 1 }} to {{ Math.min(currentPage * perPage, filteredLots.length) }} of {{ filteredLots.length }} lots
+            Showing {{ (currentPage - 1) * perPage + 1 }} to
+            {{ Math.min(currentPage * perPage, filteredLots.length) }} of
+            {{ filteredLots.length }} lots
         </div>
         <div class="flex gap-2">
             <button
                 @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
                 class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
-                :class="currentPage === 1 ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'"
+                :class="
+                    currentPage === 1
+                        ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
             >
                 Previous
             </button>
@@ -327,7 +341,11 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                 :key="page"
                 @click="goToPage(page)"
                 class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
-                :class="currentPage === page ? 'bg-green-500 text-white border-green-500' : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'"
+                :class="
+                    currentPage === page
+                        ? 'bg-green-500 text-white border-green-500'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
             >
                 {{ page }}
             </button>
@@ -335,7 +353,11 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                 @click="goToPage(currentPage + 1)"
                 :disabled="currentPage === totalPages"
                 class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
-                :class="currentPage === totalPages ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed' : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'"
+                :class="
+                    currentPage === totalPages
+                        ? 'bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                "
             >
                 Next
             </button>

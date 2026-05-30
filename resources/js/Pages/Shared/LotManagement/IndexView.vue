@@ -190,6 +190,7 @@ defineOptions({
                 <PhaseTable
                     :phases="filteredPhases"
                     :search="search"
+                    :user_role="user.role"
                     @select-phase="goToClusters"
                 />
             </div>
@@ -198,12 +199,17 @@ defineOptions({
                 <ClusterTable
                     :phase-id="selectedPhase?.id"
                     :search="search"
+                    :user_role="user.role"
                     @select-cluster="goToLots"
                 />
             </div>
 
             <div v-else>
-                <LotTable :cluster-id="selectedCluster?.id" :search="search" />
+                <LotTable
+                    :cluster-id="selectedCluster?.id"
+                    :search="search"
+                    :user_role="user.role"
+                />
             </div>
         </div>
     </div>
