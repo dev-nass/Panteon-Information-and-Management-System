@@ -13,6 +13,20 @@ import { useSearch } from "@/composables/map/search/useSearch";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const userRole = computed(() =>
+    page.props?.auth?.user?.role.toLowerCase()?.trim(),
+);
+const roleRoutes = {
+    admin: {
+        map: { route: "admin.map.index" },
+        burial_record: { route: "admin.lot_management.show" },
+    },
+    clerk: {
+        map: { route: "clerk.map.index" },
+        burial_record: { route: "clerk.lot_management.show" },
+    },
+};
+
 const props = defineProps({
     phases: Array,
 });
@@ -190,7 +204,8 @@ defineOptions({
                 <PhaseTable
                     :phases="filteredPhases"
                     :search="search"
-                    :user_role="user.role"
+                    :user-role="userRole"
+                    :role-route="roleRoutes[userRole].map.route"
                     @select-phase="goToClusters"
                 />
             </div>
@@ -199,7 +214,8 @@ defineOptions({
                 <ClusterTable
                     :phase-id="selectedPhase?.id"
                     :search="search"
-                    :user_role="user.role"
+                    :user-role="userRole"
+                    :role-route="roleRoutes[userRole].map.route"
                     @select-cluster="goToLots"
                 />
             </div>
@@ -208,7 +224,11 @@ defineOptions({
                 <LotTable
                     :cluster-id="selectedCluster?.id"
                     :search="search"
-                    :user_role="user.role"
+                    :user-role="userRole"
+                    :role-route="roleRoutes[userRole].map.route"
+                    :burial-record-role-route="
+                        roleRoutes[userRole].burial_record.route
+                    "
                 />
             </div>
         </div>

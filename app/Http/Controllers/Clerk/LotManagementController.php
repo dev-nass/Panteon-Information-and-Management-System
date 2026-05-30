@@ -21,7 +21,7 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => !is_null($phase->coordinates),
+                    'isPhase_mapped' => ! is_null($phase->coordinates),
                 ];
             });
 
@@ -30,7 +30,6 @@ class LotManagementController extends Controller
         ]);
     }
 
-
     /**
      * Description: Redirect to Burial Record Show by finding burial from lot
      */
@@ -38,12 +37,11 @@ class LotManagementController extends Controller
     {
         $burialRecord = $lot->burialRecords()->first();
 
-        if (!$burialRecord) {
-            return to_route('admin.lot_management.index')
+        if (! $burialRecord) {
+            return to_route('clerk.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }
 
         return to_route('clerk.burial_records.show', $burialRecord->id);
     }
-
 }

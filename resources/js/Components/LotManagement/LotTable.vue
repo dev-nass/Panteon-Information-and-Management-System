@@ -10,6 +10,8 @@ const props = defineProps({
     clusterId: Number,
     search: String,
     userRole: String,
+    mapRoleRoute: String,
+    burialRecordRoleRoute: String,
 });
 
 const toast = useToast();
@@ -90,7 +92,7 @@ const cancelEditRow = () => {
 const saveEditRow = () => {
     const lotLabel = `${editingRow.value.column}${editingRow.value.row}`;
     router.put(
-        route("clerk.lot_management.update.lot", editingRow.value.id),
+        route("admin.lot_management.update.lot", editingRow.value.id),
         editingRow.value,
         {
             onSuccess: () => {
@@ -111,7 +113,7 @@ const openLotCoordinateModal = (lot) => {
 
 const handleLotCoordinatesSet = (coords) => {
     router.put(
-        route("clerk.lot_management.update.lot", editingItem.value.id),
+        route("admin.lot_management.update.lot", editingItem.value.id),
         {
             column: editingItem.value.column,
             row: editingItem.value.row,
@@ -131,14 +133,14 @@ const handleLotCoordinatesSet = (coords) => {
 
 const deleteLot = (lotId) => {
     if (confirm("Are you sure you want to delete this lot?")) {
-        router.delete(route("clerk.lot_management.delete.lot", lotId), {
+        router.delete(route("admin.lot_management.delete.lot", lotId), {
             onSuccess: () => fetchLots(),
         });
     }
 };
 
-const redirectToClerkMap = (id) => {
-    router.visit(route("clerk.map.index"), {
+const redirectToMap = (id) => {
+    router.visit(route(props.mapRoleRoute), {
         data: { id },
         onSuccess: () => {
             setTimeout(() => {
@@ -148,8 +150,8 @@ const redirectToClerkMap = (id) => {
     });
 };
 
-const redirectToClerkBurialRecordShow = (lotId) => {
-    router.visit(route("clerk.lot_management.show", { lot: lotId }));
+const redirectToLotBurialRecordShow = (lotId) => {
+    router.visit(route(props.burialRecordRoleRoute, { lot: lotId }));
 };
 </script>
 
@@ -232,7 +234,7 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                 <TableData>
                     <button
                         v-if="lot.status == 'occupied'"
-                        @click.stop="redirectToClerkBurialRecordShow(lot.id)"
+                        @click.stop="redirectToLotBurialRecordShow(lot.id)"
                         class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                     >
                         View Details
@@ -249,7 +251,7 @@ const redirectToClerkBurialRecordShow = (lotId) => {
                     </button>
                     <button
                         v-else-if="lot.isLot_mapped"
-                        @click.stop="redirectToClerkMap(lot.id)"
+                        @click.stop="redirectToMap(lot.id)"
                         class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                     >
                         View on Map

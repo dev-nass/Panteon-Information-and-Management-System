@@ -23,13 +23,28 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => !is_null($phase->coordinates),
+                    'isPhase_mapped' => ! is_null($phase->coordinates),
                 ];
             });
 
         return Inertia::render('Shared/LotManagement/IndexView', [
             'phases' => $phases,
         ]);
+    }
+
+    /**
+     * Description: Redirect to Burial Record Show by finding burial from lot
+     */
+    public function show(Lot $lot)
+    {
+        $burialRecord = $lot->burialRecords()->first();
+
+        if (! $burialRecord) {
+            return to_route('admin.lot_management.index')
+                ->with('error', 'No burial record found for this lot.');
+        }
+
+        return to_route('admin.burial_records.show', $burialRecord->id);
     }
 
     public function create(Request $request)
@@ -85,7 +100,7 @@ class LotManagementController extends Controller
 
         Phase::create([
             'phase_name' => $validated['name'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('admin.lot_management.index')
@@ -107,7 +122,7 @@ class LotManagementController extends Controller
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
             'total_capacity' => $validated['total_capacity'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('admin.lot_management.index')
@@ -140,7 +155,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         return to_route('admin.lot_management.index')
@@ -225,5 +240,4 @@ class LotManagementController extends Controller
         return to_route('admin.lot_management.index')
             ->with('success', 'Lot deleted successfully.');
     }
-
 }

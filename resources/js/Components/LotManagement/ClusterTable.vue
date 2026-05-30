@@ -10,6 +10,7 @@ const props = defineProps({
     phaseId: Number,
     search: String,
     userRole: String,
+    roleRoute: String,
 });
 
 const emit = defineEmits(["select-cluster"]);
@@ -92,7 +93,7 @@ const cancelEditRow = () => {
 const saveEditRow = () => {
     const clusterName = editingRow.value.name;
     router.put(
-        route("clerk.lot_management.update.cluster", editingRow.value.id),
+        route("admin.lot_management.update.cluster", editingRow.value.id),
         editingRow.value,
         {
             onSuccess: () => {
@@ -116,7 +117,7 @@ const openClusterCoordinateModal = (cluster) => {
 
 const handleClusterCoordinatesSet = (coords) => {
     router.put(
-        route("clerk.lot_management.update.cluster", editingItem.value.id),
+        route("admin.lot_management.update.cluster", editingItem.value.id),
         {
             name: editingItem.value.name,
             type: editingItem.value.type,
@@ -139,14 +140,14 @@ const deleteCluster = (clusterId) => {
             "Are you sure you want to delete this cluster? This will also delete all lots within it.",
         )
     ) {
-        router.delete(route("clerk.lot_management.delete.cluster", clusterId), {
+        router.delete(route("admin.lot_management.delete.cluster", clusterId), {
             onSuccess: () => fetchClusters(),
         });
     }
 };
 
-const redirectToClerkMap = (id) => {
-    router.visit(route("clerk.map.index"), {
+const redirectToMap = (id) => {
+    router.visit(route(props.roleRoute), {
         data: { id },
         onSuccess: () => {
             setTimeout(() => {
@@ -283,7 +284,7 @@ onMounted(() => {
                     </button>
                     <button
                         v-else-if="cluster.isCluster_mapped"
-                        @click.stop="redirectToClerkMap(cluster.id)"
+                        @click.stop="redirectToMap(cluster.id)"
                         class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                     >
                         View on Map

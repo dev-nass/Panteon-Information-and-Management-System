@@ -10,6 +10,7 @@ const props = defineProps({
     phases: Array,
     search: String,
     userRole: String,
+    roleRoute: String,
 });
 
 const emit = defineEmits(["select-phase"]);
@@ -30,7 +31,7 @@ const cancelEditRow = () => {
 const saveEditRow = () => {
     const phaseName = editingRow.value.name;
     router.put(
-        route("clerk.lot_management.update.phase", editingRow.value.id),
+        route("admin.lot_management.update.phase", editingRow.value.id),
         editingRow.value,
         {
             onSuccess: () => {
@@ -50,7 +51,7 @@ const openPhaseCoordinateModal = (phase) => {
 
 const handlePhaseCoordinatesSet = (coords) => {
     router.put(
-        route("clerk.lot_management.update.phase", editingItem.value.id),
+        route("admin.lot_management.update.phase", editingItem.value.id),
         {
             name: editingItem.value.name,
             coordinates: JSON.stringify(coords),
@@ -77,12 +78,12 @@ const deletePhase = (phaseId) => {
             "Are you sure you want to delete this phase? This will also delete all clusters and lots within it.",
         )
     ) {
-        router.delete(route("clerk.lot_management.delete.phase", phaseId));
+        router.delete(route("admin.lot_management.delete.phase", phaseId));
     }
 };
 
-const redirectToClerkMap = (id) => {
-    router.visit(route("clerk.map.index"), {
+const redirectToMap = (id) => {
+    router.visit(route(props.roleRoute), {
         data: { id },
         onSuccess: () => {
             setTimeout(() => {
@@ -132,7 +133,7 @@ const redirectToClerkMap = (id) => {
                     </button>
                     <button
                         v-else-if="phase.isPhase_mapped"
-                        @click.stop="redirectToClerkMap(phase.id)"
+                        @click.stop="redirectToMap(phase.id)"
                         class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                     >
                         View on Map
