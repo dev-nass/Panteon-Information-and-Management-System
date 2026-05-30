@@ -102,7 +102,7 @@ const redirectToMap = (id) => {
                 <TableHeader>Name</TableHeader>
                 <TableHeader>Total Clusters</TableHeader>
                 <TableHeader>Coordinate</TableHeader>
-                <TableHeader>Actions</TableHeader>
+                <TableHeader v-if="userRole === 'admin'">Actions</TableHeader>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -157,7 +157,7 @@ const redirectToMap = (id) => {
                             Cancel
                         </button>
                     </div>
-                    <div v-else class="flex gap-2">
+                    <div v-else-if="userRole === 'admin'" class="flex gap-2">
                         <button
                             @click.stop="startEditRow(phase)"
                             class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
@@ -165,7 +165,6 @@ const redirectToMap = (id) => {
                             Edit
                         </button>
                         <button
-                            v-if="userRole === 'admin'"
                             @click.stop="deletePhase(phase.id)"
                             class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                         >

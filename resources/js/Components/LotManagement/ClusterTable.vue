@@ -232,7 +232,7 @@ onMounted(() => {
                 </TableHeader>
                 <TableHeader>Type</TableHeader>
                 <TableHeader>Coordinate</TableHeader>
-                <TableHeader>Actions</TableHeader>
+                <TableHeader v-if="userRole === 'admin'">Actions</TableHeader>
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
@@ -311,7 +311,7 @@ onMounted(() => {
                             Cancel
                         </button>
                     </div>
-                    <div v-else class="flex gap-2">
+                    <div v-else-if="userRole === 'admin'" class="flex gap-2">
                         <button
                             @click.stop="startEditRow(cluster)"
                             class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
@@ -319,7 +319,6 @@ onMounted(() => {
                             Edit
                         </button>
                         <button
-                            v-if="userRole === 'admin'"
                             @click.stop="deleteCluster(cluster.id)"
                             class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                         >
