@@ -41,7 +41,7 @@ const props = defineProps({
 });
 
 // TODO: Remove this
-console.log(props.burial_records);
+// console.log(props.burial_records);
 
 const { search } = useSearchBurialRecords(
     roleRoutes[userRole.value].route_search,

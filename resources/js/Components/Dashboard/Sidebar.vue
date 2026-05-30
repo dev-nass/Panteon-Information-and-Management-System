@@ -376,9 +376,9 @@ const handleLogout = () => {
                             <div
                                 class="p-1 border-t border-gray-200 dark:border-neutral-800"
                             >
-                                <a
+                                <Link
                                     class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
-                                    href="#"
+                                    :href="route('settings.index')"
                                 >
                                     <svg
                                         class="shrink-0 mt-0.5 size-4"
@@ -398,7 +398,7 @@ const handleLogout = () => {
                                         <circle cx="12" cy="7" r="4" />
                                     </svg>
                                     Profile
-                                </a>
+                                </Link>
                                 <a
                                     class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
                                     href="#"
