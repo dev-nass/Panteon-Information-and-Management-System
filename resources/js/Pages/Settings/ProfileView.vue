@@ -65,7 +65,7 @@ const discardChanges = () => {
 
 const saveChanges = () => {
     router.post(
-        route("profile.update"),
+        route("settings.profile.update"),
         {
             first_name: localData.value.first_name,
             middle_name: localData.value.middle_name,

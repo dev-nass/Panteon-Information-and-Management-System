@@ -2,7 +2,13 @@
 
 use App\Http\Controllers\Settings\ProfileController;
 
-Route::controller(ProfileController::class)->group(function () {
-    Route::get('/settings', 'index')->name('settings.index');
-    Route::post('/profile', 'update')->name('profile.update');
-});
+Route::prefix('settings')
+    ->middleware(['auth', 'verified'])
+    ->name('settings.')
+    ->group(function () {
+
+        Route::controller(ProfileController::class)->group(function () {
+            Route::get('/profile', 'index')->name('profile.index');
+            Route::post('/profile', 'update')->name('profile.update');
+        });
+    });

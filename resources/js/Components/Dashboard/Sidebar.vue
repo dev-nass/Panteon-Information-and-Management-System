@@ -378,7 +378,7 @@ const handleLogout = () => {
                             >
                                 <Link
                                     class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
-                                    :href="route('settings.index')"
+                                    :href="route('settings.profile.index')"
                                 >
                                     <svg
                                         class="shrink-0 mt-0.5 size-4"
