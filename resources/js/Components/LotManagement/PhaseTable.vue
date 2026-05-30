@@ -10,7 +10,7 @@ const props = defineProps({
     phases: Array,
     search: String,
     userRole: String,
-    roleRoute: String,
+    roleRoute: String, // contain route for "view on map"
 });
 
 const emit = defineEmits(["select-phase"]);

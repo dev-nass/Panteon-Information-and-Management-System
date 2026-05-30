@@ -225,7 +225,7 @@ defineOptions({
                     :cluster-id="selectedCluster?.id"
                     :search="search"
                     :user-role="userRole"
-                    :role-route="roleRoutes[userRole].map.route"
+                    :map-role-route="roleRoutes[userRole].map.route"
                     :burial-record-role-route="
                         roleRoutes[userRole].burial_record.route
                     "
