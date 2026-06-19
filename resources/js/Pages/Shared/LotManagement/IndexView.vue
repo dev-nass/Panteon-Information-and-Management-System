@@ -87,7 +87,7 @@ const goToCreate = () => {
         params.cluster_id = selectedCluster.value.id;
     }
 
-    router.visit(route("clerk.lot_management.create", params));
+    router.visit(route("admin.lot_management.create", params));
 };
 
 // Setup window functions for map navigation

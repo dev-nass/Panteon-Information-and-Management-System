@@ -55,7 +55,7 @@ const handlePhaseChange = (phaseId) => {
 };
 
 const submitPhase = () => {
-    phaseForm.post(route("clerk.lot_management.store.phase"), {
+    phaseForm.post(route("admin.lot_management.store.phase"), {
         onSuccess: () => {
             phaseForm.reset();
             toast.success("Phase created successfully!");
@@ -76,7 +76,7 @@ const handlePhaseCoordinatesSet = (coords) => {
 };
 
 const submitCluster = () => {
-    clusterForm.post(route("clerk.lot_management.store.cluster"), {
+    clusterForm.post(route("admin.lot_management.store.cluster"), {
         onSuccess: () => {
             clusterForm.reset();
             toast.success("Cluster created successfully!");
@@ -101,7 +101,7 @@ const handleClusterCoordinatesSet = (coords) => {
 };
 
 const submitLot = () => {
-    lotForm.post(route("clerk.lot_management.store.lot"), {
+    lotForm.post(route("admin.lot_management.store.lot"), {
         onSuccess: () => {
             lotForm.reset();
             toast.success("Lot created successfully!");
