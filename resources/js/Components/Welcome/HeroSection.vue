@@ -7,11 +7,8 @@ import Button from "../Form/Button.vue";
     <!-- Hero -->
     <div id="home" class="px-4 sm:px-6 lg:px-4">
         <div
-            class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/hero-background.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
+            class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/front-office.jpg')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >
-            <!-- Overlay -->
-            <div class="absolute inset-0 bg-black/40 rounded-2xl"></div>
-
             <!-- Content - Add relative z-10 here -->
             <div
                 class="relative z-10 h-full w-full flex flex-col md:flex-col-reverse justify-between pt-10 lg:pt-20 mt-auto md:w-2/3 md:max-w-xl ps-5 pe-5 pb-5 md:ps-10 md:pb-10"
