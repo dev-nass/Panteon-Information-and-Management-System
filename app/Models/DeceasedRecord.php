@@ -30,6 +30,7 @@ class DeceasedRecord extends Model
         'cremation_place',
         'cremation_date',
         'date_of_depository',
+        'time_of_depository',
         'company_address',
         'company_supervisor_name',
         'father_name',

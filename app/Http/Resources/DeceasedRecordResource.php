@@ -37,6 +37,7 @@ class DeceasedRecordResource extends JsonResource
 
             'burial' => [
                 'date' => $this->date_of_depository,
+                'time' => $this->time_of_depository,
             ],
             // these two are not combined bcz some are cremated
             'burial_place' => $this->when(

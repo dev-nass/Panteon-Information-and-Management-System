@@ -39,7 +39,7 @@ class DashboardController extends Controller
         $activityData = $this->getActivityData($filter, $year);
 
         // Today's burial schedules (upcoming burials for today)
-        $todaySchedules = BurialRecord::with(['deceasedRecord.applicant', 'lot'])
+        $todaySchedules = BurialRecord::with(['deceasedRecord.applicant', 'lot.cluster.phase'])
             ->whereHas('deceasedRecord', function ($query) {
                 $query->whereDate('date_of_depository', Carbon::today());
             })
@@ -47,13 +47,21 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(function ($record) {
+                $time = $record->deceasedRecord->time_of_depository 
+                    ? Carbon::parse($record->deceasedRecord->time_of_depository)->format('h:i A')
+                    : 'N/A';
+                
+                $lotNumber = $record->lot 
+                    ? $record->lot->column . '-' . $record->lot->row
+                    : 'N/A';
+                    
                 return [
                     'id' => $record->id,
-                    'time' => Carbon::parse($record->deceasedRecord->date_of_depository)->format('h:i A'),
+                    'time' => $time,
                     'deceased_name' => $record->deceasedRecord->first_name . ' ' . 
                                       ($record->deceasedRecord->middle_name ? substr($record->deceasedRecord->middle_name, 0, 1) . '. ' : '') . 
                                       $record->deceasedRecord->last_name,
-                    'lot_number' => $record->lot->lot_number ?? 'N/A',
+                    'lot_number' => $lotNumber,
                     'contact_name' => ($record->deceasedRecord->applicant->first_name ?? '') . ' ' . ($record->deceasedRecord->applicant->last_name ?? 'N/A'),
                     'contact_relationship' => $record->deceasedRecord->applicant->relationship ?? 'N/A',
                     'contact_phone' => $record->deceasedRecord->applicant->contact_number ?? 'N/A',

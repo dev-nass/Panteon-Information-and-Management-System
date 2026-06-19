@@ -49,6 +49,7 @@ const form = useForm({
     cremation_date: "",
     burial_place: "",
     burial_date: "",
+    burial_time: "",
 
     // Family & Company
     father_name: "",
@@ -440,12 +441,27 @@ defineOptions({
                         >
                             Date of Depository
                         </label>
-                        <Input v-model="form.burial_date" type="date" />
+                        <Input v-model="form.burial_date" type="date" required />
                         <span
                             v-if="form.errors.burial_date"
                             class="text-red-500 text-sm"
                         >
                             {{ form.errors.burial_date }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Time of Depository
+                        </label>
+                        <Input v-model="form.burial_time" type="time" required />
+                        <span
+                            v-if="form.errors.burial_time"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.burial_time }}
                         </span>
                     </div>
                 </div>

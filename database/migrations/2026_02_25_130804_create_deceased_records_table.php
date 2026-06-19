@@ -45,6 +45,7 @@ return new class extends Migration {
             $table->date('cremation_date')->nullable();
 
             $table->date('date_of_depository')->nullable()->comment('burial date');
+            $table->time('time_of_depository')->nullable()->comment('burial time')->default('00:08:00');
 
             $table->string('company_address')->nullable();
             $table->string('company_supervisor_name')->nullable();

@@ -687,11 +687,24 @@ onBeforeUnmount(() => {
                 <Display
                     label="Date of Depository"
                     placeholder="YYYY-MM-DD"
+                    type="date"
                     :modelValue="localData.deceased?.burial?.date"
                     :editing="editing"
                     :error="errors['deceased.burial.date']"
                     @update:modelValue="
                         (val) => (localData.deceased.burial.date = val)
+                    "
+                />
+
+                <Display
+                    label="Time of Depository"
+                    placeholder="HH:MM"
+                    type="time"
+                    :modelValue="localData.deceased?.burial?.time"
+                    :editing="editing"
+                    :error="errors['deceased.burial.time']"
+                    @update:modelValue="
+                        (val) => (localData.deceased.burial.time = val)
                     "
                 />
             </div>

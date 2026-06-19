@@ -48,6 +48,17 @@ class DatabaseSeeder extends Seeder
         ]);
 
 
+        User::create([
+            'first_name' => 'Jonas',
+            'middle_name' => '',
+            'last_name' => 'Macawile',
+            'email' => 'jonas@panteon.com',
+            'password' => bcrypt('aDmin123!'),
+            'contact_number' => '09071055556',
+            'role' => 'clerk',
+        ]);
+
+
         $this->call(PanteonDataSeeder::class);
         $this->call(PathfinderSeeder::class);
     }
