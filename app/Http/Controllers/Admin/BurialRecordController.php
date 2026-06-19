@@ -35,38 +35,9 @@ class BurialRecordController extends Controller
 
         $sortDirection = request('sort_direction', 'desc');
 
-        // TODO: understand this again
-        $query = BurialRecord::query()
-            ->with(['deceasedRecord', 'lot', 'user'])
-            ->leftJoin('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-            ->select('burial_records.*')
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($q2) use ($search) {
-                    $q2->whereRaw("CONCAT(deceased_records.first_name, ' ', deceased_records.last_name) like ?", ["%{$search}%"])
-                        ->orWhereRaw("CONCAT(deceased_records.first_name, ' ', deceased_records.middle_name, ' ', deceased_records.last_name) like ?", ["%{$search}%"])
-                        ->orWhere('deceased_records.first_name', 'like', "%{$search}%")
-                        ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
-                        ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
-                });
-            })
-            ->when($filter === 'buried', function ($q) {
-                $q->whereNotNull('deceased_records.date_of_depository');
-            })
-            ->when($filter === 'pending', function ($q) {
-                $q->whereNull('deceased_records.date_of_depository');
-            })
-            ->orderBy(
-                str_starts_with($sortField, 'deceased_')
-                ? 'deceased_records.' . str_replace('deceased_', '', $sortField)
-                : "burial_records.$sortField",
-                $sortDirection
-            );
-
+        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter);
         return Inertia::render('Shared/BurialRecords/IndexView', [
-            'burial_records' => BurialRecordResource::collection(
-                $query->paginate(25)->withQueryString()
-            ),
-
+            'burial_records' => BurialRecordResource::collection($burialRecords),
             'filters' => request()->only(['search', 'sort_field', 'sort_direction', 'filter']),
         ]);
     }

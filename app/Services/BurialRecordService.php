@@ -21,6 +21,16 @@ class BurialRecordService
     ) {
     }
 
+    public function index(string $sortField, string $sortDirection, string|null $search, string $filter)
+    {
+        return $this->burial_repo->getBurialRecordsWithFilters(
+            $sortField,
+            $sortDirection,
+            $search,
+            $filter
+        )->paginate(25)->withQueryString();
+    }
+
     /**
      * @param  array  $applicantData  validated data of applicant,
      * @param  array  $deceasedData  validated data of deceased,

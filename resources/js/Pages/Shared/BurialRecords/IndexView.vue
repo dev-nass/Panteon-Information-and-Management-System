@@ -49,7 +49,7 @@ const { search } = useSearchBurialRecords(
 
 const applyFilter = (filterValue) => {
     router.get(
-        route("clerk.burial_records.index"),
+        route(roleRoutes[userRole.value].route_search),
         {
             search: props.filters.search,
             filter: filterValue,
@@ -78,7 +78,7 @@ const sort = (field) => {
     }
 
     router.get(
-        route("clerk.burial_records.index"),
+        route(roleRoutes[userRole.value].route_search),
         {
             search: props.filters.search,
             filter: props.filters.filter,
@@ -193,6 +193,12 @@ defineOptions({
                                                         : filters.filter ===
                                                             "pending"
                                                           ? "Pending"
+                                                          : filters.filter ===
+                                                            "assigned"
+                                                          ? "Assigned"
+                                                          : filters.filter ===
+                                                            "unassigned"
+                                                          ? "Unassigned"
                                                           : "All"
                                                 }}
                                             </span>
@@ -281,6 +287,58 @@ defineOptions({
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
                                                         >Pending</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="filter-assigned"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="filter"
+                                                        value="assigned"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="filter-assigned"
+                                                        :checked="
+                                                            filters.filter ===
+                                                            'assigned'
+                                                        "
+                                                        @change="
+                                                            applyFilter(
+                                                                'assigned',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Assigned</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="filter-unassigned"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="filter"
+                                                        value="unassigned"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="filter-unassigned"
+                                                        :checked="
+                                                            filters.filter ===
+                                                            'unassigned'
+                                                        "
+                                                        @change="
+                                                            applyFilter(
+                                                                'unassigned',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Unassigned</span
                                                     >
                                                 </label>
                                             </div>
