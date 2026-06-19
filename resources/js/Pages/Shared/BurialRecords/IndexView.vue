@@ -26,10 +26,12 @@ const roleRoutes = {
     admin: {
         route: "admin.burial_records.show",
         route_search: "admin.burial_records.index",
+        route_map: "admin.map.index",
     },
     clerk: {
         route: "clerk.burial_records.show",
         route_search: "clerk.burial_records.index",
+        route_map: "clerk.map.index",
     },
 };
 
@@ -194,12 +196,12 @@ defineOptions({
                                                             "pending"
                                                           ? "Pending"
                                                           : filters.filter ===
-                                                            "assigned"
-                                                          ? "Assigned"
-                                                          : filters.filter ===
-                                                            "unassigned"
-                                                          ? "Unassigned"
-                                                          : "All"
+                                                              "assigned"
+                                                            ? "Assigned"
+                                                            : filters.filter ===
+                                                                "unassigned"
+                                                              ? "Unassigned"
+                                                              : "All"
                                                 }}
                                             </span>
                                         </Button>
@@ -348,7 +350,12 @@ defineOptions({
                                     <!--- NOTE: Toggle table button --->
                                     <div>
                                         <Link
-                                            :href="route('clerk.map.index')"
+                                            :href="
+                                                route(
+                                                    roleRoutes[userRole]
+                                                        .route_map,
+                                                )
+                                            "
                                             class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 dark:text-white focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
                                         >
                                             <svg
