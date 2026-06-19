@@ -36,6 +36,39 @@ watch(reportType, () => {
     monthDate.value = "";
 });
 
+const setDateRange = (type) => {
+    const today = new Date();
+    const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    if (type === 'today') {
+        startDate.value = formatDate(today);
+        endDate.value = formatDate(today);
+    } else if (type === 'week') {
+        const dayOfWeek = today.getDay();
+        const firstDay = new Date(today);
+        firstDay.setDate(today.getDate() - dayOfWeek);
+        const lastDay = new Date(today);
+        lastDay.setDate(today.getDate() + (6 - dayOfWeek));
+        startDate.value = formatDate(firstDay);
+        endDate.value = formatDate(lastDay);
+    } else if (type === 'month') {
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        startDate.value = formatDate(firstDay);
+        endDate.value = formatDate(lastDay);
+    } else if (type === 'year') {
+        const firstDay = new Date(today.getFullYear(), 0, 1);
+        const lastDay = new Date(today.getFullYear(), 11, 31);
+        startDate.value = formatDate(firstDay);
+        endDate.value = formatDate(lastDay);
+    }
+};
+
 const resetForm = () => {
     reportType.value = "";
     startDate.value = "";
@@ -168,6 +201,38 @@ const generateReport = () => {
 
                             <!-- Date Range (for burial and deceased) -->
                             <template v-if="showDateRange">
+                                <!-- Quick Date Buttons -->
+                                <div class="flex gap-2 col-span-full">
+                                    <button
+                                        @click="setDateRange('today')"
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                    >
+                                        Today
+                                    </button>
+                                    <button
+                                        @click="setDateRange('week')"
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                    >
+                                        This Week
+                                    </button>
+                                    <button
+                                        @click="setDateRange('month')"
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                    >
+                                        This Month
+                                    </button>
+                                    <button
+                                        @click="setDateRange('year')"
+                                        type="button"
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                    >
+                                        This Year
+                                    </button>
+                                </div>
+
                                 <!-- Start Date -->
                                 <div class="flex flex-col gap-1">
                                     <label
