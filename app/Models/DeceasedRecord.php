@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DeceasedRecord extends Model
 {
@@ -40,9 +40,9 @@ class DeceasedRecord extends Model
         'precinct_num',
     ];
 
-    public function burialRecords(): HasMany
+    public function burialRecords(): HasOne
     {
-        return $this->hasMany(BurialRecord::class);
+        return $this->hasOne(BurialRecord::class);
     }
 
     public function applicant()
