@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\Cluster;
 use App\Models\DeceasedRecord;
@@ -23,7 +24,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        // $this->deceasedRecords();
+        $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -196,75 +197,182 @@ class PanteonDataSeeder extends Seeder
     }
 
     /**
-     * Description: Assigns one deceased record per available lot
-     * Optimized version using bulk inserts
+     * Description: Import deceased records from Excel file and assign them to lots
+     * Uses chunk processing for better performance
      */
     private function deceasedRecords(): void
     {
-        $this->command->info("Assigning deceased records to lots...");
+        $this->command->info("Importing deceased records from Excel file...");
 
-        $totalDeceased = DeceasedRecord::count();
+        $excelPath = public_path('data/panteon-cleaned-data.xlsx');
 
-        if ($totalDeceased === 0) {
-            $this->command->warn("No deceased records found. Please seed deceased records first.");
+        if (!file_exists($excelPath)) {
+            $this->command->error("Excel file not found at {$excelPath}");
             return;
         }
 
-        // Get all available lots (not occupied)
-        $availableLots = Lot::whereDoesntHave('burialRecords')
-            ->orderBy('cluster_id')
-            ->orderBy('row')
-            ->orderBy('column')
-            ->pluck('id')
-            ->toArray();
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($excelPath);
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
 
-        if (empty($availableLots)) {
-            $this->command->warn("No available lots found.");
-            return;
-        }
+            // Remove header row
+            array_shift($rows);
 
-        $this->command->info("Available lots: " . count($availableLots));
-        $this->command->info("Total deceased records: {$totalDeceased}");
+            $imported = 0;
+            $skipped = 0;
+            $chunkSize = 100;
+            $chunk = [];
 
-        $assignedCount = 0;
-        $lotIndex = 0;
-        $burialRecordsToInsert = [];
+            $this->command->info("Total rows to process: " . count($rows));
 
-        // Get deceased records that don't have burial records yet
-        $unassignedDeceased = DeceasedRecord::whereDoesntHave('burialRecords')
-            ->orderBy('id')
-            ->get();
+            foreach ($rows as $index => $row) {
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
 
-        foreach ($unassignedDeceased as $deceased) {
-            if ($lotIndex >= count($availableLots)) {
-                $this->command->warn("No more available lots. Stopping assignment.");
-                break;
+                // Skip if missing required fields
+                if (empty($row[1]) || empty($row[2])) {
+                    $skipped++;
+                    continue;
+                }
+
+                try {
+                    // Parse deceased name
+                    $fullName = trim($row[2]);
+                    $nameParts = $this->parseFullName($fullName);
+                    $burialDate = $this->parseDate($row[1]);
+
+                    // Find lot based on phase, cluster, and apt number
+                    $phaseName = trim($row[4] ?? '');
+                    $clusterName = trim($row[5] ?? '');
+                    $aptNumber = trim($row[6] ?? '');
+
+                    $column = preg_replace('/\D/', '', $aptNumber);
+                    $rowLetter = preg_replace('/\d/', '', $aptNumber);
+
+                    $lot = null;
+                    if (!empty($column) && !empty($rowLetter)) {
+                        $lot = Lot::where('column', $column)
+                            ->where('row', $rowLetter)
+                            ->whereHas('cluster', function ($query) use ($clusterName, $phaseName) {
+                                $query->where('cluster_name', $clusterName)
+                                    ->whereHas('phase', function ($phaseQuery) use ($phaseName) {
+                                        $phaseQuery->where('phase_name', $phaseName);
+                                    });
+                            })
+                            ->whereDoesntHave('burialRecords')
+                            ->first();
+                    }
+
+                    // Create applicant if exists
+                    $applicantId = null;
+                    $applicantName = trim($row[3] ?? '');
+                    if (!empty($applicantName)) {
+                        $applicantParts = $this->parseFullName($applicantName);
+                        $applicant = Applicant::create([
+                            'first_name' => $applicantParts['first_name'] ?? '',
+                            'middle_name' => $applicantParts['middle_name'],
+                            'last_name' => $applicantParts['last_name'] ?? '',
+                            'contact_number' => '',
+                        ]);
+                        $applicantId = $applicant->id;
+                    }
+
+                    // Create deceased record
+                    $deceased = DeceasedRecord::create([
+                        'applicant_id' => $applicantId,
+                        'first_name' => $nameParts['first_name'] ?? '',
+                        'middle_name' => $nameParts['middle_name'],
+                        'last_name' => $nameParts['last_name'] ?? '',
+                        'address' => $row[7] ?? null,
+                        'date_of_depository' => $burialDate,
+                    ]);
+
+                    // Add to chunk for bulk insert
+                    $chunk[] = [
+                        'deceased_record_id' => $deceased->id,
+                        'lot_id' => $lot?->id,
+                        'user_id' => 1, // System user
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+
+                    $imported++;
+
+                    // Bulk insert when chunk size is reached
+                    if (count($chunk) >= $chunkSize) {
+                        DB::table('burial_records')->insert($chunk);
+                        $chunk = [];
+                        $this->command->info("Imported {$imported} records...");
+                    }
+
+                } catch (\Exception $e) {
+                    $skipped++;
+                    $this->command->warn("Row " . ($index + 2) . ": {$e->getMessage()}");
+                }
             }
 
-            $burialRecordsToInsert[] = [
-                'deceased_record_id' => $deceased->id,
-                'lot_id' => $availableLots[$lotIndex],
-                'user_id' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-
-            $lotIndex++;
-            $assignedCount++;
-
-            // Bulk insert every 100 records for better performance
-            if (count($burialRecordsToInsert) >= 100) {
-                DB::table('burial_records')->insert($burialRecordsToInsert);
-                $burialRecordsToInsert = [];
-                $this->command->info("Assigned {$assignedCount} deceased records...");
+            // Insert remaining records
+            if (!empty($chunk)) {
+                DB::table('burial_records')->insert($chunk);
             }
-        }
 
-        // Insert remaining records
-        if (!empty($burialRecordsToInsert)) {
-            DB::table('burial_records')->insert($burialRecordsToInsert);
-        }
+            $this->command->info("Import completed!");
+            $this->command->info("Total records imported: {$imported}");
+            $this->command->info("Total records skipped: {$skipped}");
 
-        $this->command->info("Total deceased records assigned: {$assignedCount}");
+        } catch (\Exception $e) {
+            $this->command->error("Failed to import deceased records: {$e->getMessage()}");
+        }
     }
+
+    private function parseFullName($fullName)
+    {
+        $parts = preg_split('/\s+/', trim($fullName));
+        $count = count($parts);
+
+        // Capitalize each part properly
+        $parts = array_map(function($part) {
+            return ucwords(strtolower($part));
+        }, $parts);
+
+        if ($count === 0) {
+            return ['first_name' => '', 'middle_name' => null, 'last_name' => ''];
+        } elseif ($count === 1) {
+            return ['first_name' => $parts[0], 'middle_name' => null, 'last_name' => ''];
+        } else {
+            $firstName = array_shift($parts);
+            $lastName = array_pop($parts);
+            $middleName = !empty($parts) ? implode(' ', $parts) : null;
+            return ['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName];
+        }
+    }
+
+    private function parseDate($date)
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        try {
+            // Try to parse Excel date format
+            if (is_numeric($date)) {
+                $unixDate = ($date - 25569) * 86400;
+                return date('Y-m-d', $unixDate);
+            }
+
+            // Try standard date formats
+            $timestamp = strtotime($date);
+            if ($timestamp === false) {
+                return null;
+            }
+            return date('Y-m-d', $timestamp);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+
 }
