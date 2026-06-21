@@ -64,14 +64,14 @@ class PanteonDataSeeder extends Seeder
     private function seedClusters(): void
     {
         $clusterFiles = [
-            'data/cluster_phase1a.geojson',
-            'data/cluster_phase1b.geojson',
-            'data/cluster_phase2.geojson',
-            'data/cluster_phase3.geojson',
-            'data/cluster_phase4.geojson',
-            'data/cluster_phase5.geojson',
-            'data/cluster_phase6.geojson',
-            'data/cluster_phase7.geojson',
+            'data/clusters/cluster_phase1a.geojson',
+            'data/clusters/cluster_phase1b.geojson',
+            'data/clusters/cluster_phase2.geojson',
+            'data/clusters/cluster_phase3.geojson',
+            'data/clusters/cluster_phase4.geojson',
+            'data/clusters/cluster_phase5.geojson',
+            'data/clusters/cluster_phase6.geojson',
+            'data/clusters/cluster_phase7.geojson',
         ];
 
         $this->command->info("Seeding clusters from GeoJSON...");
