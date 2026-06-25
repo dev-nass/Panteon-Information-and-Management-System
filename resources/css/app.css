@@ -50,3 +50,7 @@ body {
 .dasma-yellow-text {
     color: #fdc700;
 }
+
+.dark-tiles {
+    filter: brightness(0.9); /* 0 = black, 1 = normal */
+}

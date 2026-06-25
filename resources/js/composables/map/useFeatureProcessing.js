@@ -233,12 +233,12 @@ export function useFeatureProcessing() {
         const numberIcon = L.divIcon({
             className: "phase-number-label",
             html: `<div class="
-            border-2 border-blue-900 
-            rounded-full 
-            w-12 h-12 
-            flex items-center justify-center 
-            font-bold 
-            text-white 
+            border-2 border-blue-900
+            rounded-full
+            w-12 h-12
+            flex items-center justify-center
+            font-bold
+            text-white
             text-center
             text-base
             shadow-md
@@ -291,7 +291,7 @@ export function useFeatureProcessing() {
             fillColor: colors[feature.properties.status] || "#CCCCCC",
             weight: 1,
             color: "black",
-            fillOpacity: 0.5,
+            fillOpacity: 0.6,
         };
     };
 

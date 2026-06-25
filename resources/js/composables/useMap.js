@@ -72,6 +72,7 @@ export function useMap() {
                 {
                     maxZoom: 30,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
+                    className: "dark-tiles", // 👈 add this
                 },
             );
 
