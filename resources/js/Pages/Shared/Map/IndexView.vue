@@ -12,7 +12,7 @@ import { forEach } from "lodash";
 
 import Dashboard from "@/Layouts/Dashboard.vue";
 import Input from "@/Components/Form/Input.vue";
-import { Link, router } from "@inertiajs/vue3";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import ClusterModal from "@/Components/Map/ClusterModal.vue";
@@ -93,6 +93,21 @@ const handleViewLotOnTable = (lotId) => {
             }, 100);
         },
     });
+};
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const userRole = computed(() =>
+    page.props.auth?.user?.role?.toLowerCase()?.trim(),
+);
+
+const roleRoutes = {
+    admin: {
+        route: "admin.burial_records.index",
+    },
+    clerk: {
+        route: "clerk.burial_records.index",
+    },
 };
 
 // TODO: remove this
@@ -420,7 +435,7 @@ onBeforeUnmount(() => {
 
                 <!--- NOTE: Toggle table view button --->
                 <Link
-                    :href="route('clerk.burial_records.index')"
+                    :href="route(roleRoutes[userRole].route)"
                     class="flex items-center justify-center py-2 px-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-md transition"
                 >
                     <svg
