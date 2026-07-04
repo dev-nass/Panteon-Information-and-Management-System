@@ -463,6 +463,14 @@ onBeforeUnmount(() => {
                         </svg>
                         Delete
                     </button>
+
+                    <Link
+                        v-if="userRole === 'clerk'"
+                        :href="route('clerk.certificate_of_service.show', burial_record.data.burial.id)"
+                        class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:text-white dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
+                    >
+                        Certificate of Service
+                    </Link>
                 </article>
                 <div class="flex gap-x-3">
                     <button
