@@ -54,6 +54,7 @@ class BurialRecordStoreRequest extends FormRequest
             'applicant_middle_name' => 'nullable|string|max:255',
             'applicant_last_name' => 'required|string|max:255',
             'applicant_contact_number' => 'required|string|regex:/^09\d{9}$/',
+            'applicant_relationship' => 'nullable|string|max:255',
 
             // lot
             'lot_id' => 'required|integer',
@@ -105,6 +106,7 @@ class BurialRecordStoreRequest extends FormRequest
             'applicant_middle_name',
             'applicant_last_name',
             'applicant_contact_number',
+            'applicant_relationship',
         ]);
     }
 

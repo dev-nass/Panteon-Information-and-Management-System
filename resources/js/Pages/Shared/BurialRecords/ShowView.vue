@@ -792,6 +792,16 @@ onBeforeUnmount(() => {
                             (localData.deceased.applicant.contact_number = val)
                     "
                 />
+                <Display
+                    label="Relationship to Deceased"
+                    :modelValue="localData.deceased?.applicant?.relationship"
+                    :editing="editing"
+                    :error="errors['deceased.applicant.relationship']"
+                    @update:modelValue="
+                        (val) =>
+                            (localData.deceased.applicant.relationship = val)
+                    "
+                />
             </div>
 
             <!-- LOCATION -->

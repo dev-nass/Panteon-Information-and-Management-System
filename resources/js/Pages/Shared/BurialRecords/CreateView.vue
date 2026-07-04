@@ -62,6 +62,7 @@ const form = useForm({
     applicant_middle_name: "",
     applicant_last_name: "",
     applicant_contact_number: "",
+    applicant_relationship: "",
 
     // Location
     lot_id: "",
@@ -592,6 +593,18 @@ defineOptions({
                         >
                             {{ form.errors.applicant_contact_number }}
                         </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Relationship to Deceased
+                        </label>
+                        <Input
+                            v-model="form.applicant_relationship"
+                            placeholder="e.g. Son, Daughter, Spouse"
+                        />
                     </div>
                 </div>
 

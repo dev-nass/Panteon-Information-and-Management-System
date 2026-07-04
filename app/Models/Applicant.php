@@ -16,6 +16,7 @@ class Applicant extends Model
         'middle_name',
         'last_name',
         'contact_number',
+        'relationship',
     ];
 
     public function deceasedRecords()
