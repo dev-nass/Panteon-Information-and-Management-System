@@ -309,7 +309,14 @@ defineOptions({
                         <Input
                             v-model="form.address"
                             placeholder="Enter address"
+                            required
                         />
+                        <span
+                            v-if="form.errors.address"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.address }}
+                        </span>
                     </div>
 
                     <div>
@@ -352,7 +359,11 @@ defineOptions({
                         >
                             Date of Death
                         </label>
-                        <Input v-model="form.death_date" type="date" required />
+                        <Input
+                            v-model="form.death_date"
+                            type="date"
+                            required
+                        />
                         <span
                             v-if="form.errors.death_date"
                             class="text-red-500 text-sm"
