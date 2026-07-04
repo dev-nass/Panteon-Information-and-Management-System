@@ -16,7 +16,9 @@ const form = ref({
     deceased_name: props.prefilled.deceased_name ?? "",
     deceased_address: props.prefilled.deceased_address ?? "",
     date_of_death: props.prefilled.date_of_death ?? "",
+    place_of_death: props.prefilled.place_of_death ?? "",
     date_of_depository: props.prefilled.date_of_depository ?? "",
+    burial_place: props.prefilled.burial_place ?? "",
     applicant_name: props.prefilled.applicant_name ?? "",
     applicant_address: "",
     relationship: props.prefilled.relationship ?? "",
@@ -124,9 +126,33 @@ defineOptions({ layout: Dashboard });
                     <label
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
+                        Place of Death
+                    </label>
+                    <Input
+                        v-model="form.place_of_death"
+                        placeholder="Place of death"
+                    />
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
                         Date of Depository
                     </label>
                     <Input v-model="form.date_of_depository" type="date" />
+                </div>
+
+                <div>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Burial Place
+                    </label>
+                    <Input
+                        v-model="form.burial_place"
+                        placeholder="e.g. Panteon De Dasmariñas Extension"
+                    />
                 </div>
 
                 <div>
