@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\BurialScheduleController;
-use App\Http\Controllers\Clerk\CertificatieOfService;
+use App\Http\Controllers\Clerk\CertificatieOfServiceController;
 use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\LotManagementController;
 use Inertia\Inertia;
@@ -32,7 +32,7 @@ Route::prefix('clerk')
         });
 
 
-        Route::controller(CertificatieOfService::class)->group(function () {
+        Route::controller(CertificatieOfServiceController::class)->group(function () {
             Route::get('/burial-records/{burial_record}/certificate-of-service', 'show')->name('certificate_of_service.show');
             Route::post('/burial-records/{burial_record}/certificate-of-service', 'generate')->name('certificate_of_service.generate');
         });

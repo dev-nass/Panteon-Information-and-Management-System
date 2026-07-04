@@ -8,7 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class CertificatieOfService extends Controller
+class CertificatieOfServiceController extends Controller
 {
     public function show(BurialRecord $burial_record)
     {
