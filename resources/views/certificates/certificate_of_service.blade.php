@@ -78,20 +78,20 @@
         .divider {
             border: none;
             border-top: 1.5px solid #15803d;
-            margin: 8px 0 14px 0;
+            margin: 8px 0 50px 0;
         }
 
         /* ── CONTENT TEXT ── */
         .gov-title {
-            font-size: 15px;
+            font-size: 20px;
             font-weight: bold;
             letter-spacing: 1px;
             color: #2c3e50;
-            margin-bottom: 6px;
+            margin-bottom: 60px;
         }
 
         .cert-title {
-            font-size: 28px;
+            font-size: 30px;
             font-weight: bold;
             letter-spacing: 6px;
             color: #222;
