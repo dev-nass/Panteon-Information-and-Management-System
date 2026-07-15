@@ -253,7 +253,7 @@ export function useFeatureProcessing() {
 
         // Click handler for the polygon
         layer.on("click", function () {
-            // console.log("Phase clicked:", feature);
+            window.openPhaseModal(feature);
         });
     };
 

@@ -1,9 +1,14 @@
-import { watch } from "vue";
+import { ref } from "vue";
 import { useMapStates } from "@/stores/useMapStates";
 import { pathFinder } from "@/composables/map/pathfinder/usePathProcessor";
 
+// Module-level refs — each layer remembers the map it was added to
+const pathLayer = ref(null);
+const dashedLayer = ref(null);
+const junctionMarkers = ref([]);
+
 export function useDrawProcessedPath() {
-    const { map, isOnSearchMode } = useMapStates();
+    const { map } = useMapStates();
     const {
         findRouteToPlot,
         findNearestJunction,
@@ -14,29 +19,105 @@ export function useDrawProcessedPath() {
         loading,
     } = pathFinder();
 
+    const clearPathLayers = () => {
+        if (pathLayer.value) {
+            try {
+                if (pathLayer.value._map) {
+                    pathLayer.value._map.removeLayer(pathLayer.value);
+                }
+            } catch (_) {}
+            pathLayer.value = null;
+        }
+
+        if (dashedLayer.value) {
+            try {
+                if (dashedLayer.value._map) {
+                    dashedLayer.value._map.removeLayer(dashedLayer.value);
+                }
+            } catch (_) {}
+            dashedLayer.value = null;
+        }
+
+        junctionMarkers.value.forEach((marker) => {
+            try {
+                if (marker._map) {
+                    marker._map.removeLayer(marker);
+                }
+            } catch (_) {}
+        });
+        junctionMarkers.value = [];
+    };
+
+    const drawPathOnMap = (routeDetails) => {
+        if (!map.value || !routeDetails || routeDetails.length === 0) return;
+
+        clearPathLayers();
+
+        const coordinates = routeDetails.map((detail) => [
+            detail.latitude,
+            detail.longitude,
+        ]);
+
+        pathLayer.value = L.polyline(coordinates, {
+            color: "red",
+            weight: 4,
+            opacity: 0.7,
+        }).addTo(map.value);
+
+        const markersToShow = [
+            ...routeDetails.filter((detail) => detail.junctionId === 1),
+            routeDetails.find(
+                (detail) => detail.junctionId === 3 || detail.junctionId === 89,
+            ),
+        ].filter(Boolean);
+
+        markersToShow.forEach((detail) => {
+            const marker = L.marker([detail.latitude, detail.longitude])
+                .bindPopup(`Junction ${detail.junctionNumber} (${detail.type})`)
+                .addTo(map.value);
+
+            marker.on("click", () => {
+                window.openJunctionLandMarkModal(
+                    detail.junctionId,
+                    detail.junctionNumber,
+                    detail.type,
+                );
+            });
+
+            junctionMarkers.value.push(marker);
+        });
+    };
+
+    const drawDashedLineToLot = (nearestJunction, targetLat, targetLng) => {
+        if (!map.value) return;
+
+        const junctionCoords = JSON.parse(nearestJunction.coordinates);
+        const [jLng, jLat] = junctionCoords.coordinates;
+
+        dashedLayer.value = L.polyline(
+            [[jLat, jLng], [targetLat, targetLng]],
+            { color: "orange", weight: 3, opacity: 0.7, dashArray: "10, 10" },
+        ).addTo(map.value);
+
+        const marker = L.marker([targetLat, targetLng])
+            .bindPopup(`Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`)
+            .addTo(map.value);
+
+        junctionMarkers.value.push(marker);
+    };
+
     const drawPathToLot = async (lotCoordinates) => {
-        // lotCoordinates should be [lng, lat] from the lot's Point geometry
         const [lng, lat] = lotCoordinates;
 
-        console.log("Drawing path to lot:", {
-            lat: lat,
-            lng: lng,
-        });
-
-        // Ensure navigation data is loaded
         if (junctions.value.length === 0 && !loading.value) {
-            console.log("Loading navigation data...");
             await fetchNavigationData();
         }
 
-        // Wait for loading to complete if in progress
         if (loading.value) {
-            console.log("Waiting for navigation data to load...");
-            // Wait for loading to finish
             await new Promise((resolve) => {
-                const checkLoading = setInterval(() => {
+                const check = setInterval(() => {
                     if (!loading.value) {
-                        clearInterval(checkLoading);
+                        clearInterval(check);
                         resolve();
                     }
                 }, 100);
@@ -48,188 +129,22 @@ export function useDrawProcessedPath() {
             return;
         }
 
-        const targetPlot = {
-            longitude: lng,
-            latitude: lat,
-            id: "target-lot",
-        };
-
-        const plotRoute = findRouteToPlot(targetPlot);
-        console.log(plotRoute);
+        const plotRoute = findRouteToPlot({ longitude: lng, latitude: lat, id: "target-lot" });
 
         if (plotRoute.success) {
-            console.log("Route to lot found!", {
-                path: plotRoute.path,
-                distance: plotRoute.totalDistance,
-                details: plotRoute.details,
-            });
-
             drawPathOnMap(plotRoute.details);
         } else {
-            console.log(
-                "No direct route found to lot, finding path to nearest junction",
-            );
-
-            // Find nearest junction to the lot
             const nearestJunction = findNearestJunction(lat, lng);
+            if (!nearestJunction) return;
 
-            if (!nearestJunction) {
-                console.error("No junctions available");
-                return;
-            }
-
-            console.log("Nearest junction found:", nearestJunction);
-
-            // Get entrance junction
             const entrance = getEntranceJunction();
+            if (!entrance) return;
 
-            if (!entrance) {
-                console.error("No entrance junction found");
-                return;
-            }
-
-            // Find path from entrance to nearest junction
-            const pathToNearestJunction = findShortestPath(
-                entrance.id,
-                nearestJunction.id,
-            );
-
-            if (pathToNearestJunction.success) {
-                console.log(
-                    "Path to nearest junction found!",
-                    pathToNearestJunction,
-                );
-                drawPathOnMap(pathToNearestJunction.details);
-
-                // Draw dashed line from nearest junction to lot
+            const pathToNearest = findShortestPath(entrance.id, nearestJunction.id);
+            if (pathToNearest.success) {
+                drawPathOnMap(pathToNearest.details);
                 drawDashedLineToLot(nearestJunction, lat, lng);
-            } else {
-                console.error("No path found to nearest junction");
             }
-        }
-    };
-
-    // Draw dashed line from nearest junction to the lot
-    const drawDashedLineToLot = (nearestJunction, targetLat, targetLng) => {
-        if (!map.value) return;
-
-        // Parse junction coordinates from GeoJSON
-        const junctionCoords = JSON.parse(nearestJunction.coordinates);
-        const [jLng, jLat] = junctionCoords.coordinates;
-
-        const coordinates = [
-            [jLat, jLng],
-            [targetLat, targetLng],
-        ];
-
-        // Create dashed line layer
-        if (window.dashedLineLayer) {
-            map.value.removeLayer(window.dashedLineLayer);
-        }
-
-        window.dashedLineLayer = L.polyline(coordinates, {
-            color: "orange",
-            weight: 3,
-            opacity: 0.7,
-            dashArray: "10, 10",
-        }).addTo(map.value);
-
-        // Add marker for target lot and track it
-        if (!window.junctionMarkers) {
-            window.junctionMarkers = [];
-        }
-
-        const marker = L.marker([targetLat, targetLng])
-            .bindPopup(
-                `Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`,
-            )
-            .addTo(map.value);
-
-        window.junctionMarkers.push(marker);
-    };
-
-    // Draw path on map (from Entrance junction/edge to end/destination junction)
-    const drawPathOnMap = (routeDetails) => {
-        if (!map.value || !routeDetails || routeDetails.length === 0) return;
-
-        // Clear previous path layers
-        if (window.testPathLayer) {
-            map.value.removeLayer(window.testPathLayer);
-        }
-
-        const coordinates = routeDetails.map((detail) => [
-            detail.latitude,
-            detail.longitude,
-        ]);
-
-        // Create polyline for the path
-        window.testPathLayer = L.polyline(coordinates, {
-            color: "red",
-            weight: 4,
-            opacity: 0.7,
-        }).addTo(map.value);
-
-        // Clear previous junction markers
-        if (window.junctionMarkers) {
-            window.junctionMarkers.forEach((marker) =>
-                map.value.removeLayer(marker),
-            );
-        }
-        window.junctionMarkers = [];
-
-        // Add markers for junctions
-        const markersToShow = [
-            ...routeDetails.filter((detail) => detail.junctionId === 1),
-            routeDetails.find(
-                (detail) => detail.junctionId === 3 || detail.junctionId === 89,
-            ),
-        ].filter(Boolean); // Remove undefined if no 3 or 89 found
-
-        markersToShow.forEach((detail) => {
-            const marker = L.marker([detail.latitude, detail.longitude])
-                .bindPopup(`Junction ${detail.junctionNumber} (${detail.type})`)
-                .addTo(map.value);
-
-            // Add click event to open modal
-            marker.on("click", () => {
-                window.openJunctionLandMarkModal(
-                    detail.junctionId,
-                    detail.junctionNumber,
-                    detail.type,
-                );
-            });
-
-            window.junctionMarkers.push(marker);
-        });
-
-        // Fit map to show the entire path
-        if (coordinates.length > 0) {
-            map.value.fitBounds(coordinates);
-        }
-    };
-
-    // Clear all path layers
-    const clearPathLayers = () => {
-        if (!map.value) return;
-
-        // Remove main path layer
-        if (window.testPathLayer) {
-            map.value.removeLayer(window.testPathLayer);
-            window.testPathLayer = null;
-        }
-
-        // Remove dashed line layer
-        if (window.dashedLineLayer) {
-            map.value.removeLayer(window.dashedLineLayer);
-            window.dashedLineLayer = null;
-        }
-
-        // Remove junction markers
-        if (window.junctionMarkers) {
-            window.junctionMarkers.forEach((marker) =>
-                map.value.removeLayer(marker),
-            );
-            window.junctionMarkers = [];
         }
     };
 

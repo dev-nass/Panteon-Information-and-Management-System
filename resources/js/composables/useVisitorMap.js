@@ -1,39 +1,86 @@
 import L from "leaflet";
-import { ref } from "vue";
-import { route } from "ziggy-js";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useMapStates } from "@/stores/useMapStates";
 import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
+import { useDbGeoJson } from "@/composables/map/useDbGeoJson";
 
 const LAT = 14.3052681;
 const LONG = 120.9758;
 const ZOOM_LVL = 18;
+const MIN_RENDER_ZOOM = 20;
+let moveTimeout = null;
 
 export function useVisitorMap() {
-    const { map } = useMapStates();
-    const googleLayer = ref(null);
+    const {
+        map,
+        googleLayer,
+        phaseLayerGroup,
+        phaseVisibility,
+        clusterLayers,
+        uniqueTypes,
+    } = useMapStates();
     const { searchResultLayer, isOnSearchMode } = useMapSearchStates();
     const { clearPathLayers } = useDrawProcessedPath();
+    const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     const initializeMap = (mapContainerElem) => {
         map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
         L.control.zoom({ position: "bottomleft" }).addTo(map.value);
 
-        googleLayer.value = L.tileLayer(
-            "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
-            {
-                maxZoom: 30,
-                subdomains: ["mt0", "mt1", "mt2", "mt3"],
-            },
-        );
-        googleLayer.value.addTo(map.value);
-
-        // Initialize search result layer
-        if (!searchResultLayer.value) {
-            searchResultLayer.value = L.layerGroup();
+        if (!googleLayer.value) {
+            googleLayer.value = L.tileLayer(
+                "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                {
+                    maxZoom: 30,
+                    subdomains: ["mt0", "mt1", "mt2", "mt3"],
+                },
+            );
+            googleLayer.value.addTo(map.value);
         }
-        searchResultLayer.value.addTo(map.value);
+
+        searchResultLayer.value = L.layerGroup().addTo(map.value);
+
+        map.value.on("moveend", () => {
+            if (moveTimeout) clearTimeout(moveTimeout);
+            moveTimeout = setTimeout(() => loadVisibleClusters(), 300);
+        });
+
+        map.value.on("zoomend", () => {
+            loadVisibleClusters();
+            updateVisibility();
+        });
+
+        loadAllPhases();
+        loadVisibleClusters();
+    };
+
+    const updateVisibility = () => {
+        if (!map.value) return;
+
+        if (isOnSearchMode.value) {
+            uniqueTypes.value.forEach((type) => {
+                const layer = clusterLayers.value.get(type);
+                if (layer && map.value.hasLayer(layer)) {
+                    map.value.removeLayer(layer);
+                }
+            });
+            return;
+        }
+
+        const zoom = map.value.getZoom();
+
+        if (zoom >= MIN_RENDER_ZOOM) {
+            phaseVisibility.value = false;
+            if (phaseLayerGroup.value && map.value.hasLayer(phaseLayerGroup.value)) {
+                map.value.removeLayer(phaseLayerGroup.value);
+            }
+        } else {
+            phaseVisibility.value = true;
+            if (phaseLayerGroup.value && !map.value.hasLayer(phaseLayerGroup.value)) {
+                phaseLayerGroup.value.addTo(map.value);
+            }
+        }
     };
 
     const cleanupMap = () => {
@@ -41,61 +88,19 @@ export function useVisitorMap() {
             map.value.remove();
             map.value = null;
         }
+        isOnSearchMode.value = false;
         googleLayer.value = null;
-        if (searchResultLayer.value) {
-            searchResultLayer.value.clearLayers();
-        }
-    };
-
-    const searchBurialRecord = async (
-        searchParams,
-        normalizeCoordinates,
-        markBurialRecordClusterPolygon,
-        markBurialRecordLotPoint,
-    ) => {
-        try {
-            // Clear previous search results
-            if (searchResultLayer.value) {
-                searchResultLayer.value.clearLayers();
-            }
-
-            const queryParams = new URLSearchParams(searchParams).toString();
-            const response = await fetch(
-                `${route("visitor.map.search")}?${queryParams}`,
-                {
-                    headers: { Accept: "application/json" },
-                    credentials: "same-origin",
-                },
-            );
-            if (!response.ok)
-                throw new Error("Failed to search burial records");
-            const data = await response.json();
-            if (data.data && data.data.length > 0) {
-                data.data.forEach((cluster) => {
-                    const clusterCoords = normalizeCoordinates(
-                        cluster.cluster.geometry.coordinates,
-                    );
-                    markBurialRecordClusterPolygon(cluster, clusterCoords);
-
-                    // Mark lot points
-                    if (cluster.lots && cluster.lots.length > 0) {
-                        cluster.lots.forEach((lotResource) => {
-                            const lot = lotResource.lot;
-                            if (lot?.geometry?.coordinates) {
-                                markBurialRecordLotPoint(lot);
-                            }
-                        });
-                    }
-                });
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        phaseLayerGroup.value = null;
+        clusterLayers.value.clear();
+        searchResultLayer.value = null;
     };
 
     const clearSearch = () => {
         if (searchResultLayer.value) {
-            searchResultLayer.value.clearLayers();
+            if (map.value?.hasLayer(searchResultLayer.value)) {
+                map.value.removeLayer(searchResultLayer.value);
+            }
+            searchResultLayer.value = L.layerGroup().addTo(map.value);
         }
         clearPathLayers();
         isOnSearchMode.value = false;
@@ -104,7 +109,6 @@ export function useVisitorMap() {
     return {
         initializeMap,
         cleanupMap,
-        searchBurialRecord,
         clearSearch,
     };
 }

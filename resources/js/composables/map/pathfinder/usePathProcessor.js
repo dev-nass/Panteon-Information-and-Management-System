@@ -1,12 +1,14 @@
 import { ref } from "vue";
 import { route } from "ziggy-js";
 
+// Singleton state — shared across all callers
+const junctions = ref([]);
+const pathways = ref([]);
+const graph = ref(null);
+const loading = ref(false);
+const error = ref(null);
+
 export function pathFinder() {
-    const junctions = ref([]);
-    const pathways = ref([]);
-    const graph = ref(null);
-    const loading = ref(false);
-    const error = ref(null);
 
     /**
      * Fetch navigation data from API

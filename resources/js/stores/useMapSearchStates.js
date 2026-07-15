@@ -1,12 +1,13 @@
 import { ref } from "vue";
 import L from "leaflet";
 
-const search = ref(""); // search input either first or last name
+const search = ref("");
 const suggestions = ref([]);
 const loading = ref(false);
-const isOnSearchMode = ref(false); // use so that when searching only that polygon will appear
+const isOnSearchMode = ref(false);
 
-const searchResultLayer = ref(L.layerGroup());
+// null by default — created fresh each time initializeMap runs
+const searchResultLayer = ref(null);
 
 export function useMapSearchStates() {
     return {
@@ -14,7 +15,6 @@ export function useMapSearchStates() {
         suggestions,
         loading,
         isOnSearchMode,
-
         searchResultLayer,
     };
 }

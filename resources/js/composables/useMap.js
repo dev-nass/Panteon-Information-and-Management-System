@@ -43,6 +43,9 @@ export function useMap() {
 
         initializeLayers();
 
+        // Always create a fresh searchResultLayer bound to this map instance
+        searchResultLayer.value = L.layerGroup().addTo(map.value);
+
         // Registration of event listener when the map if moved
         map.value.on("moveend", () => {
             if (moveTimeout) clearTimeout(moveTimeout);
@@ -86,13 +89,13 @@ export function useMap() {
      */
     const cleanupMap = () => {
         if (map.value) {
-            map.value.remove(); // Properly destroys map and removes all listeners
+            map.value.remove();
             map.value = null;
         }
 
         isOnSearchMode.value = false;
+        searchResultLayer.value = null;
 
-        // Clear layer references
         googleLayer.value = null;
         phaseLayerGroup.value = null;
         clusterLayers.value.clear();

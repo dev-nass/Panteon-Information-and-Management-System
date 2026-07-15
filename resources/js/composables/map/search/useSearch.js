@@ -1,14 +1,18 @@
 import { debounce } from "lodash";
 import { route } from "ziggy-js";
+import L from "leaflet";
 
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
+import { useMapStates } from "@/stores/useMapStates";
 import { useSearchFeatureProcessing } from "@/composables/map/search/useSearchFeatureProcessing";
 import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
-import { useMap } from "@/composables/useMap";
+import { useDbGeoJson } from "@/composables/map/useDbGeoJson";
 
 export function useSearch() {
     const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
         useMapSearchStates();
+    const { map, phaseLayerGroup, phaseVisibility, clusterLayers, uniqueTypes } =
+        useMapStates();
 
     const {
         normalizeCoordinates,
@@ -20,8 +24,20 @@ export function useSearch() {
     } = useSearchFeatureProcessing();
 
     const { clearPathLayers } = useDrawProcessedPath();
+    const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
-    const { toggleMapFeatures, togglePhaseVisibility } = useMap();
+    const hideMapLayers = () => {
+        if (phaseVisibility.value && phaseLayerGroup.value && map.value?.hasLayer(phaseLayerGroup.value)) {
+            phaseVisibility.value = false;
+            map.value.removeLayer(phaseLayerGroup.value);
+        }
+        uniqueTypes.value.forEach((type) => {
+            const layer = clusterLayers.value.get(type);
+            if (layer && map.value?.hasLayer(layer)) {
+                map.value.removeLayer(layer);
+            }
+        });
+    };
 
     /**
      * Description: Fetch Burial Records as the user types
@@ -166,16 +182,15 @@ export function useSearch() {
         }
     };
 
-    /**
-     * Description: Process the data fetched from the db
-     *              and apply useSearchFeatureProcessing
-     * @param {*} data retrieved from the database
-     * @param {string} type - 'burial_record', 'phase', 'cluster', or 'lot'
-     */
     const showSearchResult = (data, type = "burial_record") => {
-        searchResultLayer.value.clearLayers();
-        togglePhaseVisibility();
-        toggleMapFeatures();
+        // Destroy and recreate the layer group to fully detach all zoom listeners
+        if (searchResultLayer.value) {
+            if (map.value?.hasLayer(searchResultLayer.value)) {
+                map.value.removeLayer(searchResultLayer.value);
+            }
+        }
+        searchResultLayer.value = L.layerGroup().addTo(map.value);
+        hideMapLayers();
 
         if (type === "burial_record") {
             // Current process for burial records
@@ -230,9 +245,21 @@ export function useSearch() {
 
     const clearSearch = () => {
         suggestions.value = [];
-        searchResultLayer.value.clearLayers();
+        search.value = "";
+
+        // Remove the old layer group from the map entirely and recreate it
+        // so no stale zoom-animation listeners survive into the next search
+        if (searchResultLayer.value) {
+            if (map.value?.hasLayer(searchResultLayer.value)) {
+                map.value.removeLayer(searchResultLayer.value);
+            }
+            searchResultLayer.value = L.layerGroup().addTo(map.value);
+        }
+
         clearPathLayers();
         isOnSearchMode.value = false;
+        loadAllPhases();
+        loadVisibleClusters();
     };
 
     return {
