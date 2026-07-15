@@ -10,7 +10,6 @@ Route::get('/', function () {
 
 Route::controller(VisitorInteractiveMapController::class)->group(function () {
     Route::get('/map', 'index')->name('visitor.map.index');
-    Route::get('/map/search', 'search')->name('visitor.map.search');
 });
 
 require __DIR__ . '/auth.php';
