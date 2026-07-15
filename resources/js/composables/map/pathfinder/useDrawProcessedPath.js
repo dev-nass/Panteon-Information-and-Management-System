@@ -19,6 +19,10 @@ export function useDrawProcessedPath() {
         loading,
     } = pathFinder();
 
+    /**
+     * Description: Primarily done by Ai for fixing the issue
+     * of re-searching error process
+     */
     const clearPathLayers = () => {
         if (pathLayer.value) {
             try {
@@ -95,12 +99,17 @@ export function useDrawProcessedPath() {
         const [jLng, jLat] = junctionCoords.coordinates;
 
         dashedLayer.value = L.polyline(
-            [[jLat, jLng], [targetLat, targetLng]],
+            [
+                [jLat, jLng],
+                [targetLat, targetLng],
+            ],
             { color: "orange", weight: 3, opacity: 0.7, dashArray: "10, 10" },
         ).addTo(map.value);
 
         const marker = L.marker([targetLat, targetLng])
-            .bindPopup(`Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`)
+            .bindPopup(
+                `Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`,
+            )
             .addTo(map.value);
 
         junctionMarkers.value.push(marker);
@@ -129,7 +138,11 @@ export function useDrawProcessedPath() {
             return;
         }
 
-        const plotRoute = findRouteToPlot({ longitude: lng, latitude: lat, id: "target-lot" });
+        const plotRoute = findRouteToPlot({
+            longitude: lng,
+            latitude: lat,
+            id: "target-lot",
+        });
 
         if (plotRoute.success) {
             drawPathOnMap(plotRoute.details);
@@ -140,7 +153,10 @@ export function useDrawProcessedPath() {
             const entrance = getEntranceJunction();
             if (!entrance) return;
 
-            const pathToNearest = findShortestPath(entrance.id, nearestJunction.id);
+            const pathToNearest = findShortestPath(
+                entrance.id,
+                nearestJunction.id,
+            );
             if (pathToNearest.success) {
                 drawPathOnMap(pathToNearest.details);
                 drawDashedLineToLot(nearestJunction, lat, lng);
