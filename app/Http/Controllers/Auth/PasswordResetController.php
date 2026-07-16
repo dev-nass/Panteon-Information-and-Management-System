@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class PasswordResetController extends Controller
+{
+    public function create()
+    {
+        return Inertia::render('Auth/ForgotPasswordView');
+    }
+
+    public function checkVerifyResetCode()
+    {
+        return Inertia::render('Auth/VerifyResetCodeView');
+    }
+
+    public function checkResetPassword()
+    {
+        return Inertia::render('Auth/ResetPasswordView');
+    }
+}

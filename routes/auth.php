@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\ClerkRegistrationController;
+use App\Http\Controllers\Auth\PasswordResetController;
 
 Route::controller(LoginController::class)->group(function () {
     Route::get('/login', 'create')->name('login');
@@ -23,3 +24,9 @@ Route::controller(ClerkRegistrationController::class)
             ->middleware('throttle:register')
             ->name('register.store');
     });
+
+Route::controller(PasswordResetController::class)->group(function () {
+    Route::get('/forgot-password', 'create')->name('password.reset');
+    Route::get('/verify-reset-code', 'checkVerifyResetCode')->name('password.verify.reset.code');
+    Route::get('/reset-password', 'checkResetPassword')->name('password.reset.password');
+});
