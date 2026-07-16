@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->id();
             $table->string('email')->index();
             $table->string('token');
-            $table->unsignedTinyInteger('attempts')->default(0);
+            $table->unsignedTinyInteger('attempts')->default(0)->comment('Will trigger based on ID, and if wrong token is inputted');
             $table->timestamp('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->timestamps();
