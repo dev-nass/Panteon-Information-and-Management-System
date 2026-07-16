@@ -25,8 +25,21 @@ Route::controller(ClerkRegistrationController::class)
             ->name('register.store');
     });
 
-Route::controller(PasswordResetController::class)->group(function () {
-    Route::get('/forgot-password', 'create')->name('password.reset');
-    Route::get('/verify-reset-code', 'checkVerifyResetCode')->name('password.verify.reset.code');
-    Route::get('/reset-password', 'checkResetPassword')->name('password.reset.password');
+Route::middleware('guest')->group(function () {
+    Route::get('/forgot-password', [PasswordResetController::class, 'create'])
+        ->name('password.request');
+    Route::post('/forgot-password', [PasswordResetController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('password.email');
+
+    Route::get('/verify-reset-code', [PasswordResetController::class, 'checkVerifyResetCode'])
+        ->name('password.verify.show');
+    Route::post('/verify-reset-code', [PasswordResetController::class, 'verifyCode'])
+        ->middleware('throttle:10,1')
+        ->name('password.verify');
+
+    Route::get('/reset-password', [PasswordResetController::class, 'checkResetPassword'])
+        ->name('password.reset.show');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])
+        ->name('password.update');
 });

@@ -108,7 +108,7 @@ const handleSubmit = () => {
                         class="text-end text-sm text-gray-600 dark:text-neutral-400"
                     >
                         <Link
-                            href="#"
+                            :href="route('password.request')"
                             class="text-green-600 dark:text-green-500 hover:underline font-medium"
                         >
                             Forgot Passwrod?

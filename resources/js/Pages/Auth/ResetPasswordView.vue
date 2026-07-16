@@ -8,15 +8,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
-    code: {
-        type: String,
-        required: true,
-    },
 });
 
 const form = useForm({
     email: props.email,
-    code: props.code,
     password: "",
     password_confirmation: "",
 });
