@@ -138,7 +138,7 @@ const closeLotModal = () => {
 };
 
 const goBack = () => {
-    router.visit(route("clerk.lot_management.index"));
+    router.visit(route("admin.lot_management.index"));
 };
 
 defineOptions({

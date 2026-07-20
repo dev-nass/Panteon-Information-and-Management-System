@@ -359,11 +359,7 @@ defineOptions({
                         >
                             Date of Death
                         </label>
-                        <Input
-                            v-model="form.death_date"
-                            type="date"
-                            required
-                        />
+                        <Input v-model="form.death_date" type="date" required />
                         <span
                             v-if="form.errors.death_date"
                             class="text-red-500 text-sm"
@@ -453,7 +449,11 @@ defineOptions({
                         >
                             Date of Depository
                         </label>
-                        <Input v-model="form.burial_date" type="date" required />
+                        <Input
+                            v-model="form.burial_date"
+                            type="date"
+                            required
+                        />
                         <span
                             v-if="form.errors.burial_date"
                             class="text-red-500 text-sm"
@@ -468,7 +468,11 @@ defineOptions({
                         >
                             Time of Depository
                         </label>
-                        <Input v-model="form.burial_time" type="time" required />
+                        <Input
+                            v-model="form.burial_time"
+                            type="time"
+                            required
+                        />
                         <span
                             v-if="form.errors.burial_time"
                             class="text-red-500 text-sm"

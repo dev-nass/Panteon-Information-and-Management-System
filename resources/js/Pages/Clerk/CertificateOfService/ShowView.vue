@@ -48,7 +48,10 @@ const generate = () => {
     // Build and submit a native form for file download
     const f = document.createElement("form");
     f.method = "POST";
-    f.action = route("clerk.certificate_of_service.generate", props.burial_record_id);
+    f.action = route(
+        "clerk.certificate_of_service.generate",
+        props.burial_record_id,
+    );
 
     const fields = { ...form.value, _token: props.csrf_token };
     for (const [key, value] of Object.entries(fields)) {
@@ -96,7 +99,10 @@ defineOptions({ layout: Dashboard });
                         v-model="form.deceased_name"
                         placeholder="Deceased full name"
                     />
-                    <span v-if="errors.deceased_name" class="text-red-500 text-sm">
+                    <span
+                        v-if="errors.deceased_name"
+                        class="text-red-500 text-sm"
+                    >
                         {{ errors.deceased_name }}
                     </span>
                 </div>
@@ -165,7 +171,10 @@ defineOptions({ layout: Dashboard });
                         v-model="form.applicant_name"
                         placeholder="Applicant full name"
                     />
-                    <span v-if="errors.applicant_name" class="text-red-500 text-sm">
+                    <span
+                        v-if="errors.applicant_name"
+                        class="text-red-500 text-sm"
+                    >
                         {{ errors.applicant_name }}
                     </span>
                 </div>
@@ -181,7 +190,10 @@ defineOptions({ layout: Dashboard });
                         v-model="form.applicant_address"
                         placeholder="Enter applicant address"
                     />
-                    <span v-if="errors.applicant_address" class="text-red-500 text-sm">
+                    <span
+                        v-if="errors.applicant_address"
+                        class="text-red-500 text-sm"
+                    >
                         {{ errors.applicant_address }}
                     </span>
                 </div>
