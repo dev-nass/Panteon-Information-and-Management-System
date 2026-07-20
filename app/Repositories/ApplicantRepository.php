@@ -20,6 +20,7 @@ class ApplicantRepository extends Repository
                 'middle_name' => $validated['applicant_middle_name'] ?? null,
                 'last_name' => $validated['applicant_last_name'],
                 'contact_number' => $validated['applicant_contact_number'],
+                'relationship' => $validated['applicant_relationship'] ?? null,
             ]);
     }
 
@@ -42,6 +43,7 @@ class ApplicantRepository extends Repository
             'middle_name' => $data['middle_name'] ?? null,
             'last_name' => $data['last_name'],
             'contact_number' => $data['contact_number'],
+            'relationship' => $data['relationship'] ?? null,
         ]);
     }
 }

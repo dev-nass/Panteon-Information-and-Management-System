@@ -62,6 +62,7 @@ const form = useForm({
     applicant_middle_name: "",
     applicant_last_name: "",
     applicant_contact_number: "",
+    applicant_relationship: "",
 
     // Location
     lot_id: "",
@@ -308,7 +309,14 @@ defineOptions({
                         <Input
                             v-model="form.address"
                             placeholder="Enter address"
+                            required
                         />
+                        <span
+                            v-if="form.errors.address"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.address }}
+                        </span>
                     </div>
 
                     <div>
@@ -351,7 +359,11 @@ defineOptions({
                         >
                             Date of Death
                         </label>
-                        <Input v-model="form.death_date" type="date" required />
+                        <Input
+                            v-model="form.death_date"
+                            type="date"
+                            required
+                        />
                         <span
                             v-if="form.errors.death_date"
                             class="text-red-500 text-sm"
@@ -592,6 +604,18 @@ defineOptions({
                         >
                             {{ form.errors.applicant_contact_number }}
                         </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Relationship to Deceased
+                        </label>
+                        <Input
+                            v-model="form.applicant_relationship"
+                            placeholder="e.g. Son, Daughter, Spouse"
+                        />
                     </div>
                 </div>
 

@@ -24,7 +24,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        $this->deceasedRecords();
+        // $this->deceasedRecords();
     }
 
     private function seedPhases(): void
@@ -334,7 +334,7 @@ class PanteonDataSeeder extends Seeder
         $count = count($parts);
 
         // Capitalize each part properly
-        $parts = array_map(function($part) {
+        $parts = array_map(function ($part) {
             return ucwords(strtolower($part));
         }, $parts);
 
