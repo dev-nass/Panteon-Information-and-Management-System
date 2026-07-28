@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\Settings\ProfileRequest;
 use Inertia\Inertia;
 
 class ProfileController extends Controller
@@ -14,17 +13,9 @@ class ProfileController extends Controller
         return Inertia::render('Settings/ProfileView');
     }
 
-    public function update(Request $request)
+    public function update(ProfileRequest $request)
     {
-        $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:255'],
-            'middle_name' => ['nullable', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'contact_number' => ['required', 'string', 'max:20'],
-            Rule::unique('user')->ignore($request->user()->id),
-        ]);
-
-        $request->user()->update($validated);
+        $request->user()->update($request->validated());
 
         return back()->with('success', 'Profile updated successfully!');
     }
