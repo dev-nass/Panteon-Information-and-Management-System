@@ -1,5 +1,5 @@
 <script setup>
-import { router, usePage } from "@inertiajs/vue3";
+import { router, usePage, Link } from "@inertiajs/vue3";
 import { computed, ref, watch } from "vue";
 import { isEqual } from "lodash";
 import { useToast } from "vue-toast-notification";
@@ -111,8 +111,8 @@ const saveChanges = () => {
                         <div
                             class="bg-gradient-to-r from-green-800/95 via-green-700/90 to-green-500/85 dark:from-green-900/95 dark:via-green-800/90 dark:to-green-600/85 rounded-lg"
                         >
-                            <a
-                                href="#"
+                            <Link
+                                :href="route('settings.profile.index')"
                                 class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-800 dark:text-white text-sm font-medium transition"
                             >
                                 <svg
@@ -130,11 +130,11 @@ const saveChanges = () => {
                                     <path d="M20 21a8 8 0 1 0-16 0" />
                                 </svg>
                                 Profile
-                            </a>
+                            </Link>
                         </div>
 
-                        <a
-                            href="#"
+                        <Link
+                            :href="route('settings.password.index')"
                             class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-800 dark:hover:text-white text-sm transition"
                         >
                             <svg
@@ -159,7 +159,7 @@ const saveChanges = () => {
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                             </svg>
                             Security
-                        </a>
+                        </Link>
                         <a
                             href="#"
                             class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-800 dark:hover:text-white text-sm transition"
