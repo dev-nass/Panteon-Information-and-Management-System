@@ -466,10 +466,35 @@ onBeforeUnmount(() => {
 
                     <Link
                         v-if="userRole === 'clerk'"
-                        :href="route('clerk.certificate_of_service.show', burial_record.data.burial.id)"
+                        :href="
+                            route(
+                                'clerk.certificate_of_service.show',
+                                burial_record.data.burial.id,
+                            )
+                        "
                         class="flex items-center justify-center gap-x-2 mt-4 px-4 py-2 rounded-xl border border-transparent dark:text-white dark:bg-neutral-800 hover:dark:bg-neutral-600 transition-all duration-200"
                     >
-                        Certificate of Service
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-file-text-icon lucide-file-text"
+                        >
+                            <path
+                                d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+                            />
+                            <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                            <path d="M10 9H8" />
+                            <path d="M16 13H8" />
+                            <path d="M16 17H8" />
+                        </svg>
+                        COS
                     </Link>
                 </article>
                 <div class="flex gap-x-3">
