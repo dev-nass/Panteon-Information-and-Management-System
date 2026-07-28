@@ -5,5 +5,5 @@
 
 ## With Plans
 
-- [ ] Change Password
+- [x] Change Password
 - [ ] Columbarium Schema
