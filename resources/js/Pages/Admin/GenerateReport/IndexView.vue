@@ -40,15 +40,15 @@ const setDateRange = (type) => {
     const today = new Date();
     const formatDate = (date) => {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
     };
 
-    if (type === 'today') {
+    if (type === "today") {
         startDate.value = formatDate(today);
         endDate.value = formatDate(today);
-    } else if (type === 'week') {
+    } else if (type === "week") {
         const dayOfWeek = today.getDay();
         const firstDay = new Date(today);
         firstDay.setDate(today.getDate() - dayOfWeek);
@@ -56,12 +56,12 @@ const setDateRange = (type) => {
         lastDay.setDate(today.getDate() + (6 - dayOfWeek));
         startDate.value = formatDate(firstDay);
         endDate.value = formatDate(lastDay);
-    } else if (type === 'month') {
+    } else if (type === "month") {
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         startDate.value = formatDate(firstDay);
         endDate.value = formatDate(lastDay);
-    } else if (type === 'year') {
+    } else if (type === "year") {
         const firstDay = new Date(today.getFullYear(), 0, 1);
         const lastDay = new Date(today.getFullYear(), 11, 31);
         startDate.value = formatDate(firstDay);
@@ -202,35 +202,41 @@ const generateReport = () => {
                             <!-- Date Range (for burial and deceased) -->
                             <template v-if="showDateRange">
                                 <!-- Quick Date Buttons -->
-                                <div class="flex gap-2 col-span-full">
-                                    <button
+                                <div
+                                    class="grid grid-cols-2 sm:grid-cols-4 gap-2 col-span-full"
+                                >
+                                    <Button
                                         @click="setDateRange('today')"
-                                        type="button"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                        size="sm"
+                                        highlighted
+                                        class="w-full justify-center"
                                     >
                                         Today
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         @click="setDateRange('week')"
-                                        type="button"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                        size="sm"
+                                        highlighted
+                                        class="w-full justify-center"
                                     >
                                         This Week
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         @click="setDateRange('month')"
-                                        type="button"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                        size="sm"
+                                        highlighted
+                                        class="w-full justify-center"
                                     >
                                         This Month
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         @click="setDateRange('year')"
-                                        type="button"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                        size="sm"
+                                        highlighted
+                                        class="w-full justify-center"
                                     >
                                         This Year
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 <!-- Start Date -->
