@@ -77,6 +77,10 @@ class LotManagementController extends Controller
                             'name' => $cluster->cluster_name,
                             'type' => $cluster->cluster_type,
                             'total_capacity' => $cluster->total_capacity,
+                            'lot_count' => $cluster->lots->count(),
+                            'remaining_capacity' => $cluster->total_capacity
+                                ? $cluster->total_capacity - $cluster->lots->count()
+                                : null,
                             'coordinates' => $cluster->coordinates,
                         ];
                     })->values(),
@@ -160,6 +164,75 @@ class LotManagementController extends Controller
 
         return to_route('admin.lot_management.index')
             ->with('success', 'Lot created successfully.');
+    }
+
+    public function storeBulkLot(Request $request)
+    {
+        $validated = $request->validate([
+            'cluster_id' => 'required|exists:clusters,id',
+            'lots' => 'required|array|min:1',
+            'lots.*.column' => 'required|string|max:255',
+            'lots.*.row' => 'required|string|max:255',
+            'lots.*.coordinates' => 'required|json',
+        ]);
+
+        $cluster = Cluster::findOrFail($validated['cluster_id']);
+
+        // Check for duplicates within the submitted batch
+        $seenKeys = [];
+
+        foreach ($validated['lots'] as $lot) {
+            $key = $lot['column'].'|'.$lot['row'];
+
+            if (isset($seenKeys[$key])) {
+                return back()->withErrors([
+                    'lots' => 'Duplicate lot (column '.$lot['column'].', row '.$lot['row'].') found in the batch.',
+                ]);
+            }
+
+            $seenKeys[$key] = true;
+        }
+
+        // Check for duplicates against existing lots in the cluster
+        $existingKeys = Lot::where('cluster_id', $cluster->id)
+            ->get(['column', 'row'])
+            ->map(fn ($lot) => $lot->column.'|'.$lot->row)
+            ->flip();
+
+        foreach ($validated['lots'] as $lot) {
+            $key = $lot['column'].'|'.$lot['row'];
+
+            if (isset($existingKeys[$key])) {
+                return back()->withErrors([
+                    'lots' => 'A lot with column '.$lot['column'].' and row '.$lot['row'].' already exists in this cluster.',
+                ]);
+            }
+        }
+
+        // Check that the cluster has enough remaining capacity
+        if ($cluster->total_capacity) {
+            $remainingCapacity = $cluster->total_capacity - $cluster->lots()->count();
+
+            if (count($validated['lots']) > $remainingCapacity) {
+                return back()->withErrors([
+                    'lots' => 'Not enough capacity in this cluster. Only '.$remainingCapacity.' more lot(s) can be created.',
+                ]);
+            }
+        }
+
+        DB::transaction(function () use ($validated) {
+            foreach ($validated['lots'] as $lot) {
+                Lot::create([
+                    'cluster_id' => $validated['cluster_id'],
+                    'column' => $lot['column'],
+                    'row' => $lot['row'],
+                    'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$lot['coordinates']."')"),
+                ]);
+            }
+        });
+
+        return to_route('admin.lot_management.index')
+            ->with('success', count($validated['lots']).' lots created successfully.');
     }
 
     public function updatePhase(Request $request, Phase $phase)

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 
@@ -8,7 +8,7 @@ import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import PhaseePlottingModal from "@/Components/Map/PhaseePlottingModal.vue";
 import ClusterPlottingModal from "@/Components/Map/ClusterPlottingModal.vue";
-import LotPlottingModal from "@/Components/Map/LotPlottingModal.vue";
+import BulkLotPlottingModal from "@/Components/Map/BulkLotPlottingModal.vue";
 
 const props = defineProps({
     phases: Array,
@@ -34,13 +34,15 @@ const clusterForm = useForm({
     coordinates: null,
 });
 
-const lotForm = useForm({
+const lotBulkForm = useForm({
     cluster_id: "",
-    column: "",
     row: "",
-    status: "available",
-    coordinates: null,
+    start_column: "",
+    end_column: "",
 });
+
+const bulkErrors = ref({});
+const capacityStatus = ref(null);
 
 const selectedPhase = ref(null);
 const availableClusters = ref([]);
@@ -51,7 +53,7 @@ const handlePhaseChange = (phaseId) => {
     const phase = props.phases.find((p) => p.id == phaseId);
     selectedPhase.value = phase;
     availableClusters.value = phase?.clusters || [];
-    lotForm.cluster_id = "";
+    lotBulkForm.cluster_id = "";
 };
 
 const submitPhase = () => {
@@ -100,29 +102,112 @@ const handleClusterCoordinatesSet = (coords) => {
     toast.success("Coordinates set successfully!");
 };
 
-const submitLot = () => {
-    lotForm.post(route("admin.lot_management.store.lot"), {
-        onSuccess: () => {
-            lotForm.reset();
-            toast.success("Lot created successfully!");
-        },
-        onError: () => {
-            toast.error("Please fix the validation errors before submitting.");
-        },
-    });
-};
+const selectedClusterForLot = computed(() =>
+    availableClusters.value.find((c) => c.id == lotBulkForm.cluster_id),
+);
 
-const openPlottingModal = () => {
-    if (!lotForm.cluster_id) {
+const validateLotRange = () => {
+    if (!lotBulkForm.cluster_id) {
         toast.error("Please select a cluster first");
         return;
     }
+
+    if (
+        !lotBulkForm.row ||
+        !lotBulkForm.start_column ||
+        !lotBulkForm.end_column
+    ) {
+        toast.error("Please fill in the row, start column, and end column");
+        return;
+    }
+
+    if (parseInt(lotBulkForm.start_column) > parseInt(lotBulkForm.end_column)) {
+        toast.error("Start column must be less than or equal to end column");
+        return;
+    }
+
+    const cluster = selectedClusterForLot.value;
+    if (!cluster) {
+        toast.error("Please select a valid cluster");
+        return;
+    }
+
+    const requested =
+        parseInt(lotBulkForm.end_column) -
+        parseInt(lotBulkForm.start_column) +
+        1;
+    const remaining = cluster.remaining_capacity;
+    const valid = remaining === null || requested <= remaining;
+
+    capacityStatus.value = {
+        valid,
+        requested,
+        remaining,
+        total_capacity: cluster.total_capacity,
+    };
+
+    if (valid) {
+        toast.success(
+            remaining === null
+                ? `${requested} lot(s) fit in this cluster.`
+                : `${requested} lot(s) fit — ${remaining} remaining.`,
+        );
+    } else {
+        toast.error(
+            `Not enough space: ${requested} lot(s) requested but only ${remaining} remaining.`,
+        );
+    }
+};
+
+const openBulkPlottingModal = () => {
+    if (!lotBulkForm.cluster_id) {
+        toast.error("Please select a cluster first");
+        return;
+    }
+
+    if (
+        !lotBulkForm.row ||
+        !lotBulkForm.start_column ||
+        !lotBulkForm.end_column
+    ) {
+        toast.error("Please fill in the row, start column, and end column");
+        return;
+    }
+
+    if (parseInt(lotBulkForm.start_column) > parseInt(lotBulkForm.end_column)) {
+        toast.error("Start column must be less than or equal to end column");
+        return;
+    }
+
+    bulkErrors.value = {};
     showLotModal.value = true;
 };
 
-const handleCoordinatesSet = (coords) => {
-    lotForm.coordinates = JSON.stringify(coords);
-    toast.success("Coordinates set successfully!");
+const handleBulkSave = (lots) => {
+    router.post(
+        route("admin.lot_management.store.bulk_lot"),
+        {
+            cluster_id: lotBulkForm.cluster_id,
+            lots: lots.map((lot) => ({
+                column: lot.column,
+                row: lot.row,
+                coordinates: JSON.stringify(lot.coordinates),
+            })),
+        },
+        {
+            onSuccess: () => {
+                lotBulkForm.reset();
+                showLotModal.value = false;
+                toast.success("Lots created successfully!");
+            },
+            onError: (errors) => {
+                bulkErrors.value = errors;
+                toast.error(
+                    "Please fix the validation errors before submitting.",
+                );
+            },
+        },
+    );
 };
 
 const closePhaseModal = () => {
@@ -160,6 +245,18 @@ onMounted(() => {
 watch(activeTab, () => {
     initTooltips();
 });
+
+watch(
+    () => [
+        lotBulkForm.cluster_id,
+        lotBulkForm.row,
+        lotBulkForm.start_column,
+        lotBulkForm.end_column,
+    ],
+    () => {
+        capacityStatus.value = null;
+    },
+);
 </script>
 
 <template>
@@ -423,7 +520,11 @@ watch(activeTab, () => {
                 </form>
 
                 <!-- LOT FORM -->
-                <form v-else @submit.prevent="submitLot" class="space-y-4">
+                <form
+                    v-else
+                    @submit.prevent="openBulkPlottingModal"
+                    class="space-y-4"
+                >
                     <div>
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
@@ -454,7 +555,7 @@ watch(activeTab, () => {
                             Select Cluster
                         </label>
                         <select
-                            v-model="lotForm.cluster_id"
+                            v-model="lotBulkForm.cluster_id"
                             class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             :disabled="!selectedPhase"
                             required
@@ -469,10 +570,40 @@ watch(activeTab, () => {
                             </option>
                         </select>
                         <span
-                            v-if="lotForm.errors.cluster_id"
+                            v-if="lotBulkForm.errors.cluster_id"
                             class="text-red-500 text-sm"
                         >
-                            {{ lotForm.errors.cluster_id }}
+                            {{ lotBulkForm.errors.cluster_id }}
+                        </span>
+                        <span
+                            v-if="selectedClusterForLot"
+                            class="block mt-1 text-xs text-gray-500 dark:text-gray-400"
+                        >
+                            {{
+                                selectedClusterForLot.remaining_capacity ===
+                                null
+                                    ? "No capacity limit set"
+                                    : `${selectedClusterForLot.remaining_capacity} of ${selectedClusterForLot.total_capacity} lot(s) remaining`
+                            }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Lot Row
+                        </label>
+                        <Input
+                            v-model="lotBulkForm.row"
+                            placeholder="A, B, C..."
+                            required
+                        />
+                        <span
+                            v-if="lotBulkForm.errors.row"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ lotBulkForm.errors.row }}
                         </span>
                     </div>
 
@@ -481,18 +612,19 @@ watch(activeTab, () => {
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                Lot Column
+                                Start Column
                             </label>
                             <Input
-                                v-model="lotForm.column"
+                                v-model="lotBulkForm.start_column"
+                                type="number"
                                 placeholder="1, 2, 3..."
                                 required
                             />
                             <span
-                                v-if="lotForm.errors.column"
+                                v-if="lotBulkForm.errors.start_column"
                                 class="text-red-500 text-sm"
                             >
-                                {{ lotForm.errors.column }}
+                                {{ lotBulkForm.errors.start_column }}
                             </span>
                         </div>
 
@@ -500,86 +632,95 @@ watch(activeTab, () => {
                             <label
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                             >
-                                Lot Row
+                                End Column
                             </label>
                             <Input
-                                v-model="lotForm.row"
-                                placeholder="A, B, C..."
+                                v-model="lotBulkForm.end_column"
+                                type="number"
+                                placeholder="1, 2, 3..."
                                 required
                             />
                             <span
-                                v-if="lotForm.errors.row"
+                                v-if="lotBulkForm.errors.end_column"
                                 class="text-red-500 text-sm"
                             >
-                                {{ lotForm.errors.row }}
+                                {{ lotBulkForm.errors.end_column }}
                             </span>
                         </div>
                     </div>
 
-                    <!-- Coordinates Section -->
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Coordinates
-                        </label>
-                        <div class="flex gap-2">
-                            <button
-                                type="button"
-                                @click="openPlottingModal"
-                                class="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
-                            >
-                                📍
-                                {{
-                                    lotForm.coordinates
-                                        ? "Update Location"
-                                        : "Plot on Map"
-                                }}
-                            </button>
-                        </div>
-                        <div
-                            v-if="lotForm.coordinates"
-                            class="mt-2 text-sm text-green-600 dark:text-green-400"
-                        >
-                            ✓ Coordinates set
-                        </div>
-                        <span
-                            v-if="lotForm.errors.coordinates"
-                            class="text-red-500 text-sm"
-                        >
-                            {{ lotForm.errors.coordinates }}
-                        </span>
-                    </div>
-
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
-                            Status
-                        </label>
-                        <select
-                            v-model="lotForm.status"
-                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                            required
-                        >
-                            <option value="available">Available</option>
-                            <option value="occupied">Occupied</option>
-                        </select>
-                        <span
-                            v-if="lotForm.errors.status"
-                            class="text-red-500 text-sm"
-                        >
-                            {{ lotForm.errors.status }}
-                        </span>
+                    <div
+                        v-if="Object.keys(bulkErrors).length"
+                        class="text-red-500 text-sm space-y-1"
+                    >
+                        <p v-for="(error, key) in bulkErrors" :key="key">
+                            {{ error }}
+                        </p>
                     </div>
 
                     <Button
-                        type="submit"
-                        :disabled="lotForm.processing"
-                        class="bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                        :highlighted="true"
+                        type="button"
+                        @click="validateLotRange"
+                        class="w-full flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-neutral-600 transition"
                     >
-                        Create Lot
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-check-check-icon lucide-check-check"
+                        >
+                            <path d="M18 6 7 17l-5-5" />
+                            <path d="m22 10-7.5 7.5L13 16" />
+                        </svg>
+                        Validate Range
                     </Button>
+
+                    <div
+                        v-if="capacityStatus"
+                        class="px-4 py-3 rounded-lg border text-sm"
+                        :class="
+                            capacityStatus.valid
+                                ? 'border-green-500/50 bg-green-500/5 text-green-700 dark:text-green-400'
+                                : 'border-red-500/50 bg-red-500/5 text-red-700 dark:text-red-400'
+                        "
+                    >
+                        <template v-if="capacityStatus.valid">
+                            ✓ {{ capacityStatus.requested }} lot(s) fit —
+                            {{
+                                capacityStatus.remaining === null
+                                    ? "no capacity limit set"
+                                    : `${capacityStatus.remaining} remaining`
+                            }}
+                        </template>
+                        <template v-else>
+                            ✗ Not enough space:
+                            {{ capacityStatus.requested }} lot(s) requested but
+                            only {{ capacityStatus.remaining }} remaining
+                        </template>
+                    </div>
+
+                    <div>
+                        <Button
+                            type="submit"
+                            :disabled="!capacityStatus?.valid"
+                            class="w-full bg-green-500/10 text-green-400 hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            📍 Plot Lots on Map
+                        </Button>
+                        <p
+                            v-if="!capacityStatus?.valid"
+                            class="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center"
+                        >
+                            Validate the range first before plotting.
+                        </p>
+                    </div>
                 </form>
             </div>
         </div>
@@ -600,12 +741,15 @@ watch(activeTab, () => {
             @close="closeClusterModal"
         />
 
-        <!-- Lot Plotting Modal -->
-        <LotPlottingModal
+        <!-- Bulk Lot Plotting Modal -->
+        <BulkLotPlottingModal
             v-if="showLotModal"
-            :cluster-id="lotForm.cluster_id"
+            :cluster-id="lotBulkForm.cluster_id"
             :phases="phases"
-            @coordinates-set="handleCoordinatesSet"
+            :row="lotBulkForm.row"
+            :start-column="lotBulkForm.start_column"
+            :end-column="lotBulkForm.end_column"
+            @bulk-save="handleBulkSave"
             @close="closeLotModal"
         />
     </div>

@@ -55,7 +55,7 @@ const variantClasses = computed(() => {
 <template>
     <button
         :type="type"
-        class="flex items-center gap-2 max-w-md rounded-lg border transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="flex items-center gap-2 rounded-lg border transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         :class="[sizeClasses, variantClasses]"
     >
         <slot />

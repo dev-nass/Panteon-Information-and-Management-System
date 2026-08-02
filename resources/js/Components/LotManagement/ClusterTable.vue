@@ -198,7 +198,6 @@ onMounted(() => {
     >
         <thead class="bg-gray-50 dark:bg-neutral-800">
             <tr>
-                <TableHeader>ID</TableHeader>
                 <TableHeader>Name</TableHeader>
                 <TableHeader>
                     Occupants
@@ -242,7 +241,6 @@ onMounted(() => {
                 @click="emit('select-cluster', cluster)"
                 class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
             >
-                <TableData>{{ cluster.id }}</TableData>
                 <TableData>
                     <input
                         v-if="editingRow?.id === cluster.id"

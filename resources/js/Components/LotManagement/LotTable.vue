@@ -189,7 +189,6 @@ const redirectToLotBurialRecordShow = (lotId) => {
     >
         <thead class="bg-gray-50 dark:bg-neutral-800">
             <tr>
-                <TableHeader>ID</TableHeader>
                 <TableHeader>Column</TableHeader>
                 <TableHeader>Row</TableHeader>
                 <TableHeader>Status</TableHeader>
@@ -204,7 +203,6 @@ const redirectToLotBurialRecordShow = (lotId) => {
                 :key="lot.id"
                 class="transition bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
             >
-                <TableData>{{ lot.id }}</TableData>
                 <TableData>
                     <input
                         v-if="editingRow?.id === lot.id"
