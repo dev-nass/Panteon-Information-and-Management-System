@@ -42,6 +42,7 @@ Route::prefix('admin')
             Route::post('/lot-management/phase', 'storePhase')->name('lot_management.store.phase');
             Route::post('/lot-management/cluster', 'storeCluster')->name('lot_management.store.cluster');
             Route::post('/lot-management/lot', 'storeLot')->name('lot_management.store.lot');
+            Route::post('/lot-management/lot/bulk', 'storeBulkLot')->name('lot_management.store.bulk_lot');
             // update
             Route::put('/lot-management/phase/{phase}', 'updatePhase')->name('lot_management.update.phase');
             Route::put('/lot-management/cluster/{cluster}', 'updateCluster')->name('lot_management.update.cluster');
