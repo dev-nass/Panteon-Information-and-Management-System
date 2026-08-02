@@ -98,7 +98,6 @@ const redirectToMap = (id) => {
     <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700">
         <thead class="bg-gray-50 dark:bg-neutral-800">
             <tr>
-                <TableHeader>ID</TableHeader>
                 <TableHeader>Name</TableHeader>
                 <TableHeader>Total Clusters</TableHeader>
                 <TableHeader>Coordinate</TableHeader>
@@ -112,7 +111,6 @@ const redirectToMap = (id) => {
                 @click="emit('select-phase', phase)"
                 class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
             >
-                <TableData>{{ phase.id }}</TableData>
                 <TableData>
                     <input
                         v-if="editingRow?.id === phase.id"
