@@ -1725,6 +1725,22 @@
                 "type": "Point",
                 "coordinates": [120.977325847210068, 14.305449806385516]
             }
+        },
+        {
+            "type": "Feature",
+            "properties": { "id": 216, "label": null },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [120.975701578410437, 14.304791419445088]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": { "id": 217, "label": "clbm" },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [120.975827890333406, 14.304751488952014]
+            }
         }
     ]
 }
