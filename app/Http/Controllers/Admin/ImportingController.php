@@ -7,18 +7,19 @@ use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\ImportedLog;
+use App\Models\Lot;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use App\Models\Lot; //Noel
+use PhpOffice\PhpSpreadsheet\IOFactory; // Noel
 
 class ImportingController extends Controller
 {
     public function index()
     {
         $logs = ImportedLog::orderBy('created_at', 'desc')->limit(50)->get();
+
         return Inertia::render('Admin/ImportRecord/IndexView', [
             'importLogs' => $logs,
         ]);
@@ -28,11 +29,15 @@ class ImportingController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:csv,xlsx,xls|max:2048',
+            'import_type' => 'required|in:normal,muslim,columbarium',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->with('error', 'Invalid file format or size');
         }
+
+        $validated = $validator->validate();
+        $importType = $validated['import_type'];
 
         try {
 
@@ -45,7 +50,7 @@ class ImportingController extends Controller
             // Remove header row
             array_shift($rows);
 
-            \Log::info('Importing file:', ['file_name' => $fileName]);
+            \Log::info('Importing file:', ['file_name' => $fileName, 'import_type' => $importType]);
             \Log::info('First row data:', ['row' => $rows[0] ?? 'no rows']);
 
             $imported = 0;
@@ -63,44 +68,56 @@ class ImportingController extends Controller
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
 
                 try {
-                    // Expected columns: NO., BURIAL DATE, NAME OF DECEASED, APPLICANT, PHASE, CLUSTER, APT. NUMBER, BRGY/ADDRESS
-                    // Column indices: 0=NO., 1=BURIAL DATE, 2=NAME OF DECEASED, 3=APPLICANT, 4=PHASE, 5=CLUSTER, 6=APT. NUMBER, 7=BRGY/ADDRESS
                     // Skip completely empty rows
                     if (empty(array_filter($row))) {
                         continue;
                     }
 
-                    if (empty($row[1]) || empty($row[2])) {
-                        $errors[] = "Row {$rowNumber}: Missing required fields (burial date or name of deceased)";
+                    $rowData = match ($importType) {
+                        'normal' => $this->parseNormalRow($row),
+                        'muslim' => $this->parseMuslimRow($row),
+                        'columbarium' => $this->parseColumbariumRow($row),
+                    };
+
+                    $deceasedData = $rowData['deceased'];
+                    $applicantData = $rowData['applicant'];
+                    $lotData = $rowData['lot'];
+
+                    // Required fields check
+                    if (empty($deceasedData['first_name']) || empty($deceasedData['last_name'])) {
+                        $errors[] = "Row {$rowNumber}: Missing name of deceased";
+
                         continue;
                     }
 
-                    // Parse the full name from "NAME OF DECEASED" column (index 2)
-                    $fullName = trim($row[2]);
-                    $nameParts = $this->parseFullName($fullName);
-                    $burialDate = $this->parseDate($row[1]); // BURIAL DATE (index 1)
+                    if ($importType === 'normal' && empty($deceasedData['date_of_depository'])) {
+                        $errors[] = "Row {$rowNumber}: Missing burial date";
+
+                        continue;
+                    }
 
                     // Check if deceased record already exists
-                    $existingRecord = DeceasedRecord::where('first_name', $nameParts['first_name'])
-                        ->where('last_name', $nameParts['last_name'])
-                        ->where('date_of_depository', $burialDate)
+                    $existingRecord = DeceasedRecord::where('first_name', $deceasedData['first_name'])
+                        ->where('last_name', $deceasedData['last_name'])
+                        ->where('date_of_depository', $deceasedData['date_of_depository'])
                         ->first();
 
                     if ($existingRecord) {
                         $errors[] = "Row {$rowNumber}: Deceased record already exists (ID: {$existingRecord->id})";
+
                         continue;
                     }
 
-                    // NOEL - Find lot based on PHASE, CLUSTER, and APT. NUMBER BEFORE creating records
-                    $phaseName = trim($row[4] ?? '');
-                    $clusterName = trim($row[5] ?? '');
-                    $aptNumber = trim($row[6] ?? ''); // e.g. 12A or 2B
+                    // Find lot based on PHASE, CLUSTER, and APT. NUMBER BEFORE creating records
+                    $phaseName = $lotData['phase_name'];
+                    $clusterName = $lotData['cluster_name'];
+                    $aptNumber = $lotData['apt_number']; // e.g. 12A or 2B
 
-                    // NOEL - Extract column number and row letter from APT. NUMBER
+                    // Extract column number and row letter from APT. NUMBER
                     $column = preg_replace('/\D/', '', $aptNumber);
                     $rowLetter = preg_replace('/\d/', '', $aptNumber);
 
-                    // NOEL - Find the lot based on the provided phase, cluster, column, and row
+                    // Find the lot based on the provided phase, cluster, column, and row
                     $lot = Lot::where('column', $column)
                         ->where('row', $rowLetter)
                         ->whereHas('cluster', function ($query) use ($clusterName, $phaseName) {
@@ -112,20 +129,19 @@ class ImportingController extends Controller
                         ->whereDoesntHave('burialRecords')
                         ->first();
 
-                    if (!$lot) {
+                    if (! $lot) {
                         $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber}) Unssagined";
                     }
 
-                    // Create applicant if data exists (index 3)
+                    // Create applicant if data exists
                     $applicantId = null;
-                    $applicantName = trim($row[3] ?? ''); // APPLICANT (index 3)
-                    if (!empty($applicantName)) {
-                        $applicantParts = $this->parseFullName($applicantName);
+                    if (! empty($applicantData['first_name']) || ! empty($applicantData['last_name'])) {
                         $applicant = Applicant::create([
-                            'first_name' => $applicantParts['first_name'],
-                            'middle_name' => $applicantParts['middle_name'],
-                            'last_name' => $applicantParts['last_name'],
-                            'contact_number' => '',
+                            'first_name' => $applicantData['first_name'],
+                            'middle_name' => $applicantData['middle_name'],
+                            'last_name' => $applicantData['last_name'],
+                            'contact_number' => $applicantData['contact_number'] ?? '',
+                            'relationship' => $applicantData['relationship'],
                         ]);
                         $applicantId = $applicant->id;
                     }
@@ -133,11 +149,22 @@ class ImportingController extends Controller
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
                         'applicant_id' => $applicantId,
-                        'first_name' => $nameParts['first_name'],
-                        'middle_name' => $nameParts['middle_name'],
-                        'last_name' => $nameParts['last_name'],
-                        'address' => $row[7] ?? null, // BRGY/ADDRESS (index 7)
-                        'date_of_depository' => $burialDate,
+                        'first_name' => $deceasedData['first_name'],
+                        'middle_name' => $deceasedData['middle_name'],
+                        'last_name' => $deceasedData['last_name'],
+                        'address' => $deceasedData['address'],
+                        'date_of_birth' => $deceasedData['date_of_birth'],
+                        'date_of_death' => $deceasedData['date_of_death'],
+                        'date_of_depository' => $deceasedData['date_of_depository'],
+                        'cremation_date' => $deceasedData['cremation_date'],
+                        'cremation_place' => $deceasedData['cremation_place'],
+                        'age' => $deceasedData['age'] ?? null,
+                        'precinct_num' => $deceasedData['precinct_num'] ?? null,
+                        'corpse_disposal' => match ($importType) {
+                            'normal' => 'burial',
+                            'muslim' => 'muslim',
+                            'columbarium' => 'cremation',
+                        },
                     ]);
 
                     // Create burial record with lot_id and user_id
@@ -158,31 +185,147 @@ class ImportingController extends Controller
                 }
             }
 
-
             DB::commit();
 
             if ($imported === 0) {
                 $importLog->update([
                     'status' => 'failed',
                 ]);
+
                 return back()->with('error', 'No records were imported')->with('importErrors', $errors);
             }
 
             $message = "Successfully imported {$imported} records";
-            if (!empty($errors)) {
-                $message .= " with " . count($errors) . " skipped";
+            if (! empty($errors)) {
+                $message .= ' with '.count($errors).' skipped';
             }
-
 
             $importLog->update([
                 'status' => 'successful',
             ]);
+
             return back()->with('success', $message)->with('importErrors', $errors);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Import failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
             return back()->with('error', 'Failed to process file')->with('importErrors', [$e->getMessage()]);
         }
+    }
+
+    /**
+     * @param  array  $row  spreadsheet row (0-indexed)
+     * @return array{deceased: array, applicant: array, lot: array}
+     */
+    private function parseNormalRow(array $row): array
+    {
+        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->parseFullName(trim($row[3] ?? ''));
+
+        return [
+            'deceased' => [
+                'first_name' => $deceasedName['first_name'],
+                'middle_name' => $deceasedName['middle_name'],
+                'last_name' => $deceasedName['last_name'],
+                'address' => $this->titleCase(trim($row[7] ?? '') ?: '') ?: null,
+                'date_of_birth' => null,
+                'date_of_death' => null,
+                'date_of_depository' => $this->parseDate($row[1] ?? null),
+                'cremation_date' => null,
+                'cremation_place' => null,
+            ],
+            'applicant' => [
+                'first_name' => $applicantName['first_name'],
+                'middle_name' => $applicantName['middle_name'],
+                'last_name' => $applicantName['last_name'],
+                'contact_number' => null,
+                'relationship' => null,
+            ],
+            'lot' => [
+                'phase_name' => trim($row[4] ?? ''),
+                'cluster_name' => trim($row[5] ?? ''),
+                'apt_number' => trim($row[6] ?? ''),
+            ],
+        ];
+    }
+
+    /**
+     * Phase is hardcoded to "clbm" for columbarium.
+     *
+     * @param  array  $row  spreadsheet row (0-indexed)
+     * @return array{deceased: array, applicant: array, lot: array}
+     */
+    private function parseColumbariumRow(array $row): array
+    {
+        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->parseFullName(trim($row[9] ?? ''));
+
+        $precinctNum = trim($row[1] ?? '');
+        $age = trim($row[14] ?? '');
+
+        return [
+            'deceased' => [
+                'first_name' => $deceasedName['first_name'],
+                'middle_name' => $deceasedName['middle_name'],
+                'last_name' => $deceasedName['last_name'],
+                'address' => $this->titleCase(trim($row[3] ?? '') ?: '') ?: null,
+                'date_of_birth' => $this->parseDate($row[4] ?? null),
+                'date_of_death' => $this->parseDate($row[5] ?? null),
+                'date_of_depository' => $this->parseDate($row[7] ?? null),
+                'cremation_date' => $this->parseDate($row[6] ?? null),
+                'cremation_place' => $this->titleCase(trim($row[8] ?? '') ?: '') ?: null,
+                'age' => is_numeric($age) ? (int) $age : null,
+                'precinct_num' => is_numeric($precinctNum) ? (int) $precinctNum : null,
+            ],
+            'applicant' => [
+                'first_name' => $applicantName['first_name'],
+                'middle_name' => $applicantName['middle_name'],
+                'last_name' => $applicantName['last_name'],
+                'contact_number' => trim($row[11] ?? '') ?: null,
+                'relationship' => $this->titleCase(trim($row[10] ?? '') ?: '') ?: null,
+            ],
+            'lot' => [
+                'phase_name' => 'clbm',
+                'cluster_name' => trim($row[12] ?? ''),
+                'apt_number' => trim($row[13] ?? ''),
+            ],
+        ];
+    }
+
+    /**
+     * @param  array  $row  spreadsheet row (0-indexed)
+     * @return array{deceased: array, applicant: array, lot: array}
+     */
+    private function parseMuslimRow(array $row): array
+    {
+        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->parseFullName(trim($row[6] ?? ''));
+
+        return [
+            'deceased' => [
+                'first_name' => $deceasedName['first_name'],
+                'middle_name' => $deceasedName['middle_name'],
+                'last_name' => $deceasedName['last_name'],
+                'address' => null,
+                'date_of_birth' => null,
+                'date_of_death' => null,
+                'date_of_depository' => null,
+                'cremation_date' => null,
+                'cremation_place' => null,
+            ],
+            'applicant' => [
+                'first_name' => $applicantName['first_name'],
+                'middle_name' => $applicantName['middle_name'],
+                'last_name' => $applicantName['last_name'],
+                'contact_number' => null,
+                'relationship' => null,
+            ],
+            'lot' => [
+                'phase_name' => trim($row[10] ?? ''),
+                'cluster_name' => trim($row[11] ?? ''),
+                'apt_number' => trim($row[12] ?? ''),
+            ],
+        ];
     }
 
     private function parseFullName($fullName)
@@ -193,13 +336,23 @@ class ImportingController extends Controller
         if ($count === 0) {
             return ['first_name' => null, 'middle_name' => null, 'last_name' => null];
         } elseif ($count === 1) {
-            return ['first_name' => $parts[0], 'middle_name' => null, 'last_name' => null];
+            return ['first_name' => $this->titleCase($parts[0]), 'middle_name' => null, 'last_name' => null];
         } else {
             // First name and last name only, disregard middle name
             $firstName = array_shift($parts);
             $lastName = array_pop($parts);
-            return ['first_name' => $firstName, 'middle_name' => null, 'last_name' => $lastName];
+
+            return [
+                'first_name' => $this->titleCase($firstName),
+                'middle_name' => null,
+                'last_name' => $this->titleCase($lastName),
+            ];
         }
+    }
+
+    private function titleCase(string $value): string
+    {
+        return ucwords(strtolower(trim($value)));
     }
 
     private function parseDate($date)
@@ -212,6 +365,7 @@ class ImportingController extends Controller
             // Try to parse Excel date format
             if (is_numeric($date)) {
                 $unixDate = ($date - 25569) * 86400;
+
                 return date('Y-m-d', $unixDate);
             }
 
@@ -220,6 +374,7 @@ class ImportingController extends Controller
             if ($timestamp === false) {
                 return null;
             }
+
             return date('Y-m-d', $timestamp);
         } catch (\Exception $e) {
             return null;

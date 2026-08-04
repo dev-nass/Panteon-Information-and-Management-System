@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "vue-toast-notification";
@@ -24,6 +24,103 @@ const fileError = ref("");
 const isDragging = ref(false);
 const isUploading = ref(false);
 const importResult = ref(null);
+const importType = ref(null);
+
+const importTypes = [
+    {
+        value: "normal",
+        label: "Burial",
+        description: "Standard burial spreadsheet",
+        columns: [
+            "NO.",
+            "BURIAL DATE",
+            "NAME OF DECEASED",
+            "APPLICANT",
+            "PHASE",
+            "CLUSTER",
+            "APT. NUMBER",
+            "BRGY/ADDRESS",
+        ],
+    },
+    {
+        value: "muslim",
+        label: "Muslim",
+        description: "Muslim burial spreadsheet",
+        columns: [
+            "NO.",
+            "DATE OF APPLICANT",
+            "NAME OF DECEASED",
+            "(not used)",
+            "(not used)",
+            "(not used)",
+            "NAME OF APPLICANT",
+            "(not used)",
+            "(not used)",
+            "(not used)",
+            "PHASE",
+            "CLUSTER",
+            "APARTMENT NO.",
+        ],
+    },
+    {
+        value: "columbarium",
+        label: "Columbarium",
+        description: "Columbarium (cremation) spreadsheet",
+        columns: [
+            "NO.",
+            "PRECINCT NO.",
+            "NAME OF DECEASED",
+            "ADDRESS",
+            "BIRTHDATE (MM/DD/YYYY)",
+            "DATE OF DEATH",
+            "DATE OF CREMATION",
+            "DATE OF DEPOSITORY",
+            "PLACE OF CREMATION",
+            "NAME OF APPLICANT",
+            "RELATIONSHIP",
+            "CONTACT #",
+            "CLUSTER",
+            "APARTMENT",
+            "AGE",
+            "NOTES",
+        ],
+    },
+];
+
+const selectedImportType = computed(() =>
+    importTypes.find((type) => type.value === importType.value),
+);
+
+const closeOverlay = (el) => {
+    if (typeof HSOverlay !== "undefined" && window.$hsOverlayCollection) {
+        HSOverlay.close(el);
+        return;
+    }
+
+    el.classList.remove("open", "opened");
+    if (!el.classList.contains("hidden")) {
+        el.classList.add("hidden");
+    }
+};
+
+const selectImportType = (type) => {
+    importType.value = type;
+    removeFile();
+
+    const modal = document.getElementById("import-type-modal");
+
+    if (modal) {
+        closeOverlay(modal);
+    }
+};
+
+onMounted(() => {
+    document
+        .querySelectorAll("#import-type-modal, #import-logs-modal")
+        .forEach((el) => closeOverlay(el));
+
+    document.body.style.overflow = "";
+});
 
 // Watch for flash messages
 watch(
@@ -108,6 +205,13 @@ const triggerFileInput = () => {
 };
 
 const startImport = () => {
+    if (!importType.value) {
+        toast.error("Please select an import type first", {
+            position: "top-right",
+        });
+        return;
+    }
+
     if (!selectedFile.value) {
         fileError.value = "Please select a CSV or XLSX file first";
         toast.error("Please select a CSV or XLSX file first", {
@@ -121,6 +225,7 @@ const startImport = () => {
 
     const formData = new FormData();
     formData.append("file", selectedFile.value);
+    formData.append("import_type", importType.value);
 
     router.post(route("admin.import.store"), formData, {
         onSuccess: () => {
@@ -187,6 +292,82 @@ const startImport = () => {
                                     and deceased records into the system.
                                 </p>
                             </article>
+                        </div>
+
+                        <!-- Import Type Selection -->
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white/50 dark:bg-neutral-900/40"
+                        >
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="flex items-center justify-center size-10 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        class="lucide lucide-list-checks-icon lucide-list-checks"
+                                    >
+                                        <path d="m3 17 2 2 4-4" />
+                                        <path d="m3 7 2 2 4-4" />
+                                        <path d="M13 6h8" />
+                                        <path d="M13 12h8" />
+                                        <path d="M13 18h8" />
+                                    </svg>
+                                </div>
+
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                                    >
+                                        Import Type
+                                    </span>
+                                    <span
+                                        class="text-xs text-gray-500 dark:text-gray-400"
+                                    >
+                                        Determines how the spreadsheet columns
+                                        are parsed
+                                    </span>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                data-hs-overlay="#import-type-modal"
+                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition"
+                                :class="
+                                    selectedImportType
+                                        ? 'border-green-500 bg-green-500/10 text-green-600 dark:text-green-400'
+                                        : 'border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-200 hover:border-green-500'
+                                "
+                            >
+                                <template v-if="selectedImportType">
+                                    {{ selectedImportType.label }}
+                                </template>
+                                <template v-else>
+                                    Select Import Type
+                                </template>
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="m6 9 6 6 6-6" />
+                                </svg>
+                            </button>
                         </div>
 
                         <!-- File Upload -->
@@ -434,6 +615,39 @@ const startImport = () => {
                             </div>
                         </div>
 
+                        <!-- Column Reference Guide -->
+                        <div
+                            v-if="selectedImportType"
+                            class="p-4 rounded-xl border border-green-500/30 bg-green-500/5"
+                        >
+                            <div class="flex items-center justify-between mb-2">
+                                <span
+                                    class="text-sm font-medium text-gray-800 dark:text-gray-200"
+                                >
+                                    Expected Columns —
+                                    {{ selectedImportType.label }}
+                                </span>
+                                <span
+                                    v-if="importType === 'columbarium'"
+                                    class="text-xs text-gray-500 dark:text-gray-400"
+                                >
+                                    Phase is fixed to "clbm"
+                                </span>
+                            </div>
+
+                            <div
+                                class="flex flex-wrap gap-2"
+                            >
+                                <span
+                                    v-for="(column, index) in selectedImportType.columns"
+                                    :key="index"
+                                    class="px-2 py-1 text-xs font-medium rounded-md border border-gray-300 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/70 text-gray-600 dark:text-gray-300"
+                                >
+                                    {{ index }}. {{ column }}
+                                </span>
+                            </div>
+                        </div>
+
                         <!-- Actions -->
                         <div class="flex justify-between items-center pt-2">
                             <Button data-hs-overlay="#import-logs-modal">
@@ -544,6 +758,86 @@ const startImport = () => {
             >
                 Close
             </button>
+        </template>
+    </Modal>
+
+    <!-- Import Type Selection Modal -->
+    <Modal id="import-type-modal" size="lg">
+        <template #header>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-list-checks-icon lucide-list-checks"
+            >
+                <path d="m3 17 2 2 4-4" />
+                <path d="m3 7 2 2 4-4" />
+                <path d="M13 6h8" />
+                <path d="M13 12h8" />
+                <path d="M13 18h8" />
+            </svg>
+        </template>
+
+        <template #main>
+            <h3
+                id="import-type-modal-label"
+                class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+            >
+                Select Import Type
+            </h3>
+
+            <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                Choose the spreadsheet format you are importing so the columns
+                are parsed correctly.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mt-2">
+                <button
+                    v-for="type in importTypes"
+                    :key="type.value"
+                    type="button"
+                    class="flex flex-col items-center gap-y-2 p-4 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-green-500 hover:bg-green-500/5 dark:hover:bg-green-500/10 transition"
+                    @click="selectImportType(type.value)"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-file-spreadsheet-icon lucide-file-spreadsheet text-green-500 dark:text-green-400"
+                    >
+                        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                        <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                        <path d="M8 13h2" />
+                        <path d="M14 13h2" />
+                        <path d="M8 17h2" />
+                        <path d="M14 17h2" />
+                    </svg>
+
+                    <span
+                        class="text-sm font-semibold text-gray-800 dark:text-neutral-200"
+                    >
+                        {{ type.label }}
+                    </span>
+
+                    <span
+                        class="text-xs text-gray-500 dark:text-neutral-400"
+                    >
+                        {{ type.description }}
+                    </span>
+                </button>
+            </div>
         </template>
     </Modal>
 </template>

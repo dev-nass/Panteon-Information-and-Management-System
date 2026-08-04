@@ -120,7 +120,12 @@ onMounted(() => {
     const modal = document.getElementById("burial-type-modal");
 
     if (modal) {
-        HSOverlay.close(modal);
+        if (typeof HSOverlay !== "undefined" && window.$hsOverlayCollection) {
+            HSOverlay.close(modal);
+        } else {
+            modal.classList.remove("open", "opened");
+            modal.classList.add("hidden");
+        }
     }
 
     document.body.style.overflow = "";

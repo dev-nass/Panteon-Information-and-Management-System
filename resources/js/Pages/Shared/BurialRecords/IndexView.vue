@@ -39,7 +39,7 @@ const roleRoutes = {
 const burialTypes = [
     {
         value: "burial",
-        label: "Normal Burial",
+        label: "Burial",
         description: "Standard interment of the deceased in a lot",
     },
     {
@@ -54,11 +54,23 @@ const burialTypes = [
     },
 ];
 
+const closeOverlay = (el) => {
+    if (typeof HSOverlay !== "undefined" && window.$hsOverlayCollection) {
+        HSOverlay.close(el);
+        return;
+    }
+
+    el.classList.remove("open", "opened");
+    if (!el.classList.contains("hidden")) {
+        el.classList.add("hidden");
+    }
+};
+
 const selectType = (type) => {
     const modal = document.getElementById("burial-type-modal");
 
     if (modal) {
-        HSOverlay.close(modal);
+        closeOverlay(modal);
     }
 
     router.visit(
