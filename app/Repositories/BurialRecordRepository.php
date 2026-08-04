@@ -15,8 +15,9 @@ class BurialRecordRepository extends Repository
     public function getBurialRecordsWithFilters(
         string $sortField,
         string $sortDirection,
-        string|null $search,
-        string $filter
+        ?string $search,
+        string $filter,
+        ?string $disposal
     ) {
         return $this->query()->with(['deceasedRecord', 'lot', 'user'])
 
@@ -43,9 +44,12 @@ class BurialRecordRepository extends Repository
             ->when($filter === 'unassigned', function ($q) {
                 $q->whereNull('burial_records.lot_id');
             })
+            ->when(in_array($disposal, ['burial', 'muslim', 'cremation'], true), function ($q) use ($disposal) {
+                $q->where('deceased_records.corpse_disposal', $disposal);
+            })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')
-                ? 'deceased_records.' . str_replace('deceased_', '', $sortField)
+                ? 'deceased_records.'.str_replace('deceased_', '', $sortField)
                 : "burial_records.$sortField",
                 $sortDirection
             );
@@ -59,7 +63,6 @@ class BurialRecordRepository extends Repository
             'user_id' => $createdBy,
         ]);
     }
-
 
     public function updateBurialRecord(Model $burialRecord, int $lotId, int $updatedBy): bool
     {

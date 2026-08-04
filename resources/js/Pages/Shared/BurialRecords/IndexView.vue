@@ -102,6 +102,24 @@ const applyFilter = (filterValue) => {
             filter: filterValue,
             sort_field: props.filters.sort_field,
             sort_direction: props.filters.sort_direction,
+            disposal: props.filters.disposal,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
+};
+
+const applyDisposalFilter = (disposalValue) => {
+    router.get(
+        route(roleRoutes[userRole.value].route_search),
+        {
+            search: props.filters.search,
+            filter: props.filters.filter,
+            sort_field: props.filters.sort_field,
+            sort_direction: props.filters.sort_direction,
+            disposal: disposalValue,
         },
         {
             preserveState: true,
@@ -131,6 +149,7 @@ const sort = (field) => {
             filter: props.filters.filter,
             sort_field: field,
             sort_direction: direction,
+            disposal: props.filters.disposal,
         },
         {
             preserveState: true,
@@ -142,7 +161,7 @@ const sort = (field) => {
 window.addEventListener("load", () => {
     setTimeout(() => {
         document
-            .querySelectorAll(".hs-overlay")
+            .querySelectorAll(".hs-overlay:not(#burial-type-modal)")
             .forEach((el) => HSOverlay.open(el));
     });
 });
@@ -383,6 +402,155 @@ defineOptions({
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
                                                         >Unassigned</span
+                                                    >
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="hs-dropdown [--placement:bottom-right] relative inline-block"
+                                        data-hs-dropdown-auto-close="inside"
+                                    >
+                                        <Button
+                                            id="hs-as-table-table-type-dropdown"
+                                            type="button"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-label="Dropdown"
+                                        >
+                                            <span class="dark:text-white">
+                                                Type
+                                            </span>
+
+                                            <span
+                                                class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
+                                            >
+                                                {{
+                                                    filters.disposal === "burial"
+                                                        ? "Burial"
+                                                        : filters.disposal ===
+                                                            "muslim"
+                                                          ? "Muslim"
+                                                          : filters.disposal ===
+                                                              "cremation"
+                                                            ? "Cremation"
+                                                            : "All"
+                                                }}
+                                            </span>
+                                        </Button>
+
+                                        <div
+                                            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
+                                            role="menu"
+                                            aria-orientation="vertical"
+                                            aria-labelledby="hs-as-table-table-type-dropdown"
+                                        >
+                                            <div
+                                                class="divide-y divide-gray-200 dark:divide-neutral-800"
+                                            >
+                                                <label
+                                                    for="type-all"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="all"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-all"
+                                                        :checked="
+                                                            !filters.disposal ||
+                                                            filters.disposal ===
+                                                                'all'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'all',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >All</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-burial"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="burial"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-burial"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'burial'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'burial',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Burial</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-muslim"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="muslim"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-muslim"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'muslim'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'muslim',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Muslim</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-cremation"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="cremation"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-cremation"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'cremation'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'cremation',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Cremation</span
                                                     >
                                                 </label>
                                             </div>
