@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 
@@ -23,6 +23,22 @@ const tabs = [
     { key: "location", label: "Location" },
 ];
 
+const burialTypes = {
+    burial: { label: "Normal Burial", badge: "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500" },
+    muslim: { label: "Muslim Burial", badge: "bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-500" },
+    cremation: { label: "Cremation", badge: "bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500" },
+};
+
+const burialTypeOptions = Object.entries(burialTypes).map(
+    ([value, { label }]) => ({ value, label }),
+);
+
+const selectedType = ref(
+    ["burial", "muslim", "cremation"].includes(route().params.type)
+        ? route().params.type
+        : "burial",
+);
+
 const form = useForm({
     // Personal Info
     first_name: "",
@@ -44,7 +60,7 @@ const form = useForm({
     death_place: "",
 
     // Disposition
-    corpse_disposal: "",
+    corpse_disposal: selectedType.value,
     cremation_place: "",
     cremation_date: "",
     burial_place: "",
@@ -67,6 +83,58 @@ const form = useForm({
     // Location
     lot_id: "",
 });
+
+const isCremation = computed(
+    () => form.corpse_disposal === "cremation",
+);
+
+const filteredPhases = computed(() => {
+    if (form.corpse_disposal === "cremation") {
+        return props.phases.filter((phase) =>
+            phase.name.toLowerCase().includes("clbm"),
+        );
+    }
+
+    return props.phases.filter(
+        (phase) => !phase.name.toLowerCase().includes("clbm"),
+    );
+});
+
+watch(
+    () => form.corpse_disposal,
+    () => {
+        if (isCremation.value) {
+            const columbariumPhase = filteredPhases.value[0];
+
+            if (columbariumPhase) {
+                handlePhaseChange(columbariumPhase.id);
+                return;
+            }
+        }
+
+        handlePhaseChange("");
+    },
+);
+
+onMounted(() => {
+    const modal = document.getElementById("burial-type-modal");
+
+    if (modal) {
+        HSOverlay.close(modal);
+    }
+
+    document.body.style.overflow = "";
+});
+
+const burialTypeLabel = computed(
+    () => burialTypes[form.corpse_disposal]?.label ?? "Normal Burial",
+);
+
+const burialTypeBadge = computed(
+    () =>
+        burialTypes[form.corpse_disposal]?.badge ??
+        burialTypes.burial.badge,
+);
 
 const selectedPhase = ref(null);
 const availableClusters = ref([]);
@@ -122,11 +190,19 @@ defineOptions({
             <div
                 class="px-6 py-4 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700"
             >
-                <h2
-                    class="text-xl font-semibold text-gray-800 dark:text-gray-200"
-                >
-                    Create Burial Record
-                </h2>
+                                <div class="flex flex-col gap-1.5">
+                    <h2
+                        class="text-xl font-semibold text-gray-800 dark:text-gray-200"
+                    >
+                        Create Burial Record
+                    </h2>
+                    <span
+                        class="inline-flex items-center gap-x-1.5 py-1 px-3 rounded-full text-xs font-medium self-start"
+                        :class="burialTypeBadge"
+                    >
+                        {{ burialTypeLabel }}
+                    </span>
+                </div>
 
                 <Button @click="goBack"> Back </Button>
             </div>
@@ -243,7 +319,11 @@ defineOptions({
                         >
                             Date of Birth
                         </label>
-                        <Input v-model="form.birth_date" type="date" required />
+                        <Input
+                            v-model="form.birth_date"
+                            type="date"
+                            :required="isCremation"
+                        />
                         <span
                             v-if="form.errors.birth_date"
                             class="text-red-500 text-sm"
@@ -404,10 +484,25 @@ defineOptions({
                         >
                             Corpse Disposal
                         </label>
-                        <Input
+                        <select
                             v-model="form.corpse_disposal"
-                            placeholder="Enter corpse disposal method"
-                        />
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required
+                        >
+                            <option
+                                v-for="option in burialTypeOptions"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </option>
+                        </select>
+                        <span
+                            v-if="form.errors.corpse_disposal"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.corpse_disposal }}
+                        </span>
                     </div>
 
                     <div>
@@ -419,7 +514,14 @@ defineOptions({
                         <Input
                             v-model="form.cremation_place"
                             placeholder="Enter cremation place"
+                            :required="isCremation"
                         />
+                        <span
+                            v-if="form.errors.cremation_place"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.cremation_place }}
+                        </span>
                     </div>
 
                     <div>
@@ -428,7 +530,17 @@ defineOptions({
                         >
                             Cremation Date
                         </label>
-                        <Input v-model="form.cremation_date" type="date" />
+                        <Input
+                            v-model="form.cremation_date"
+                            type="date"
+                            :required="isCremation"
+                        />
+                        <span
+                            v-if="form.errors.cremation_date"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.cremation_date }}
+                        </span>
                     </div>
 
                     <div>
@@ -642,7 +754,7 @@ defineOptions({
                         >
                             <option value="">Select a phase</option>
                             <option
-                                v-for="phase in phases"
+                                v-for="phase in filteredPhases"
                                 :key="phase.id"
                                 :value="phase.id"
                             >

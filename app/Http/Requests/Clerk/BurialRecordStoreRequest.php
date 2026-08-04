@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Clerk;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BurialRecordStoreRequest extends FormRequest
@@ -17,17 +18,21 @@ class BurialRecordStoreRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $corpseDisposal = $this->input('corpse_disposal');
+
         return [
             // deceased fields
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
             'age' => 'nullable|integer',
-            'birth_date' => 'nullable|date',
+            'birth_date' => $corpseDisposal === 'cremation'
+                ? 'required|date'
+                : 'nullable|date',
             'civil_status' => 'nullable|string|max:255',
             'religion' => 'nullable|string|max:255',
             'nationality' => 'nullable|string|max:255',
@@ -38,9 +43,13 @@ class BurialRecordStoreRequest extends FormRequest
             'death_date' => 'required|date',
             'death_cause' => 'nullable|string|max:255',
             'death_place' => 'nullable|string|max:255',
-            'corpse_disposal' => 'nullable|string|max:255',
-            'cremation_place' => 'nullable|string|max:255',
-            'cremation_date' => 'nullable|date',
+            'corpse_disposal' => 'required|in:burial,muslim,cremation',
+            'cremation_place' => $corpseDisposal === 'cremation'
+                ? 'required|string|max:255'
+                : 'nullable|string|max:255',
+            'cremation_date' => $corpseDisposal === 'cremation'
+                ? 'required|date'
+                : 'nullable|date',
             'burial_place' => 'nullable|string|max:255',
             'burial_date' => 'required|date',
             'burial_time' => 'required|date_format:H:i',

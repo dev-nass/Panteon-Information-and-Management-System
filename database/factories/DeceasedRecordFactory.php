@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Applicant;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\DeceasedRecord;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\DeceasedRecord>
+ * @extends Factory<DeceasedRecord>
  */
 class DeceasedRecordFactory extends Factory
 {
@@ -23,8 +24,8 @@ class DeceasedRecordFactory extends Factory
 
         $corpseDisposal = $this->faker->randomElement([
             'burial',
+            'muslim',
             'cremation',
-            'other',
         ]);
 
         return [

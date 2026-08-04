@@ -41,7 +41,7 @@ class DeceasedRecordResource extends JsonResource
             ],
             // these two are not combined bcz some are cremated
             'burial_place' => $this->when(
-                $this->corpse_disposal === 'burial',
+                in_array($this->corpse_disposal, ['burial', 'muslim'], true),
                 $this->burial_place
             ),
 
@@ -55,7 +55,6 @@ class DeceasedRecordResource extends JsonResource
                 'address' => $this->company_address,
                 'supervisor' => $this->company_supervisor_name,
             ],
-
 
             'corpse_disposal' => $this->corpse_disposal,
 
