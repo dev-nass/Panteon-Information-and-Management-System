@@ -23,7 +23,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        // $this->deceasedRecordsBurial();
+        $this->deceasedRecordsBurial();
     }
 
     private function seedPhases(): void

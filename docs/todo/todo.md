@@ -6,6 +6,7 @@
       **Meaning they could upload the .docs file of the COS** and they can
       select which template they want to use and then fill out the form and
       it's finished.
+- [ ] The Clerk invitation email is not styled yet
 
 ## With Plans
 
