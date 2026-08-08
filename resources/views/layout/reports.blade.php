@@ -285,7 +285,7 @@
         <div class="signature-section">
             <div class="signature-line"></div>
             <p class="signature-name">{{ auth()->user()->first_name . " " . auth()->user()->last_name}}</p>
-            <p class="signature-title">Authorized Clerk</p>
+            <p class="signature-title">Authorized Administrator</p>
         </div>
     </div>
 
