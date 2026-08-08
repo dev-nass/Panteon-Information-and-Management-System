@@ -30,7 +30,7 @@
   - Graph should be unified;
   - Clusters tab should be more clear
   - Numbers should be separated by comma
-- Generate Report
+- [x] Generate Report
   - Monthly, Weekly and Annual Report
   - Add Annual Report
   - Footer dapat yung "This report is system generated"

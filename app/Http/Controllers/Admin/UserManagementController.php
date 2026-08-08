@@ -6,13 +6,52 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Rap2hpoutre\FastExcel\FastExcel;
 
 class UserManagementController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::query();
+        $query = $this->applyFilters($request, User::query());
 
+        $users = $query->paginate(10)->withQueryString();
+
+        return Inertia::render('Admin/UserManagement/IndexView', [
+            'users' => $users,
+            'filters' => [
+                'search' => $request->search,
+                'filter' => $request->filter,
+                'sort_field' => $request->sort_field,
+                'sort_direction' => $request->sort_direction,
+            ],
+        ]);
+    }
+
+    public function export(Request $request)
+    {
+        $query = $this->applyFilters($request, User::query());
+
+        $users = $query->get()->map(function ($user) {
+            return [
+                'ID' => $user->id,
+                'First Name' => $user->first_name,
+                'Middle Name' => $user->middle_name,
+                'Last Name' => $user->last_name,
+                'Email' => $user->email,
+                'Contact Number' => $user->contact_number,
+                'Role' => $user->role,
+                'Verified' => $user->email_verified_at ? 'Yes' : 'No',
+                'Member Since' => $user->created_at?->format('Y-m-d'),
+            ];
+        });
+
+        $filename = 'users_'.date('Y-m-d').'.csv';
+
+        return (new FastExcel($users))->download($filename);
+    }
+
+    private function applyFilters(Request $request, $query)
+    {
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -34,21 +73,19 @@ class UserManagementController extends Controller
             $query->latest();
         }
 
-        $users = $query->paginate(10)->withQueryString();
-
-        return Inertia::render('Admin/UserManagement/IndexView', [
-            'users' => $users,
-            'filters' => [
-                'search' => $request->search,
-                'filter' => $request->filter,
-                'sort_field' => $request->sort_field,
-                'sort_direction' => $request->sort_direction,
-            ],
-        ]);
+        return $query;
     }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        if ($user->id === $request->user()->id) {
+            return back()->with('error', 'You cannot delete your own account.');
+        }
+
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Admin accounts cannot be deleted.');
+        }
+
         $user->delete();
 
         return redirect()->route('admin.user_management.index')

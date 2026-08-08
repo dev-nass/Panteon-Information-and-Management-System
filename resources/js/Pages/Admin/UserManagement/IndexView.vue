@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
+import { useToast } from "vue-toast-notification";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -14,8 +15,27 @@ const props = defineProps({
 });
 
 const page = usePage();
+const toast = useToast();
 const search = ref(props.filters.search || "");
-const deleteUserId = ref(null);
+const deleteUser = ref(null);
+
+const currentUser = computed(() => page.props.auth.user);
+
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            toast.success(flash.success, {
+                duration: 5000,
+            });
+        } else if (flash?.error) {
+            toast.error(flash.error, {
+                duration: 5000,
+            });
+        }
+    },
+    { deep: true },
+);
 
 const applyFilter = (filterValue) => {
     router.get(
@@ -29,6 +49,21 @@ const applyFilter = (filterValue) => {
         {
             preserveState: true,
             replace: true,
+        },
+    );
+};
+
+const exportUsers = () => {
+    router.get(
+        route("admin.user_management.export"),
+        {
+            search: props.filters.search,
+            filter: props.filters.filter,
+            sort_field: props.filters.sort_field,
+            sort_direction: props.filters.sort_direction,
+        },
+        {
+            preserveState: true,
         },
     );
 };
@@ -58,23 +93,23 @@ const sort = (field) => {
     );
 };
 
-const openDeleteModal = (userId) => {
-    deleteUserId.value = userId;
+const openDeleteModal = (user) => {
+    deleteUser.value = user;
     HSOverlay.open("#delete-user-modal");
 };
 
 const confirmDelete = () => {
-    router.delete(route("admin.user_management.destroy", deleteUserId.value), {
+    router.delete(route("admin.user_management.destroy", deleteUser.value.id), {
         onSuccess: () => {
             HSOverlay.close("#delete-user-modal");
-            deleteUserId.value = null;
+            deleteUser.value = null;
         },
     });
 };
 
 const cancelDelete = () => {
     HSOverlay.close("#delete-user-modal");
-    deleteUserId.value = null;
+    deleteUser.value = null;
 };
 
 watch(
@@ -167,8 +202,19 @@ defineOptions({
                         </h3>
 
                         <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
-                            Are you sure you want to delete this user? This
-                            action cannot be undone.
+                            Are you sure you want to delete
+                            <span
+                                class="font-semibold text-gray-900 dark:text-white"
+                            >
+                                {{
+                                    deleteUser
+                                        ? `${deleteUser.first_name} ${deleteUser.last_name}`
+                                        : "this user"
+                                }}
+                            </span>
+                            ? This action cannot be undone, and attribution to
+                            any burial records created by this user will be
+                            cleared.
                         </p>
                     </div>
 
@@ -214,6 +260,77 @@ defineOptions({
 
                             <div class="sm:col-span-2 md:grow">
                                 <div class="flex justify-end gap-x-2">
+                                    <Link
+                                        :href="
+                                            route(
+                                                'admin.clerk_invitations.create',
+                                            )
+                                        "
+                                        class="inline-flex items-center gap-2 px-3 py-2.5 text-base rounded-lg border transition duration-200 bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                                            />
+                                            <circle cx="9" cy="7" r="4" />
+                                            <line
+                                                x1="19"
+                                                x2="19"
+                                                y1="8"
+                                                y2="14"
+                                            />
+                                            <line
+                                                x1="22"
+                                                x2="16"
+                                                y1="11"
+                                                y2="11"
+                                            />
+                                        </svg>
+                                        <span class="dark:text-green-400">
+                                            Invite Clerk
+                                        </span>
+                                    </Link>
+
+                                    <Button type="button" @click="exportUsers">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path
+                                                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                            />
+                                            <polyline
+                                                points="7 10 12 15 17 10"
+                                            />
+                                            <line
+                                                x1="12"
+                                                x2="12"
+                                                y1="15"
+                                                y2="3"
+                                            />
+                                        </svg>
+                                        <span class="dark:text-white">
+                                            Export CSV
+                                        </span>
+                                    </Button>
+
                                     <div
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                         data-hs-dropdown-auto-close="inside"
@@ -380,6 +497,7 @@ defineOptions({
                                     <TableHeader @click="sort('role')">
                                         Role
                                     </TableHeader>
+                                    <TableHeader> Verification </TableHeader>
                                     <TableHeader> Actions </TableHeader>
                                 </tr>
                             </thead>
@@ -421,8 +539,28 @@ defineOptions({
                                         </span>
                                     </TableData>
                                     <TableData>
+                                        <span
+                                            class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
+                                            :class="
+                                                user.email_verified_at
+                                                    ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500'
+                                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500'
+                                            "
+                                        >
+                                            {{
+                                                user.email_verified_at
+                                                    ? "Verified"
+                                                    : "Pending"
+                                            }}
+                                        </span>
+                                    </TableData>
+                                    <TableData>
                                         <button
-                                            @click="openDeleteModal(user.id)"
+                                            v-if="
+                                                user.role !== 'admin' &&
+                                                user.id !== currentUser.id
+                                            "
+                                            @click="openDeleteModal(user)"
                                             class="inline-flex items-center gap-x-1 px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                         >
                                             <svg
@@ -451,7 +589,7 @@ defineOptions({
 
                                 <tr v-else>
                                     <td
-                                        colspan="6"
+                                        colspan="7"
                                         class="px-6 py-8 text-center"
                                     >
                                         <span

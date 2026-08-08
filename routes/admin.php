@@ -29,6 +29,7 @@ Route::prefix('admin')
 
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/user-management', 'index')->name('user_management.index');
+            Route::get('/user-management/export', 'export')->name('user_management.export');
             Route::delete('/user-management/{user}', 'destroy')->name('user_management.destroy');
         });
 
