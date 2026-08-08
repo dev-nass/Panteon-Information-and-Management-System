@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BurialRecord;
+use App\Models\Cluster;
 use App\Models\DeceasedRecord;
 use App\Models\Lot;
 use App\Models\Phase;
-use App\Models\Cluster;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +21,8 @@ class DashboardController extends Controller
         $filter = $request->get('filter', 'monthly');
         $year = $request->get('year', Carbon::now()->year);
         $phaseId = $request->get('phase_id');
+        $clusterPage = $request->get('cluster_page', 1);
+        $clusterType = $request->get('cluster_type');
 
         // Total statistics
         $totalBurialRecords = BurialRecord::count();
@@ -58,7 +60,8 @@ class DashboardController extends Controller
         } elseif ($tab === 'clusters') {
             $data['phases'] = Phase::select('id', 'phase_name')->orderBy('phase_name')->get();
             $data['selected_phase_id'] = $phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id;
-            $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id']);
+            $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id'], (int) $clusterPage, $clusterType);
+            $data['selected_type'] = in_array($clusterType, ['underground', 'apartment', 'columbarium']) ? $clusterType : '';
         }
 
         return Inertia::render('Admin/DashboardView', $data);
@@ -101,34 +104,51 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getClusterOccupancyData($phaseId = null)
+    private function getClusterOccupancyData($phaseId = null, $page = 1, $type = null)
     {
-        $query = Cluster::select('clusters.id', 'clusters.cluster_name', 'clusters.cluster_type', 'clusters.phase_id')
-            ->with('phase:id,phase_name')
-            ->withCount([
-                'lots as total_lots',
-                'lots as occupied_lots' => function ($query) {
-                    $query->whereHas('burialRecords');
-                },
-            ]);
+        $query = Cluster::withCount([
+            'lots as total_lots',
+            'lots as occupied_lots' => function ($query) {
+                $query->whereHas('burialRecords');
+            },
+        ]);
 
         if ($phaseId) {
             $query->where('phase_id', $phaseId);
         }
 
-        $clusters = $query->get();
+        if ($type && in_array($type, ['underground', 'apartment', 'columbarium'])) {
+            $query->where('cluster_type', $type);
+        }
 
-        return $clusters->map(function ($cluster) {
-            return [
-                'id' => $cluster->id,
-                'name' => $cluster->cluster_name,
-                'type' => $cluster->cluster_type,
-                'phase_name' => $cluster->phase->phase_name,
-                'occupied' => $cluster->occupied_lots,
-                'available' => $cluster->total_lots - $cluster->occupied_lots,
-                'total' => $cluster->total_lots,
-            ];
-        })->values()->toArray();
+        $clusters = $query->paginate(10, ['*'], 'page', $page);
+
+        $labels = [];
+        $types = [
+            'underground' => ['occupied' => [], 'available' => []],
+            'apartment' => ['occupied' => [], 'available' => []],
+            'columbarium' => ['occupied' => [], 'available' => []],
+        ];
+
+        foreach ($clusters->items() as $cluster) {
+            $type = $cluster->cluster_type;
+
+            if (! isset($types[$type])) {
+                $type = 'underground';
+            }
+
+            $labels[] = $cluster->cluster_name;
+            $types[$type]['occupied'][] = $cluster->occupied_lots;
+            $types[$type]['available'][] = $cluster->total_lots - $cluster->occupied_lots;
+        }
+
+        return [
+            'labels' => $labels,
+            'types' => $types,
+            'current_page' => $clusters->currentPage(),
+            'last_page' => $clusters->lastPage(),
+            'total' => $clusters->total(),
+        ];
     }
 
     private function getActivityData($filter, $year)
@@ -149,8 +169,8 @@ class DashboardController extends Controller
                 ->toArray();
 
             $labels = range(0, 23);
-            $values = array_map(fn($hour) => $data[$hour] ?? 0, $labels);
-            $labels = array_map(fn($hour) => sprintf('%02d:00', $hour), $labels);
+            $values = array_map(fn ($hour) => $data[$hour] ?? 0, $labels);
+            $labels = array_map(fn ($hour) => sprintf('%02d:00', $hour), $labels);
 
         } elseif ($filter === 'weekly') {
             $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
@@ -188,7 +208,7 @@ class DashboardController extends Controller
                 ->toArray();
 
             $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            $values = array_map(fn($month) => $data[$month] ?? 0, range(1, 12));
+            $values = array_map(fn ($month) => $data[$month] ?? 0, range(1, 12));
 
         } else {
             $daysInMonth = $now->daysInMonth;
@@ -206,7 +226,7 @@ class DashboardController extends Controller
                 ->toArray();
 
             $labels = range(1, $daysInMonth);
-            $values = array_map(fn($day) => $data[$day] ?? 0, $labels);
+            $values = array_map(fn ($day) => $data[$day] ?? 0, $labels);
         }
 
         return [
@@ -215,4 +235,3 @@ class DashboardController extends Controller
         ];
     }
 }
-

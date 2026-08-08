@@ -23,12 +23,14 @@ ChartJS.register(
 defineProps({
     chartData: Object,
     chartOptions: Object,
+    height: { type: String, default: "400px" },
 });
 </script>
 
 <template>
     <div
-        class="h-100 p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
+        class="p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
+        :style="{ height }"
     >
         <Bar :data="chartData" :options="chartOptions" />
     </div>

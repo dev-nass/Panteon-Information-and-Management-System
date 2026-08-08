@@ -7,22 +7,18 @@ import BarChart from "@/Components/Charts/BarChart.vue";
 import DoughnutChart from "@/Components/Charts/DoughnutChart.vue";
 import HorizontalBarChart from "@/Components/Charts/HorizontalBarChart.vue";
 
-import { Doughnut } from "vue-chartjs";
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from "chart.js";
-
 import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
-
-ChartJS.register(Title, Tooltip, Legend, ArcElement);
 
 const props = defineProps({
     stats: { type: Object, required: true },
     disposal_stats: { type: Object, required: true },
     activity_data: { type: Object, default: null },
     phase_data: { type: Object, default: null },
-    cluster_data: { type: Array, default: null },
+    cluster_data: { type: Object, default: null },
     phases: { type: Array, default: () => [] },
     selected_phase_id: { type: Number, default: null },
+    selected_type: { type: String, default: "" },
     current_tab: { type: String, default: "summary" },
     current_filter: { type: String, default: "monthly" },
     selected_year: { type: Number, default: new Date().getFullYear() },
@@ -32,6 +28,7 @@ const activeTab = ref(props.current_tab);
 const activeFilter = ref(props.current_filter);
 const selectedYear = ref(props.selected_year);
 const selectedPhaseId = ref(props.selected_phase_id);
+const selectedType = ref(props.selected_type);
 
 const currentYear = new Date().getFullYear();
 const yearOptions = Array.from(
@@ -68,7 +65,40 @@ const changeYear = () => {
 const changePhase = () => {
     router.get(
         route("admin.dashboard"),
-        { tab: activeTab.value, phase_id: selectedPhaseId.value },
+        {
+            tab: activeTab.value,
+            phase_id: selectedPhaseId.value,
+            cluster_type: selectedType.value,
+            cluster_page: 1,
+        },
+        { preserveState: true },
+    );
+};
+
+const changeType = () => {
+    router.get(
+        route("admin.dashboard"),
+        {
+            tab: "clusters",
+            phase_id: selectedPhaseId.value,
+            cluster_type: selectedType.value,
+            cluster_page: 1,
+        },
+        { preserveState: true },
+    );
+};
+
+const changeClusterPage = (page) => {
+    const lastPage = props.cluster_data?.last_page ?? 1;
+    if (page < 1 || page > lastPage) return;
+    router.get(
+        route("admin.dashboard"),
+        {
+            tab: "clusters",
+            phase_id: selectedPhaseId.value,
+            cluster_type: selectedType.value,
+            cluster_page: page,
+        },
         { preserveState: true },
     );
 };
@@ -165,24 +195,63 @@ const phaseOccupancyOptions = {
     },
 };
 
-const clusterDonutOptions = {
+/* CLUSTER OCCUPANCY DATA */
+const clusterOccupancyData = computed(() => {
+    if (!props.cluster_data) return null;
+
+    const types = props.cluster_data.types ?? {};
+    const occupied = [];
+    const available = [];
+
+    for (let i = 0; i < props.cluster_data.labels.length; i++) {
+        let occ = 0;
+        let avail = 0;
+        for (const type of Object.values(types)) {
+            occ += type.occupied[i] ?? 0;
+            avail += type.available[i] ?? 0;
+        }
+        occupied.push(occ);
+        available.push(avail);
+    }
+
+    return {
+        labels: props.cluster_data.labels,
+        datasets: [
+            {
+                label: "Occupied",
+                data: occupied,
+                backgroundColor: "rgba(34,197,94,0.7)",
+                borderColor: "rgba(34,197,94,1)",
+                borderWidth: 1,
+            },
+            {
+                label: "Available",
+                data: available,
+                backgroundColor: "rgba(156,163,175,0.5)",
+                borderColor: "rgba(156,163,175,1)",
+                borderWidth: 1,
+            },
+        ],
+    };
+});
+
+const clusterOccupancyOptions = {
+    indexAxis: "y",
     responsive: true,
     maintainAspectRatio: false,
-    cutout: "65%",
     plugins: {
-        legend: {
-            display: true,
-            position: "bottom",
-            labels: {
-                padding: 15,
-                font: {
-                    size: 13,
-                    weight: 500,
-                },
-            },
-        },
+        legend: { display: true, position: "top" },
+    },
+    scales: {
+        x: { stacked: true },
+        y: { stacked: true },
     },
 };
+
+const clusterChartHeight = computed(() => {
+    const count = props.cluster_data?.labels?.length ?? 0;
+    return `${Math.max(count * 44, 176)}px`;
+});
 
 defineOptions({
     layout: Dashboard,
@@ -352,100 +421,98 @@ defineOptions({
 
         <!-- CLUSTERS TAB CONTENT -->
         <div v-if="activeTab === 'clusters'" class="space-y-6">
-            <div class="flex items-center gap-2">
-                <label
-                    class="text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                    Phase:
-                </label>
-                <select
-                    v-model="selectedPhaseId"
-                    @change="changePhase"
-                    class="px-4 py-2 border bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded-lg text-sm font-medium text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
-                >
-                    <option
-                        v-for="phase in phases"
-                        :key="phase.id"
-                        :value="phase.id"
+            <div class="flex items-center gap-6 flex-wrap">
+                <div class="flex items-center gap-2">
+                    <label
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                        {{ phase.phase_name }}
-                    </option>
-                </select>
-            </div>
-
-            <div
-                v-if="cluster_data && cluster_data.length > 0"
-                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-y-8 gap-x-4"
-            >
-                <div
-                    v-for="cluster in cluster_data"
-                    :key="cluster.id"
-                    class="dashboard-card flex flex-col p-5 rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 shadow-sm hover:shadow-md transition"
-                >
-                    <div class="text-center mb-3">
-                        <h3
-                            class="text-base font-bold text-gray-800 dark:text-gray-100"
+                        Phase:
+                    </label>
+                    <select
+                        v-model="selectedPhaseId"
+                        @change="changePhase"
+                        class="px-4 py-2 border bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded-lg text-sm font-medium text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                    >
+                        <option
+                            v-for="phase in phases"
+                            :key="phase.id"
+                            :value="phase.id"
                         >
-                            {{ cluster.name }}
-                        </h3>
-                        <p
-                            class="text-xs text-gray-600 dark:text-gray-400 mt-0.5"
-                        >
-                            {{ cluster.phase_name }} • {{ cluster.type }}
-                        </p>
-                    </div>
+                            {{ phase.phase_name }}
+                        </option>
+                    </select>
+                </div>
 
-                    <div
-                        class="flex-1 min-h-0 flex items-center justify-center"
+                <div class="flex items-center gap-2">
+                    <label
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                        <Doughnut
-                            :data="{
-                                labels: ['Occupied', 'Available'],
-                                datasets: [
-                                    {
-                                        data: [
-                                            cluster.occupied,
-                                            cluster.available,
-                                        ],
-                                        backgroundColor: [
-                                            'rgba(34,197,94,0.8)',
-                                            'rgba(156,163,175,0.6)',
-                                        ],
-                                        borderColor: [
-                                            'rgba(34,197,94,1)',
-                                            'rgba(156,163,175,1)',
-                                        ],
-                                        borderWidth: 2,
-                                    },
-                                ],
-                            }"
-                            :options="clusterDonutOptions"
-                        />
-                    </div>
-
-                    <div
-                        class="text-center mt-3 pt-3 border-t border-gray-200 dark:border-neutral-700"
+                        Type:
+                    </label>
+                    <select
+                        v-model="selectedType"
+                        @change="changeType"
+                        class="px-4 py-2 border bg-white dark:bg-neutral-800 border-gray-300 dark:border-neutral-600 rounded-lg text-sm font-medium text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                     >
-                        <p class="text-sm text-gray-600 dark:text-gray-400">
-                            <span
-                                class="text-lg font-bold text-green-600 dark:text-green-400"
-                                >{{ cluster.occupied }}</span
-                            >
-                            <span class="mx-1">/</span>
-                            <span
-                                class="text-lg font-semibold text-gray-700 dark:text-gray-300"
-                                >{{ cluster.total }}</span
-                            >
-                            <span class="ml-1">lots</span>
-                        </p>
-                    </div>
+                        <option value="">All</option>
+                        <option value="underground">Underground</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="columbarium">Columbarium</option>
+                    </select>
                 </div>
             </div>
+
+            <div class="dashboard-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-semibold">Cluster Occupancy</h3>
+                </div>
+
+                <div
+                    v-if="
+                        clusterOccupancyData &&
+                        clusterOccupancyData.labels.length > 0
+                    "
+                >
+                    <HorizontalBarChart
+                        :chartData="clusterOccupancyData"
+                        :chartOptions="clusterOccupancyOptions"
+                        :height="clusterChartHeight"
+                    />
+                </div>
+                <div
+                    v-else
+                    class="text-center py-12 text-gray-500 dark:text-gray-400"
+                >
+                    No clusters found
+                </div>
+            </div>
+
             <div
-                v-else
-                class="dashboard-card text-center py-12 text-gray-500 dark:text-gray-400"
+                v-if="cluster_data && cluster_data.last_page > 1"
+                class="flex items-center justify-center gap-3"
             >
-                No clusters found
+                <button
+                    @click="changeClusterPage(cluster_data.current_page - 1)"
+                    :disabled="cluster_data.current_page <= 1"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-green-500/10"
+                >
+                    Prev
+                </button>
+                <span
+                    class="text-sm font-medium text-gray-600 dark:text-gray-400"
+                >
+                    Page {{ cluster_data.current_page }} of
+                    {{ cluster_data.last_page }}
+                </span>
+                <button
+                    @click="changeClusterPage(cluster_data.current_page + 1)"
+                    :disabled="
+                        cluster_data.current_page >= cluster_data.last_page
+                    "
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-green-500/10"
+                >
+                    Next
+                </button>
             </div>
         </div>
     </div>
