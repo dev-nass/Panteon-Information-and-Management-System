@@ -59,7 +59,7 @@ class DashboardController extends Controller
             $data['phase_data'] = $this->getPhaseOccupancyData();
         } elseif ($tab === 'clusters') {
             $data['phases'] = Phase::select('id', 'phase_name')->orderBy('phase_name')->get();
-            $data['selected_phase_id'] = $phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id;
+            $data['selected_phase_id'] = (int) ($phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id);
             $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id'], (int) $clusterPage, $clusterType);
             $data['selected_type'] = in_array($clusterType, ['underground', 'apartment', 'columbarium']) ? $clusterType : '';
         }
