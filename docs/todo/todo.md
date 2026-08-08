@@ -35,7 +35,7 @@
   - Add Annual Report
   - Footer dapat yung "This report is system generated"
   - The name of who generated the report is not updated
-- User Management
+- [x] User Management
   - Deleting should have confirmation modal
 - Burial Schedule
   - Calendar view should reduce the bloated view;
