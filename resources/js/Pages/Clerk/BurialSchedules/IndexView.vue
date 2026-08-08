@@ -277,6 +277,25 @@ defineOptions({
     overflow: hidden;
 }
 
+/* "+N more" link */
+.fc .fc-daygrid-more-link {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.fc .fc-daygrid-more-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+.dark .fc .fc-daygrid-more-link {
+    color: #4ade80;
+}
+
+.dark .fc .fc-daygrid-more-link:hover {
+    color: #22c55e;
+}
+
 .dark .fc-event {
     background-color: rgba(34, 197, 94, 0.15) !important;
     border-color: #4ade80 !important;
