@@ -10,12 +10,7 @@
 
 ## With Plans
 
-- [x] Change Password
-- [ ] Columbarium Schema
-- [ ] Try implement a way for clerk to select which type of disposition it is,
-      and depending if it's normal of cremation input will appear and
-      disappear accordingly.
-- [ ] Implement a way for multi type import;
+- [ ] CSV export on user management
 
 ## Testing
 
