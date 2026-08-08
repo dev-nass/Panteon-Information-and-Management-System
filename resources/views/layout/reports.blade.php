@@ -238,6 +238,9 @@
             @if(isset($monthDate))
             <p>Month: {{ \Carbon\Carbon::parse($monthDate)->format('F Y') }}</p>
             @endif
+            @if(isset($year))
+            <p>Year: {{ $year }}</p>
+            @endif
             <p>Generated on: {{ date('F d, Y') }}</p>
         </div>
     </div>

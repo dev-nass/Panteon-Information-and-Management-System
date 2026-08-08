@@ -26,7 +26,7 @@
 
 ### Minor Changes
 
-- Dashboard
+- [x] Dashboard
   - Graph should be unified;
   - Clusters tab should be more clear
   - Numbers should be separated by comma
