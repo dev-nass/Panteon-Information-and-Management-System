@@ -21,6 +21,7 @@ Route::prefix('clerk')
 
         Route::controller(BurialScheduleController::class)->group(function () {
             Route::get('/burial-schedules', 'index')->name('burial_schedules.index');
+            Route::get('/burial-schedules/date/{date}', 'showByDate')->name('burial_schedules.date');
         });
 
         Route::get('/burial-schedules/events', [BurialScheduleApiController::class, 'index'])

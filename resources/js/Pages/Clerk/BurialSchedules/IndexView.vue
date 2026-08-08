@@ -62,6 +62,17 @@ const calendarOptions = ref({
     eventClick: (info) => {
         router.visit(route("clerk.burial_records.show", info.event.id));
     },
+    dayMaxEvents: 5,
+    moreLinkText: (num) => `+${num} more`,
+    moreLinkClick: (info) => {
+        const date = new Date(info.date);
+        const dateStr = [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0"),
+        ].join("-");
+        router.visit(route("clerk.burial_schedules.date", { date: dateStr }));
+    },
     height: "auto",
     eventDisplay: "block",
     eventBackgroundColor: "transparent",
@@ -98,7 +109,10 @@ defineOptions({
                             </div>
 
                             <div v-show="!loading" class="min-w-200">
-                                <FullCalendar ref="calendarRef" :options="calendarOptions" />
+                                <FullCalendar
+                                    ref="calendarRef"
+                                    :options="calendarOptions"
+                                />
                             </div>
                         </div>
                     </div>

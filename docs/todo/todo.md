@@ -32,7 +32,7 @@
   - The name of who generated the report is not updated
 - [x] User Management
   - Deleting should have confirmation modal
-- Burial Schedule
+- [x] Burial Schedule
   - Calendar view should reduce the bloated view;
   - Use "View more record..." on calendar
 - Adjust the operational dashboard
