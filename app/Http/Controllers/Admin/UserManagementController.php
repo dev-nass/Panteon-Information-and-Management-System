@@ -91,4 +91,37 @@ class UserManagementController extends Controller
         return redirect()->route('admin.user_management.index')
             ->with('success', 'User deleted successfully');
     }
+
+    public function show(User $user)
+    {
+        $user->loadCount('burialRecords');
+        $user->load([
+            'burialRecords.deceasedRecord',
+            'burialRecords.lot.cluster.phase',
+        ]);
+
+        return Inertia::render('Admin/UserManagement/ShowView', [
+            'user_data' => $user,
+        ]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
+            'contact_number' => 'required|string|max:20',
+            'role' => 'required|in:clerk,head,admin',
+        ]);
+
+        if ($user->id === $request->user()->id && $user->role !== $validated['role']) {
+            return back()->with('error', 'You cannot change your own role.');
+        }
+
+        $user->update($validated);
+
+        return back()->with('success', 'User updated successfully.');
+    }
 }
