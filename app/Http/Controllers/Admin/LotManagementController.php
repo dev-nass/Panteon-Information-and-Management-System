@@ -116,7 +116,7 @@ class LotManagementController extends Controller
         $validated = $request->validate([
             'phase_id' => 'required|exists:phases,id',
             'name' => 'required|string|max:255',
-            'type' => 'required|in:apartment,underground',
+            'type' => 'required|in:apartment,underground,columbarium',
             'total_capacity' => 'required|integer|min:5',
             'coordinates' => 'required|json',
         ]);
