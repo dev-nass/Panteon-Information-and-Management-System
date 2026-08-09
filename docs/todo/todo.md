@@ -35,7 +35,7 @@
 - [x] Burial Schedule
   - Calendar view should reduce the bloated view;
   - Use "View more record..." on calendar
-- Adjust the operational dashboard
+- [x] Adjust the operational dashboard
   - On clerk dashboard double check the UI
 - Double check the functionality of change password
 - Changes on the Login, redundant ang "Panteon De Dasma" na text
