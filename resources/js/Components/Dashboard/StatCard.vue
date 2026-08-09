@@ -4,7 +4,10 @@ import { computed } from "vue";
 const props = defineProps({
     title: String,
     value: [String, Number],
-    change: String,
+    change: {
+        type: String,
+        default: "",
+    },
 });
 
 const formattedValue = computed(() => {
@@ -29,8 +32,8 @@ const formattedValue = computed(() => {
             {{ formattedValue }}
         </div>
 
-        <p class="text-sm text-green-500 mt-1">
-            {{ change }} from last quarter
+        <p v-if="change" class="text-sm text-green-500 mt-1">
+            {{ change }}
         </p>
     </div>
 </template>
