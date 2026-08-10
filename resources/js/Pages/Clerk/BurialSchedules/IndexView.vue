@@ -1,13 +1,21 @@
 <script setup>
-import { ref } from "vue";
+import { nextTick, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-const props = defineProps({
-    burialSchedules: Array,
+const loading = ref(true);
+
+const calendarRef = ref(null);
+
+watch(loading, async (value) => {
+    if (value) {
+        return;
+    }
+    await nextTick();
+    calendarRef.value?.getApi().updateSize();
 });
 
 const calendarOptions = ref({
@@ -33,9 +41,37 @@ const calendarOptions = ref({
             buttonText: "Today",
         },
     },
-    events: props.burialSchedules,
+    events: async (info, successCallback, failureCallback) => {
+        try {
+            loading.value = true;
+            const params = new URLSearchParams({
+                start: info.startStr,
+                end: info.endStr,
+            });
+            const response = await fetch(
+                route("clerk.api.burial_schedules.index") + `?${params}`,
+            );
+            const data = await response.json();
+            successCallback(data);
+        } catch (error) {
+            failureCallback(error);
+        } finally {
+            loading.value = false;
+        }
+    },
     eventClick: (info) => {
         router.visit(route("clerk.burial_records.show", info.event.id));
+    },
+    dayMaxEvents: 5,
+    moreLinkText: (num) => `+${num} more`,
+    moreLinkClick: (info) => {
+        const date = new Date(info.date);
+        const dateStr = [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, "0"),
+            String(date.getDate()).padStart(2, "0"),
+        ].join("-");
+        router.visit(route("clerk.burial_schedules.date", { date: dateStr }));
     },
     height: "auto",
     eventDisplay: "block",
@@ -58,8 +94,25 @@ defineOptions({
                         class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
                     >
                         <div class="p-6 overflow-x-auto">
-                            <div class="min-w-200">
-                                <FullCalendar :options="calendarOptions" />
+                            <!-- Loading skeleton -->
+                            <div v-if="loading" class="space-y-3 min-w-200">
+                                <div
+                                    class="h-8 bg-gray-200 dark:bg-neutral-700 rounded animate-pulse w-48"
+                                />
+                                <div class="grid grid-cols-7 gap-1">
+                                    <div
+                                        v-for="n in 35"
+                                        :key="n"
+                                        class="h-20 bg-gray-100 dark:bg-neutral-800 rounded animate-pulse"
+                                    />
+                                </div>
+                            </div>
+
+                            <div v-show="!loading" class="min-w-200">
+                                <FullCalendar
+                                    ref="calendarRef"
+                                    :options="calendarOptions"
+                                />
                             </div>
                         </div>
                     </div>
@@ -222,6 +275,25 @@ defineOptions({
 
 .fc-daygrid-event-harness {
     overflow: hidden;
+}
+
+/* "+N more" link */
+.fc .fc-daygrid-more-link {
+    color: #16a34a;
+    font-weight: 500;
+}
+
+.fc .fc-daygrid-more-link:hover {
+    color: #15803d;
+    text-decoration: underline;
+}
+
+.dark .fc .fc-daygrid-more-link {
+    color: #4ade80;
+}
+
+.dark .fc .fc-daygrid-more-link:hover {
+    color: #22c55e;
 }
 
 .dark .fc-event {

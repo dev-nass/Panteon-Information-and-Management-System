@@ -1,8 +1,18 @@
 <script setup>
-defineProps({
+import { computed } from "vue";
+
+const props = defineProps({
     title: String,
-    value: String,
-    change: String,
+    value: [String, Number],
+    change: {
+        type: String,
+        default: "",
+    },
+});
+
+const formattedValue = computed(() => {
+    const num = Number(props.value);
+    return Number.isFinite(num) ? num.toLocaleString() : props.value;
 });
 </script>
 
@@ -19,11 +29,11 @@ defineProps({
         </div>
 
         <div class="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
-            {{ value }}
+            {{ formattedValue }}
         </div>
 
-        <p class="text-sm text-green-500 mt-1">
-            {{ change }} from last quarter
+        <p v-if="change" class="text-sm text-green-500 mt-1">
+            {{ change }}
         </p>
     </div>
 </template>

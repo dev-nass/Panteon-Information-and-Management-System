@@ -15,6 +15,8 @@ const getJunctionImage = (id) => {
         return "/images/entrance.jpg"; // Entrance image
     } else if (id === 3 || id === 89) {
         return "/images/roundabout.jpg"; // Same image for 3 and 89
+    } else if (id === 217) {
+        return "/images/columbarium.jpg"; // Same image for 3 and 89
     }
     return null;
 };
@@ -24,6 +26,8 @@ const getJunctionTitle = (id) => {
         return "Main Entrance";
     } else if (id === 3 || id === 89) {
         return `Junction ${props.junctionNumber}`;
+    } else if (id === 217) {
+        return "The Columbarium";
     }
     return "Junction";
 };
@@ -33,6 +37,8 @@ const getJunctionDescription = (id) => {
         return "This is the main entrance to the cemetery. Start your journey here.";
     } else if (id === 3 || id === 89) {
         return "Follow the path to reach your destination from this junction point.";
+    } else if (id === 217) {
+        return "A resting place for cremated remains, this columbarium houses the niches where urns are kept.";
     }
     return "";
 };

@@ -200,11 +200,10 @@ Add a loading skeleton inside the template:
                     >
                         <div class="p-6 overflow-x-auto">
                             <!-- Loading skeleton -->
-                            <div
-                                v-if="loading"
-                                class="space-y-3 min-w-200"
-                            >
-                                <div class="h-8 bg-gray-200 dark:bg-neutral-700 rounded animate-pulse w-48" />
+                            <div v-if="loading" class="space-y-3 min-w-200">
+                                <div
+                                    class="h-8 bg-gray-200 dark:bg-neutral-700 rounded animate-pulse w-48"
+                                />
                                 <div class="grid grid-cols-7 gap-1">
                                     <div
                                         v-for="n in 35"
@@ -214,10 +213,7 @@ Add a loading skeleton inside the template:
                                 </div>
                             </div>
 
-                            <div
-                                v-show="!loading"
-                                class="min-w-200"
-                            >
+                            <div v-show="!loading" class="min-w-200">
                                 <FullCalendar :options="calendarOptions" />
                             </div>
                         </div>
@@ -233,22 +229,22 @@ Add a loading skeleton inside the template:
 
 ### 5. Summary of Changes
 
-| Action | File | Description |
-|--------|------|-------------|
-| Create | `app/Http/Controllers/Api/BurialScheduleApiController.php` | API endpoint with date-range filtering |
-| Edit   | `routes/clerk.php` | Add `GET /burial-schedules/events` route |
-| Edit   | `app/Http/Controllers/Clerk/BurialScheduleController.php` | Remove `burialSchedules` query and prop |
-| Edit   | `resources/js/Pages/Clerk/BurialSchedules/IndexView.vue` | Replace static `events` with async fetch + loading skeleton |
+| Action | File                                                       | Description                                                 |
+| ------ | ---------------------------------------------------------- | ----------------------------------------------------------- |
+| Create | `app/Http/Controllers/Api/BurialScheduleApiController.php` | API endpoint with date-range filtering                      |
+| Edit   | `routes/clerk.php`                                         | Add `GET /burial-schedules/events` route                    |
+| Edit   | `app/Http/Controllers/Clerk/BurialScheduleController.php`  | Remove `burialSchedules` query and prop                     |
+| Edit   | `resources/js/Pages/Clerk/BurialSchedules/IndexView.vue`   | Replace static `events` with async fetch + loading skeleton |
 
 ---
 
 ### 6. Why This Approach Over Alternatives
 
-| Approach | Problem |
-|----------|---------|
-| **Current** (static prop) | All records loaded at once, no range filtering, stale on navigation |
-| **`Inertia::defer()`** | Only defers render — still loads ALL records in the background |
-| **`Inertia::defer()` + pagination** | Complex pagination logic, calendar can't paginate arbitrarily |
+| Approach                                      | Problem                                                                                |
+| --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Current** (static prop)                     | All records loaded at once, no range filtering, stale on navigation                    |
+| **`Inertia::defer()`**                        | Only defers render — still loads ALL records in the background                         |
+| **`Inertia::defer()` + pagination**           | Complex pagination logic, calendar can't paginate arbitrarily                          |
 | **FullCalendar `events` fetch** (recommended) | Only fetches visible range, calendar renders immediately, data refreshes on navigation |
 
 ---

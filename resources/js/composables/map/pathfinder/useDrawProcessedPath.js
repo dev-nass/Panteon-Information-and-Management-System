@@ -73,6 +73,7 @@ export function useDrawProcessedPath() {
             routeDetails.find(
                 (detail) => detail.junctionId === 3 || detail.junctionId === 89,
             ),
+            routeDetails.find((detail) => detail.junctionId === 217),
         ].filter(Boolean);
 
         markersToShow.forEach((detail) => {

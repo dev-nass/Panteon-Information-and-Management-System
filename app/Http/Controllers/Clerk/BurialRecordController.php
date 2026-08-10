@@ -12,9 +12,7 @@ use Inertia\Inertia;
 
 class BurialRecordController extends Controller
 {
-    public function __construct(protected BurialRecordService $service)
-    {
-    }
+    public function __construct(protected BurialRecordService $service) {}
 
     // handles tha diplay of table view, any form of filter is present or not
     public function index()
@@ -22,6 +20,7 @@ class BurialRecordController extends Controller
 
         $search = request('search');
         $filter = request('filter', 'all');
+        $disposal = request('disposal');
 
         $allowedSorts = [
             'id',
@@ -36,14 +35,14 @@ class BurialRecordController extends Controller
 
         $sortDirection = request('sort_direction', 'desc');
 
-        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter);
+        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter, $disposal);
 
         return Inertia::render('Shared/BurialRecords/IndexView', [
             'burial_records' => BurialRecordResource::collection(
                 $burialRecords
             ),
 
-            'filters' => request()->only(['search', 'sort_field', 'sort_direction', 'filter']),
+            'filters' => request()->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
         ]);
     }
 

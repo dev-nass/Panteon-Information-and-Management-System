@@ -23,7 +23,7 @@ class PanteonDataSeeder extends Seeder
         $this->seedPhases();
         $this->seedClusters();
         $this->seedLots();
-        $this->deceasedRecords();
+        $this->deceasedRecordsBurial();
     }
 
     private function seedPhases(): void
@@ -208,7 +208,7 @@ class PanteonDataSeeder extends Seeder
      * Description: Import deceased records from Excel file and assign them to lots
      * Uses chunk processing for better performance
      */
-    private function deceasedRecords(): void
+    private function deceasedRecordsBurial(): void
     {
         $this->command->info('Importing deceased records from Excel file...');
 
@@ -298,6 +298,7 @@ class PanteonDataSeeder extends Seeder
                         'last_name' => $nameParts['last_name'] ?? '',
                         'address' => $row[7] ?? null,
                         'date_of_depository' => $burialDate,
+                        'corpse_disposal' => 'burial',
                     ]);
 
                     // Add to chunk for bulk insert

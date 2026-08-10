@@ -18,16 +18,16 @@ class BurialRecordService
         protected BurialRecordRepository $burial_repo,
         protected PhaseRepository $phase_repo,
         protected LotRepository $lot_repo
-    ) {
-    }
+    ) {}
 
-    public function index(string $sortField, string $sortDirection, string|null $search, string $filter)
+    public function index(string $sortField, string $sortDirection, ?string $search, string $filter, ?string $disposal = null)
     {
         return $this->burial_repo->getBurialRecordsWithFilters(
             $sortField,
             $sortDirection,
             $search,
-            $filter
+            $filter,
+            $disposal
         )->paginate(25)->withQueryString();
     }
 

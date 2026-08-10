@@ -12,7 +12,13 @@ export function useSearchBurialRecords(route_name) {
         debounce(function (value) {
             router.get(
                 route(route_name),
-                { search: value },
+                {
+                    search: value,
+                    filter: page.props.filters.filter,
+                    sort_field: page.props.filters.sort_field,
+                    sort_direction: page.props.filters.sort_direction,
+                    disposal: page.props.filters.disposal,
+                },
                 {
                     preserveState: true,
                     replace: true,

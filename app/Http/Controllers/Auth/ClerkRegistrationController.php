@@ -7,7 +7,6 @@ use App\Http\Requests\Auth\RegistrationRequest;
 use App\Models\ClerkInvitation;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class ClerkRegistrationController extends Controller
@@ -15,9 +14,12 @@ class ClerkRegistrationController extends Controller
     public function create(Request $request)
     {
         $token = $request->route('token');
+
+        abort_if(is_null($token), 404);
+
         $invitation = ClerkInvitation::where('token', $token)->firstOrFail();
 
-        abort_if(!$invitation->isValid(), 410, 'This invitation link has expired or already been used.');
+        abort_if(! $invitation->isValid(), 410, 'This invitation link has expired or already been used.');
 
         return Inertia::render('Auth/RegistrationView', [
             'token' => $token,
@@ -30,7 +32,7 @@ class ClerkRegistrationController extends Controller
         $token = $request->input('token');
         $invitation = ClerkInvitation::where('token', $token)->firstOrFail();
 
-        abort_if(!$invitation->isValid(), 410, 'This invitation link has expired or already been used.');
+        abort_if(! $invitation->isValid(), 410, 'This invitation link has expired or already been used.');
 
         $validated = $request->validated();
 

@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-
         // Seed deceased record and applicants
         // $chunkSize = 1000;
         // $total = 21000;
@@ -42,11 +41,11 @@ class DatabaseSeeder extends Seeder
             'middle_name' => '',
             'last_name' => 'Gonzales',
             'email' => 'admin@panteon.com',
+            'email_verified_at' => now(),
             'password' => bcrypt('admin123'),
             'contact_number' => '09123456789',
             'role' => 'admin',
         ]);
-
 
         User::create([
             'first_name' => 'Jonas',
@@ -57,7 +56,6 @@ class DatabaseSeeder extends Seeder
             'contact_number' => '09071055556',
             'role' => 'clerk',
         ]);
-
 
         $this->call(PanteonDataSeeder::class);
         $this->call(PathfinderSeeder::class);

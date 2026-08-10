@@ -7,7 +7,7 @@ import Button from "../Form/Button.vue";
     <!-- Hero -->
     <div id="home" class="px-4 sm:px-6 lg:px-4">
         <div
-            class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/front-office-v2.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
+            class="relative h-150 max-h-250 md:h-[90dvh] flex flex-col bg-[url('/images/front-office-v5.jpg')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >
             <!-- Content - Add relative z-10 here -->
             <div
@@ -16,9 +16,7 @@ import Button from "../Form/Button.vue";
                 <h1
                     class="bona-nova-heading text-center md:text-left text-4xl md:text-6xl lg:text-8xl text-white"
                     data-aos="fade-up-right"
-                >
-                    Panteon De Dasmariñas
-                </h1>
+                ></h1>
                 <div class="text-center md:text-left">
                     <p
                         class="text-white text-base md:text-lg leading-relaxed"

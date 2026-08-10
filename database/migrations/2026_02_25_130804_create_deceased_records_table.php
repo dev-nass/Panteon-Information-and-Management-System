@@ -37,8 +37,8 @@ return new class extends Migration {
 
             $table->enum('corpse_disposal', [
                 'burial',
+                'muslim',
                 'cremation',
-                'other',
             ])->nullable();
 
             $table->string('cremation_place')->nullable();

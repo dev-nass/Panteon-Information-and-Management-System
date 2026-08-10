@@ -4,6 +4,7 @@ import { useSearchBurialRecords } from "@/composables/burial_records/useSearchBu
 import { Link, router, usePage } from "@inertiajs/vue3";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
+import Modal from "@/Components/Modal.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
@@ -35,6 +36,50 @@ const roleRoutes = {
     },
 };
 
+const burialTypes = [
+    {
+        value: "burial",
+        label: "Burial",
+        description: "Standard interment of the deceased in a lot",
+    },
+    {
+        value: "muslim",
+        label: "Muslim Burial",
+        description: "Burial following Muslim rites and traditions",
+    },
+    {
+        value: "cremation",
+        label: "Cremation",
+        description: "Disposition of the body through cremation",
+    },
+];
+
+const closeOverlay = (el) => {
+    if (typeof HSOverlay !== "undefined" && window.$hsOverlayCollection) {
+        HSOverlay.close(el);
+        return;
+    }
+
+    el.classList.remove("open", "opened");
+    if (!el.classList.contains("hidden")) {
+        el.classList.add("hidden");
+    }
+};
+
+const selectType = (type) => {
+    const modal = document.getElementById("burial-type-modal");
+
+    if (modal) {
+        closeOverlay(modal);
+    }
+
+    router.visit(
+        route("clerk.burial_records.create", {
+            type,
+        }),
+    );
+};
+
 const props = defineProps({
     burial_records: {
         type: Object,
@@ -57,6 +102,24 @@ const applyFilter = (filterValue) => {
             filter: filterValue,
             sort_field: props.filters.sort_field,
             sort_direction: props.filters.sort_direction,
+            disposal: props.filters.disposal,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
+};
+
+const applyDisposalFilter = (disposalValue) => {
+    router.get(
+        route(roleRoutes[userRole.value].route_search),
+        {
+            search: props.filters.search,
+            filter: props.filters.filter,
+            sort_field: props.filters.sort_field,
+            sort_direction: props.filters.sort_direction,
+            disposal: disposalValue,
         },
         {
             preserveState: true,
@@ -86,6 +149,7 @@ const sort = (field) => {
             filter: props.filters.filter,
             sort_field: field,
             sort_direction: direction,
+            disposal: props.filters.disposal,
         },
         {
             preserveState: true,
@@ -97,7 +161,7 @@ const sort = (field) => {
 window.addEventListener("load", () => {
     setTimeout(() => {
         document
-            .querySelectorAll(".hs-overlay")
+            .querySelectorAll(".hs-overlay:not(#burial-type-modal)")
             .forEach((el) => HSOverlay.open(el));
     });
 });
@@ -138,14 +202,11 @@ defineOptions({
                                     <div
                                         class="hs-dropdown [--placement:bottom-right] relative inline-block"
                                     >
-                                        <Link
+                                        <Button
                                             v-if="userRole === 'clerk'"
-                                            :href="
-                                                route(
-                                                    'clerk.burial_records.create',
-                                                )
-                                            "
-                                            class="flex items-center gap-2 px-3 py-2.5 text-base w-full max-w-md rounded-lg border transition bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700 dark:text-white focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 focus:text-green-400"
+                                            type="button"
+                                            class="text-white"
+                                            data-hs-overlay="#burial-type-modal"
                                         >
                                             Create
 
@@ -168,7 +229,7 @@ defineOptions({
                                                     <path d="M12 5v14" />
                                                 </svg>
                                             </span>
-                                        </Link>
+                                        </Button>
                                     </div>
 
                                     <div
@@ -341,6 +402,155 @@ defineOptions({
                                                     <span
                                                         class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
                                                         >Unassigned</span
+                                                    >
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="hs-dropdown [--placement:bottom-right] relative inline-block"
+                                        data-hs-dropdown-auto-close="inside"
+                                    >
+                                        <Button
+                                            id="hs-as-table-table-type-dropdown"
+                                            type="button"
+                                            aria-haspopup="menu"
+                                            aria-expanded="false"
+                                            aria-label="Dropdown"
+                                        >
+                                            <span class="dark:text-white">
+                                                Type
+                                            </span>
+
+                                            <span
+                                                class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
+                                            >
+                                                {{
+                                                    filters.disposal === "burial"
+                                                        ? "Burial"
+                                                        : filters.disposal ===
+                                                            "muslim"
+                                                          ? "Muslim"
+                                                          : filters.disposal ===
+                                                              "cremation"
+                                                            ? "Cremation"
+                                                            : "All"
+                                                }}
+                                            </span>
+                                        </Button>
+
+                                        <div
+                                            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
+                                            role="menu"
+                                            aria-orientation="vertical"
+                                            aria-labelledby="hs-as-table-table-type-dropdown"
+                                        >
+                                            <div
+                                                class="divide-y divide-gray-200 dark:divide-neutral-800"
+                                            >
+                                                <label
+                                                    for="type-all"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="all"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-all"
+                                                        :checked="
+                                                            !filters.disposal ||
+                                                            filters.disposal ===
+                                                                'all'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'all',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >All</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-burial"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="burial"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-burial"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'burial'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'burial',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Burial</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-muslim"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="muslim"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-muslim"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'muslim'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'muslim',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Muslim</span
+                                                    >
+                                                </label>
+
+                                                <label
+                                                    for="type-cremation"
+                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="disposal"
+                                                        value="cremation"
+                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                        id="type-cremation"
+                                                        :checked="
+                                                            filters.disposal ===
+                                                            'cremation'
+                                                        "
+                                                        @change="
+                                                            applyDisposalFilter(
+                                                                'cremation',
+                                                            )
+                                                        "
+                                                    />
+                                                    <span
+                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                        >Cremation</span
                                                     >
                                                 </label>
                                             </div>
@@ -549,4 +759,77 @@ defineOptions({
         <!-- End Card -->
     </div>
     <!-- End Table Section -->
+
+    <!-- Burial Type Selection Modal -->
+    <Modal id="burial-type-modal" size="lg">
+        <template #header>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-plus-icon lucide-plus"
+            >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+            </svg>
+        </template>
+
+        <template #main>
+            <h3
+                id="burial-type-modal-label"
+                class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+            >
+                Select Burial Type
+            </h3>
+
+            <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                Choose the type of burial record you want to create.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full mt-2">
+                <button
+                    v-for="type in burialTypes"
+                    :key="type.value"
+                    type="button"
+                    class="flex flex-col items-center gap-y-2 p-4 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-green-500 hover:bg-green-500/5 dark:hover:bg-green-500/10 transition"
+                    @click="selectType(type.value)"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-box-icon lucide-box text-green-500 dark:text-green-400"
+                    >
+                        <path
+                            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                        />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                    </svg>
+
+                    <span
+                        class="text-sm font-semibold text-gray-800 dark:text-neutral-200"
+                    >
+                        {{ type.label }}
+                    </span>
+
+                    <span class="text-xs text-gray-500 dark:text-neutral-400">
+                        {{ type.description }}
+                    </span>
+                </button>
+            </div>
+        </template>
+    </Modal>
 </template>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BurialScheduleApiController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\BurialScheduleController;
 use App\Http\Controllers\Clerk\CertificatieOfServiceController;
@@ -20,7 +21,11 @@ Route::prefix('clerk')
 
         Route::controller(BurialScheduleController::class)->group(function () {
             Route::get('/burial-schedules', 'index')->name('burial_schedules.index');
+            Route::get('/burial-schedules/date/{date}', 'showByDate')->name('burial_schedules.date');
         });
+
+        Route::get('/burial-schedules/events', [BurialScheduleApiController::class, 'index'])
+            ->name('api.burial_schedules.index');
 
         Route::controller(BurialRecordController::class)->group(function () {
             Route::get('/burial-records', 'index')->name('burial_records.index');
@@ -30,7 +35,6 @@ Route::prefix('clerk')
             Route::post('/burial-records/{burial_record}', 'update')->name('burial_records.update');
             Route::delete('/burial-records/{burial_record}', 'destroy')->name('burial_records.destroy');
         });
-
 
         Route::controller(CertificatieOfServiceController::class)->group(function () {
             Route::get('/burial-records/{burial_record}/certificate-of-service', 'show')->name('certificate_of_service.show');

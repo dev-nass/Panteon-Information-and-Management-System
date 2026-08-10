@@ -3,62 +3,42 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\BurialRecord;
-use App\Models\DeceasedRecord;
-use App\Models\Lot;
-use App\Models\Phase;
 use App\Models\Cluster;
-use Carbon\Carbon;
+use App\Models\Phase;
+use App\Services\DashboardService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
+    public function __construct(protected DashboardService $dashboardService) {}
+
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'summary');
         $filter = $request->get('filter', 'monthly');
-        $year = $request->get('year', Carbon::now()->year);
+        $year = $request->get('year', now()->year);
         $phaseId = $request->get('phase_id');
-
-        // Total statistics
-        $totalBurialRecords = BurialRecord::count();
-        $totalLots = Lot::count();
-        $occupiedLots = Lot::has('burialRecords')->count();
-        $availableLots = $totalLots - $occupiedLots;
-
-        // Disposal type breakdown
-        $disposalStats = DeceasedRecord::select('corpse_disposal', DB::raw('count(*) as count'))
-            ->groupBy('corpse_disposal')
-            ->get()
-            ->pluck('count', 'corpse_disposal')
-            ->toArray();
+        $clusterPage = $request->get('cluster_page', 1);
+        $clusterType = $request->get('cluster_type');
 
         $data = [
-            'stats' => [
-                'total_burial_records' => $totalBurialRecords,
-                'total_lots' => $totalLots,
-                'occupied_lots' => $occupiedLots,
-                'available_lots' => $availableLots,
-            ],
-            'disposal_stats' => [
-                'burial' => $disposalStats['burial'] ?? 0,
-                'cremation' => $disposalStats['cremation'] ?? 0,
-            ],
+            'stats' => $this->dashboardService->getTotalStats(),
+            'disposal_stats' => $this->dashboardService->getDisposalStats(),
             'current_tab' => $tab,
             'current_filter' => $filter,
             'selected_year' => (int) $year,
         ];
 
         if ($tab === 'summary') {
-            $data['activity_data'] = $this->getActivityData($filter, $year);
+            $data['activity_data'] = $this->dashboardService->getActivityData($filter, (int) $year);
         } elseif ($tab === 'phases') {
             $data['phase_data'] = $this->getPhaseOccupancyData();
         } elseif ($tab === 'clusters') {
             $data['phases'] = Phase::select('id', 'phase_name')->orderBy('phase_name')->get();
-            $data['selected_phase_id'] = $phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id;
-            $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id']);
+            $data['selected_phase_id'] = (int) ($phaseId ?? Phase::where('phase_name', '1a')->value('id') ?? Phase::first()?->id);
+            $data['cluster_data'] = $this->getClusterOccupancyData($data['selected_phase_id'], (int) $clusterPage, $clusterType);
+            $data['selected_type'] = in_array($clusterType, ['underground', 'apartment', 'columbarium']) ? $clusterType : '';
         }
 
         return Inertia::render('Admin/DashboardView', $data);
@@ -70,16 +50,16 @@ class DashboardController extends Controller
             ->withCount([
                 'clusters as total_lots' => function ($query) {
                     $query->join('lots', 'clusters.id', '=', 'lots.cluster_id')
-                        ->select(DB::raw('count(lots.id)'));
+                        ->selectRaw('count(lots.id)');
                 },
                 'clusters as occupied_lots' => function ($query) {
                     $query->join('lots', 'clusters.id', '=', 'lots.cluster_id')
                         ->whereExists(function ($subQuery) {
-                            $subQuery->select(DB::raw(1))
+                            $subQuery->selectRaw(1)
                                 ->from('burial_records')
                                 ->whereColumn('burial_records.lot_id', 'lots.id');
                         })
-                        ->select(DB::raw('count(lots.id)'));
+                        ->selectRaw('count(lots.id)');
                 },
             ])
             ->get();
@@ -101,118 +81,50 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getClusterOccupancyData($phaseId = null)
+    private function getClusterOccupancyData($phaseId = null, $page = 1, $type = null)
     {
-        $query = Cluster::select('clusters.id', 'clusters.cluster_name', 'clusters.cluster_type', 'clusters.phase_id')
-            ->with('phase:id,phase_name')
-            ->withCount([
-                'lots as total_lots',
-                'lots as occupied_lots' => function ($query) {
-                    $query->whereHas('burialRecords');
-                },
-            ]);
+        $query = Cluster::withCount([
+            'lots as total_lots',
+            'lots as occupied_lots' => function ($query) {
+                $query->whereHas('burialRecords');
+            },
+        ]);
 
         if ($phaseId) {
             $query->where('phase_id', $phaseId);
         }
 
-        $clusters = $query->get();
+        if ($type && in_array($type, ['underground', 'apartment', 'columbarium'])) {
+            $query->where('cluster_type', $type);
+        }
 
-        return $clusters->map(function ($cluster) {
-            return [
-                'id' => $cluster->id,
-                'name' => $cluster->cluster_name,
-                'type' => $cluster->cluster_type,
-                'phase_name' => $cluster->phase->phase_name,
-                'occupied' => $cluster->occupied_lots,
-                'available' => $cluster->total_lots - $cluster->occupied_lots,
-                'total' => $cluster->total_lots,
-            ];
-        })->values()->toArray();
-    }
+        $clusters = $query->paginate(10, ['*'], 'page', $page);
 
-    private function getActivityData($filter, $year)
-    {
-        $now = Carbon::now();
+        $labels = [];
+        $types = [
+            'underground' => ['occupied' => [], 'available' => []],
+            'apartment' => ['occupied' => [], 'available' => []],
+            'columbarium' => ['occupied' => [], 'available' => []],
+        ];
 
-        if ($filter === 'today') {
-            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-                ->select(
-                    DB::raw('HOUR(deceased_records.date_of_depository) as period'),
-                    DB::raw('count(*) as count')
-                )
-                ->whereDate('deceased_records.date_of_depository', $now->toDateString())
-                ->groupBy('period')
-                ->orderBy('period')
-                ->get()
-                ->pluck('count', 'period')
-                ->toArray();
+        foreach ($clusters->items() as $cluster) {
+            $type = $cluster->cluster_type;
 
-            $labels = range(0, 23);
-            $values = array_map(fn($hour) => $data[$hour] ?? 0, $labels);
-            $labels = array_map(fn($hour) => sprintf('%02d:00', $hour), $labels);
-
-        } elseif ($filter === 'weekly') {
-            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-                ->select(
-                    DB::raw('DATE(deceased_records.date_of_depository) as period'),
-                    DB::raw('count(*) as count')
-                )
-                ->whereBetween('deceased_records.date_of_depository', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
-                ->groupBy('period')
-                ->orderBy('period')
-                ->get()
-                ->pluck('count', 'period')
-                ->toArray();
-
-            $labels = [];
-            $values = [];
-            for ($i = 0; $i < 7; $i++) {
-                $date = $now->copy()->startOfWeek()->addDays($i);
-                $dateStr = $date->toDateString();
-                $labels[] = $date->format('D');
-                $values[] = $data[$dateStr] ?? 0;
+            if (! isset($types[$type])) {
+                $type = 'underground';
             }
 
-        } elseif ($filter === 'yearly') {
-            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-                ->select(
-                    DB::raw('MONTH(deceased_records.date_of_depository) as period'),
-                    DB::raw('count(*) as count')
-                )
-                ->whereYear('deceased_records.date_of_depository', $year)
-                ->groupBy('period')
-                ->orderBy('period')
-                ->get()
-                ->pluck('count', 'period')
-                ->toArray();
-
-            $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            $values = array_map(fn($month) => $data[$month] ?? 0, range(1, 12));
-
-        } else {
-            $daysInMonth = $now->daysInMonth;
-            $data = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-                ->select(
-                    DB::raw('DAY(deceased_records.date_of_depository) as period'),
-                    DB::raw('count(*) as count')
-                )
-                ->whereYear('deceased_records.date_of_depository', $now->year)
-                ->whereMonth('deceased_records.date_of_depository', $now->month)
-                ->groupBy('period')
-                ->orderBy('period')
-                ->get()
-                ->pluck('count', 'period')
-                ->toArray();
-
-            $labels = range(1, $daysInMonth);
-            $values = array_map(fn($day) => $data[$day] ?? 0, $labels);
+            $labels[] = $cluster->cluster_name;
+            $types[$type]['occupied'][] = $cluster->occupied_lots;
+            $types[$type]['available'][] = $cluster->total_lots - $cluster->occupied_lots;
         }
 
         return [
             'labels' => $labels,
-            'values' => $values,
+            'types' => $types,
+            'current_page' => $clusters->currentPage(),
+            'last_page' => $clusters->lastPage(),
+            'total' => $clusters->total(),
         ];
     }
 }
-

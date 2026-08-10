@@ -5,6 +5,10 @@
     <meta charset="utf-8">
     <title>@yield('title') - Panteon De Dasmariñas</title>
     <style>
+        @page {
+            margin: 60px 40px 80px 40px;
+        }
+
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
@@ -135,11 +139,35 @@
             color: white;
         }
 
-        .footer {
+        .report-end {
             margin-top: 32px;
             text-align: center;
             font-size: 11px;
             color: #666;
+        }
+
+        .footer {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-top: 1px solid #999;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .page-number {
+            position: fixed;
+            right: 0;
+            bottom: -60px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .page-number:before {
+            content: "Page " counter(page);
         }
 
         .signature-section {
@@ -208,55 +236,65 @@
 </head>
 
 <body>
-    <div class="header-container">
-        <div class="header-top">
-            <table>
-                <tr>
-                    <td style="width: 20%;">
-                        <img src="{{ public_path('images/dasmarinas-logo.png') }}" alt="Logo">
-                    </td>
-                    <td style="width: 60%;">
-                        <div class="header-title">
-                            <h1>Panteon De Dasmariñas</h1>
-                            <p>City of Dasmariñas</p>
-                        </div>
-                    </td>
-                    <td style="width: 20%;">
-                        <img src="{{ public_path('images/dasmarinas-logo.png') }}" alt="Logo">
-                    </td>
-                </tr>
-            </table>
+    <div class="page-content">
+        <div class="header-container">
+            <div class="header-top">
+                <table>
+                    <tr>
+                        <td style="width: 20%;">
+                            <img src="{{ public_path('images/dasmarinas-logo.png') }}" alt="Logo">
+                        </td>
+                        <td style="width: 60%;">
+                            <div class="header-title">
+                                <h1>Panteon De Dasmariñas</h1>
+                                <p>City of Dasmariñas</p>
+                            </div>
+                        </td>
+                        <td style="width: 20%;">
+                            <img src="{{ public_path('images/dasmarinas-logo.png') }}" alt="Logo">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="header-divider"></div>
+            <div class="report-info">
+                <p class="font-bold">@yield('report-title')</p>
+                @if(isset($startDate) && isset($endDate))
+                <p>Period: {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to
+                    {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
+                </p>
+                @endif
+                @if(isset($monthDate))
+                <p>Month: {{ \Carbon\Carbon::parse($monthDate)->format('F Y') }}</p>
+                @endif
+                @if(isset($year))
+                <p>Year: {{ $year }}</p>
+                @endif
+                <p>Generated on: {{ date('F d, Y') }}</p>
+            </div>
         </div>
-        <div class="header-divider"></div>
-        <div class="report-info">
-            <p class="font-bold">@yield('report-title')</p>
-            @if(isset($startDate) && isset($endDate))
-            <p>Period: {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to
-                {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
-            </p>
+
+        @yield('content')
+
+        <div class="report-end">
+            @hasSection('total-records')
+            <p>Total Records: @yield('total-records')</p>
             @endif
-            @if(isset($monthDate))
-            <p>Month: {{ \Carbon\Carbon::parse($monthDate)->format('F Y') }}</p>
-            @endif
-            <p>Generated on: {{ date('F d, Y') }}</p>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-line"></div>
+            <p class="signature-name">{{ auth()->user()->first_name . " " . auth()->user()->last_name}}</p>
+            <p class="signature-title">Authorized Administrator</p>
         </div>
     </div>
 
-    @yield('content')
-
     <div class="footer">
-        @hasSection('total-records')
-        <p>Total Records: @yield('total-records')</p>
-        @endif
         <p class="disclaimer">This is a system-generated report from the Panteon Information and Management System.</p>
         <p>Panteon Information and Management System</p>
     </div>
 
-    <div class="signature-section">
-        <div class="signature-line"></div>
-        <p class="signature-name">{{ auth()->user()->first_name . " " . auth()->user()->last_name}}</p>
-        <p class="signature-title">Authorized Clerk</p>
-    </div>
+    <div class="page-number"></div>
 </body>
 
 </html>

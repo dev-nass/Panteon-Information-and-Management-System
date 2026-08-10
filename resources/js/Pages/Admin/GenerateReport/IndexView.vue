@@ -13,8 +13,15 @@ const reportType = ref("");
 const startDate = ref("");
 const endDate = ref("");
 const monthDate = ref("");
+const yearDate = ref(new Date().getFullYear());
 const format = ref("pdf");
 const isGenerating = ref(false);
+
+const currentYear = new Date().getFullYear();
+const yearOptions = Array.from(
+    { length: currentYear - 2013 + 1 },
+    (_, i) => 2013 + i,
+).reverse();
 
 // Computed property to determine which date fields to show
 const showDateRange = computed(() => {
@@ -23,6 +30,10 @@ const showDateRange = computed(() => {
 
 const showMonthPicker = computed(() => {
     return reportType.value === "summary";
+});
+
+const showYearPicker = computed(() => {
+    return reportType.value === "annual";
 });
 
 const showNoDates = computed(() => {
@@ -34,6 +45,7 @@ watch(reportType, () => {
     startDate.value = "";
     endDate.value = "";
     monthDate.value = "";
+    yearDate.value = new Date().getFullYear();
 });
 
 const setDateRange = (type) => {
@@ -94,6 +106,11 @@ const generateReport = () => {
         return;
     }
 
+    if (showYearPicker.value && !yearDate.value) {
+        alert("Please select a year");
+        return;
+    }
+
     isGenerating.value = true;
 
     // Build query parameters based on report type
@@ -107,6 +124,8 @@ const generateReport = () => {
         params.endDate = endDate.value;
     } else if (showMonthPicker.value) {
         params.monthDate = monthDate.value;
+    } else if (showYearPicker.value) {
+        params.year = yearDate.value;
     }
 
     const queryString = new URLSearchParams(params).toString();
@@ -192,6 +211,9 @@ const generateReport = () => {
                                     </option>
                                     <option value="summary">
                                         Monthly Summary
+                                    </option>
+                                    <option value="annual">
+                                        Annual Summary
                                     </option>
                                     <option value="phase">
                                         Phase Availability
@@ -286,6 +308,31 @@ const generateReport = () => {
                                     v-model="monthDate"
                                     class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                 />
+                            </div>
+
+                            <!-- Year Picker (for annual summary) -->
+                            <div
+                                v-if="showYearPicker"
+                                class="flex flex-col col-span-full gap-1"
+                            >
+                                <label
+                                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                                >
+                                    Select Year
+                                </label>
+
+                                <select
+                                    v-model="yearDate"
+                                    class="py-2 px-4 w-full border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option
+                                        v-for="y in yearOptions"
+                                        :key="y"
+                                        :value="y"
+                                    >
+                                        {{ y }}
+                                    </option>
+                                </select>
                             </div>
 
                             <!-- No Date Fields (for phase availability) -->
