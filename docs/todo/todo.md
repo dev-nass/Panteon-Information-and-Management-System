@@ -50,3 +50,5 @@
   - Proper filtering showing all logs, not just
       per page.
 - Database backup process
+- Analytics
+- Account activation for admin side
