@@ -49,3 +49,4 @@
   - Database Backup (.sql) schema
   - Proper filtering showing all logs, not just
       per page.
+- Database backup process
