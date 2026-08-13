@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\ClerkInvitationMail;
 use App\Models\ClerkInvitation;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -12,6 +13,7 @@ use Inertia\Inertia;
 
 class ClerkInvitationController extends Controller
 {
+    use LogsActivity;
 
     public function index(Request $request)
     {
@@ -49,7 +51,6 @@ class ClerkInvitationController extends Controller
         ]);
     }
 
-
     public function create()
     {
         return Inertia::render('Admin/ClerkInvitation/CreateView');
@@ -61,13 +62,19 @@ class ClerkInvitationController extends Controller
 
         $token = Str::random(64);
 
-        ClerkInvitation::updateOrCreate(
+        $invitation = ClerkInvitation::updateOrCreate(
             ['email' => $request->email],
             [
                 'token' => $token,
                 'expires_at' => now()->addHours(24),
                 'used_at' => null,
             ]
+        );
+
+        $this->logActivity(
+            'created',
+            $invitation,
+            "Invited {$request->email} as clerk",
         );
 
         $url = route('clerk.register', ['token' => $token]);

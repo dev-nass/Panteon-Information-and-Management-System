@@ -8,10 +8,13 @@ use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\BurialRecord;
 use App\Services\BurialRecordService;
+use App\Traits\LogsActivity;
 use Inertia\Inertia;
 
 class BurialRecordController extends Controller
 {
+    use LogsActivity;
+
     public function __construct(protected BurialRecordService $service) {}
 
     // handles tha diplay of table view, any form of filter is present or not
@@ -62,6 +65,12 @@ class BurialRecordController extends Controller
             createdBy: auth()->id(),
         );
 
+        $this->logActivity(
+            'created',
+            $burialRecord,
+            "Created burial record for {$burialRecord->deceasedRecord->first_name} {$burialRecord->deceasedRecord->last_name}",
+        );
+
         return to_route('clerk.burial_records.show', $burialRecord->id)
             ->with('success', 'Burial record created successfully.');
     }
@@ -79,13 +88,49 @@ class BurialRecordController extends Controller
 
     public function update(BurialRecordUpdateRequest $request, BurialRecord $burial_record)
     {
+        $deceased = $burial_record->deceasedRecord;
+        $oldValues = $deceased->only([
+            'first_name',
+            'middle_name',
+            'last_name',
+            'address',
+            'date_of_birth',
+            'date_of_death',
+            'date_of_depository',
+        ]);
+
         $this->service->update($burial_record, $request->validated(), auth()->id());
+
+        $deceased->refresh();
+        $newValues = $deceased->only([
+            'first_name',
+            'middle_name',
+            'last_name',
+            'address',
+            'date_of_birth',
+            'date_of_death',
+            'date_of_depository',
+        ]);
+
+        $this->logActivity(
+            'updated',
+            $burial_record,
+            "Updated burial record for {$newValues['first_name']} {$newValues['last_name']}",
+            $oldValues,
+            $newValues,
+        );
 
         return back()->with('success', 'Burial record updated successfully.');
     }
 
     public function destroy(BurialRecord $burial_record)
     {
+        $this->logActivity(
+            'deleted',
+            $burial_record,
+            "Deleted burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
+        );
+
         $burial_record->delete();
 
         return to_route('clerk.burial_records.index')

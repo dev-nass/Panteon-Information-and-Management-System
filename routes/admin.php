@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\BurialRecordController;
 use App\Http\Controllers\Admin\ClerkInvitationController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -14,7 +15,9 @@ Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity_log.index');
 
         Route::controller(GenerateReportController::class)->group(function () {
             Route::get('/generate-report', 'index')->name('generate_report.index');

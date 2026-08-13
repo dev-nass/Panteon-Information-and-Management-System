@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Cluster;
 use App\Models\Lot;
 use App\Models\Phase;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class LotManagementController extends Controller
 {
+    use LogsActivity;
+
     public function index()
     {
         $phases = Phase::select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
@@ -102,10 +105,16 @@ class LotManagementController extends Controller
             'coordinates' => 'required|json',
         ]);
 
-        Phase::create([
+        $phase = Phase::create([
             'phase_name' => $validated['name'],
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
+
+        $this->logActivity(
+            'created',
+            $phase,
+            "Created phase {$validated['name']}",
+        );
 
         return to_route('admin.lot_management.index')
             ->with('success', 'Phase created successfully.');
@@ -121,13 +130,19 @@ class LotManagementController extends Controller
             'coordinates' => 'required|json',
         ]);
 
-        Cluster::create([
+        $cluster = Cluster::create([
             'phase_id' => $validated['phase_id'],
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
             'total_capacity' => $validated['total_capacity'],
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
+
+        $this->logActivity(
+            'created',
+            $cluster,
+            "Created cluster {$validated['name']}",
+        );
 
         return to_route('admin.lot_management.index')
             ->with('success', 'Cluster created successfully.');
@@ -155,12 +170,18 @@ class LotManagementController extends Controller
             ]);
         }
 
-        Lot::create([
+        $lot = Lot::create([
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => $validated['row'],
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
+
+        $this->logActivity(
+            'created',
+            $lot,
+            "Created lot {$validated['row']}-{$validated['column']}",
+        );
 
         return to_route('admin.lot_management.index')
             ->with('success', 'Lot created successfully.');
@@ -231,6 +252,14 @@ class LotManagementController extends Controller
             }
         });
 
+        $this->logActivity(
+            'created',
+            $cluster,
+            'Bulk created '.count($validated['lots'])." lots in cluster {$cluster->cluster_name}",
+            null,
+            ['lot_count' => count($validated['lots'])],
+        );
+
         return to_route('admin.lot_management.index')
             ->with('success', count($validated['lots']).' lots created successfully.');
     }
@@ -242,9 +271,19 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
+        $oldName = $phase->phase_name;
+
         DB::update(
             'UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
             [$validated['name'], $validated['coordinates'], $phase->id]
+        );
+
+        $this->logActivity(
+            'updated',
+            $phase,
+            "Updated phase {$validated['name']}",
+            ['phase_name' => $oldName],
+            ['phase_name' => $validated['name']],
         );
 
         return to_route('admin.lot_management.index')->with('success', 'Phase updated successfully.');
@@ -259,6 +298,8 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
+        $oldValues = $cluster->only(['cluster_name', 'cluster_type', 'total_capacity']);
+
         if (isset($validated['coordinates'])) {
             DB::update(
                 'UPDATE clusters SET cluster_name = ?, cluster_type = ?, total_capacity = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
@@ -271,6 +312,18 @@ class LotManagementController extends Controller
             );
         }
 
+        $this->logActivity(
+            'updated',
+            $cluster,
+            "Updated cluster {$validated['name']}",
+            $oldValues,
+            [
+                'cluster_name' => $validated['name'],
+                'cluster_type' => $validated['type'],
+                'total_capacity' => $validated['total_capacity'] ?? null,
+            ],
+        );
+
         return to_route('admin.lot_management.index')->with('success', 'Cluster updated successfully.');
     }
 
@@ -282,9 +335,19 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
+        $oldValues = $lot->only(['column', 'row']);
+
         DB::update(
             'UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
             [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
+        );
+
+        $this->logActivity(
+            'updated',
+            $lot,
+            "Updated lot {$validated['row']}-{$validated['column']}",
+            $oldValues,
+            ['column' => $validated['column'], 'row' => $validated['row']],
         );
 
         return to_route('admin.lot_management.index')->with('success', 'Lot updated successfully.');
@@ -292,6 +355,12 @@ class LotManagementController extends Controller
 
     public function deletePhase(Phase $phase)
     {
+        $this->logActivity(
+            'deleted',
+            $phase,
+            "Deleted phase {$phase->phase_name}",
+        );
+
         $phase->delete();
 
         return to_route('admin.lot_management.index')
@@ -300,6 +369,12 @@ class LotManagementController extends Controller
 
     public function deleteCluster(Cluster $cluster)
     {
+        $this->logActivity(
+            'deleted',
+            $cluster,
+            "Deleted cluster {$cluster->cluster_name}",
+        );
+
         $cluster->delete();
 
         return to_route('admin.lot_management.index')
@@ -308,6 +383,12 @@ class LotManagementController extends Controller
 
     public function deleteLot(Lot $lot)
     {
+        $this->logActivity(
+            'deleted',
+            $lot,
+            "Deleted lot {$lot->row}-{$lot->column}",
+        );
+
         $lot->delete();
 
         return to_route('admin.lot_management.index')

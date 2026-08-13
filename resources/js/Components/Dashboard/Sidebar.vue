@@ -599,6 +599,41 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
+                <li v-if="user.role === 'admin'">
+                    <SidebarLink
+                        :href="route('admin.activity_log.index')"
+                        :isActive="
+                            page.component === 'Admin/ActivityLog/IndexView'
+                        "
+                    >
+                        <template v-slot:icon>
+                            <span
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-history-icon lucide-history"
+                                >
+                                    <path
+                                        d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                                    />
+                                    <path d="M3 3v5h5" />
+                                    <path d="M12 7v5l4 2" />
+                                </svg>
+                            </span>
+                        </template>
+                        <template v-slot:text> Activity Log </template>
+                    </SidebarLink>
+                </li>
+
                 <span
                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 my-1 text-sm text-gray-400 dark:text-neutral-500"
                     >Lot</span
