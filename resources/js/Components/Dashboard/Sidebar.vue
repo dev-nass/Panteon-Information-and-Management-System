@@ -634,6 +634,39 @@ const handleLogout = () => {
                     </SidebarLink>
                 </li>
 
+                <li v-if="user.role === 'admin'">
+                    <SidebarLink
+                        :href="route('admin.backup.index')"
+                        :isActive="
+                            page.component === 'Admin/Backup/IndexView'
+                        "
+                    >
+                        <template v-slot:icon>
+                            <span
+                                class="-ms-1.25 flex shrink-0 justify-center items-center size-6"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="18"
+                                    height="18"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="lucide lucide-database-backup-icon lucide-database-backup"
+                                >
+                                    <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                    <path d="M3 5V19A9 9 0 0 0 21 19V5" />
+                                    <path d="M3 12A9 9 0 0 0 21 12" />
+                                </svg>
+                            </span>
+                        </template>
+                        <template v-slot:text> Backup </template>
+                    </SidebarLink>
+                </li>
+
                 <span
                     class="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300 block ps-2.5 my-1 text-sm text-gray-400 dark:text-neutral-500"
                     >Lot</span
