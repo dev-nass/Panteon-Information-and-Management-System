@@ -239,9 +239,7 @@ const formatDate = (timestamp) => {
                                         {{ formatSize(backup.size) }}
                                     </TableData>
                                     <TableData>
-                                        <div
-                                            class="flex justify-center gap-x-2"
-                                        >
+                                        <div class="flex gap-x-2">
                                             <button
                                                 type="button"
                                                 @click="
