@@ -52,3 +52,4 @@
 - Database backup process
 - Analytics
 - Account activation for admin side
+- UI admin dashboards
