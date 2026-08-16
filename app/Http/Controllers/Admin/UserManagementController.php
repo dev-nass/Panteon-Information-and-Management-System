@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Rap2hpoutre\FastExcel\FastExcel;
 
 class UserManagementController extends Controller
 {
+    use LogsActivity;
+
     public function index(Request $request)
     {
         $query = $this->applyFilters($request, User::query());
@@ -86,6 +89,12 @@ class UserManagementController extends Controller
             return back()->with('error', 'Admin accounts cannot be deleted.');
         }
 
+        $this->logActivity(
+            'deleted',
+            $user,
+            "Deleted user {$user->first_name} {$user->last_name}",
+        );
+
         $user->delete();
 
         return redirect()->route('admin.user_management.index')
@@ -120,7 +129,30 @@ class UserManagementController extends Controller
             return back()->with('error', 'You cannot change your own role.');
         }
 
+        $name = "{$user->first_name} {$user->last_name}";
+        $oldValues = $user->only(['first_name', 'middle_name', 'last_name', 'email', 'contact_number', 'role']);
+
         $user->update($validated);
+
+        $newValues = $user->only(['first_name', 'middle_name', 'last_name', 'email', 'contact_number', 'role']);
+
+        if ($oldValues['role'] !== $newValues['role']) {
+            $this->logActivity(
+                'role_changed',
+                $user,
+                "Changed {$name}'s role from {$oldValues['role']} to {$newValues['role']}",
+                ['role' => $oldValues['role']],
+                ['role' => $newValues['role']],
+            );
+        } else {
+            $this->logActivity(
+                'updated',
+                $user,
+                "Updated {$name}'s profile",
+                $oldValues,
+                $newValues,
+            );
+        }
 
         return back()->with('success', 'User updated successfully.');
     }

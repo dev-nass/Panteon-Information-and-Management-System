@@ -26,6 +26,30 @@ const form = ref({
 
 const errors = ref({});
 
+const requiredFields = [
+    "deceased_name",
+    "deceased_address",
+    "date_of_death",
+    "place_of_death",
+    "date_of_depository",
+    "burial_place",
+    "applicant_name",
+    "applicant_address",
+    "relationship",
+];
+
+const fieldLabels = {
+    deceased_name: "Deceased name",
+    deceased_address: "Deceased address",
+    date_of_death: "Date of death",
+    place_of_death: "Place of death",
+    date_of_depository: "Date of depository",
+    burial_place: "Burial place",
+    applicant_name: "Applicant name",
+    applicant_address: "Applicant address",
+    relationship: "Relationship to deceased",
+};
+
 const goBack = () => {
     router.visit(route("clerk.burial_records.show", props.burial_record_id));
 };
@@ -33,14 +57,10 @@ const goBack = () => {
 const generate = () => {
     errors.value = {};
 
-    if (!form.value.deceased_name) {
-        errors.value.deceased_name = "Deceased name is required.";
-    }
-    if (!form.value.applicant_name) {
-        errors.value.applicant_name = "Applicant name is required.";
-    }
-    if (!form.value.applicant_address) {
-        errors.value.applicant_address = "Applicant address is required.";
+    for (const field of requiredFields) {
+        if (!form.value[field]) {
+            errors.value[field] = `${fieldLabels[field]} is required.`;
+        }
     }
 
     if (Object.keys(errors.value).length) return;
@@ -94,6 +114,7 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Deceased Name
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.deceased_name"
@@ -112,11 +133,18 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Deceased Address
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.deceased_address"
-                        placeholder="Deceased address"
+                        placeholder="Brgy. Sampaloc III, City of Dasmariñas, Cavite"
                     />
+                    <span
+                        v-if="errors.deceased_address"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.deceased_address }}
+                    </span>
                 </div>
 
                 <div>
@@ -124,8 +152,15 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Date of Death
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input v-model="form.date_of_death" type="date" />
+                    <span
+                        v-if="errors.date_of_death"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.date_of_death }}
+                    </span>
                 </div>
 
                 <div>
@@ -133,11 +168,18 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Place of Death
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.place_of_death"
-                        placeholder="Place of death"
+                        placeholder="Pagamutan ng Dasmariñas Brgy. Burol II, City of Dasmariñas, Cavite"
                     />
+                    <span
+                        v-if="errors.place_of_death"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.place_of_death }}
+                    </span>
                 </div>
 
                 <div>
@@ -145,8 +187,15 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Date of Depository
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input v-model="form.date_of_depository" type="date" />
+                    <span
+                        v-if="errors.date_of_depository"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.date_of_depository }}
+                    </span>
                 </div>
 
                 <div>
@@ -154,11 +203,18 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Burial Place
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.burial_place"
                         placeholder="e.g. Panteon De Dasmariñas Extension"
                     />
+                    <span
+                        v-if="errors.burial_place"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.burial_place }}
+                    </span>
                 </div>
 
                 <div>
@@ -166,6 +222,7 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Applicant Name
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.applicant_name"
@@ -188,7 +245,7 @@ defineOptions({ layout: Dashboard });
                     </label>
                     <Input
                         v-model="form.applicant_address"
-                        placeholder="Enter applicant address"
+                        placeholder="Brgy. Sampaloc III, City of Dasmariñas, Cavite"
                     />
                     <span
                         v-if="errors.applicant_address"
@@ -203,11 +260,18 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Relationship to Deceased
+                        <span class="text-red-400">*</span>
                     </label>
                     <Input
                         v-model="form.relationship"
                         placeholder="e.g. Son, Daughter, Spouse"
                     />
+                    <span
+                        v-if="errors.relationship"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.relationship }}
+                    </span>
                 </div>
 
                 <div class="md:col-span-2 mt-2">

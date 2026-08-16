@@ -41,47 +41,22 @@ class CertificatieOfServiceController extends Controller
     {
         $data = $request->validate([
             'deceased_name' => 'required|string|max:255',
-            'deceased_address' => 'nullable|string|max:255',
-            'date_of_death' => 'nullable|date',
-            'place_of_death' => 'nullable|string|max:255',
-            'date_of_depository' => 'nullable|date',
-            'burial_place' => 'nullable|string|max:255',
+            'deceased_address' => 'required|string|max:255',
+            'date_of_death' => 'required|date',
+            'place_of_death' => 'required|string|max:255',
+            'date_of_depository' => 'required|date',
+            'burial_place' => 'required|string|max:255',
             'applicant_name' => 'required|string|max:255',
             'applicant_address' => 'required|string|max:255',
-            'relationship' => 'nullable|string|max:255',
+            'relationship' => 'required|string|max:255',
         ]);
 
-        $pdf = Pdf::loadView('certificates.certificate_of_service', [
+        $pdf = Pdf::loadView('certificates.certificate_of_service_content', [
             'data' => $data,
-            'logoLeft' => $this->embedImage('images/dasmarinas-logo.png'),
-            'logoRight' => $this->embedImage('images/bagong-pilipinas.png'),
-            'waveTop' => $this->embedImage('images/header-wave.png'),
-            'waveBottom' => $this->embedImage('images/footer-wave.png'),
         ]);
 
-        $filename = 'certificate_of_service_' . $burial_record->id . '.pdf';
+        $filename = 'certificate_of_service_'.$burial_record->id.'.pdf';
+
         return $pdf->download($filename);
-    }
-
-    /**
-     * Reads an image from the public/ folder and returns a base64 data URI,
-     * so DomPDF never has to touch the filesystem directly (avoids needing
-     * 'enable_local_file_access' => true in config/dompdf.php).
-     */
-    private function embedImage(string $relativePath): string
-    {
-        $path = public_path($relativePath);
-
-        if (!file_exists($path)) {
-            return '';
-        }
-
-        $mime = match (pathinfo($path, PATHINFO_EXTENSION)) {
-            'png' => 'image/png',
-            'jpg', 'jpeg' => 'image/jpeg',
-            default => 'image/png',
-        };
-
-        return 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($path));
     }
 }

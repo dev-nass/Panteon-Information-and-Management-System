@@ -8,6 +8,7 @@ use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
 use App\Models\ImportedLog;
 use App\Models\Lot;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +17,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory; // Noel
 
 class ImportingController extends Controller
 {
+    use LogsActivity;
+
     public function index()
     {
         $logs = ImportedLog::orderBy('created_at', 'desc')->limit(50)->get();
@@ -192,6 +195,14 @@ class ImportingController extends Controller
                     'status' => 'failed',
                 ]);
 
+                $this->logActivity(
+                    'imported',
+                    $importLog,
+                    "Import failed for {$fileName} — no records imported",
+                    null,
+                    ['status' => 'failed', 'errors' => count($errors)],
+                );
+
                 return back()->with('error', 'No records were imported')->with('importErrors', $errors);
             }
 
@@ -204,10 +215,26 @@ class ImportingController extends Controller
                 'status' => 'successful',
             ]);
 
+            $this->logActivity(
+                'imported',
+                $importLog,
+                "Imported {$imported} records from {$fileName} ({$importType})",
+                null,
+                ['status' => 'successful', 'imported' => $imported, 'skipped' => count($errors)],
+            );
+
             return back()->with('success', $message)->with('importErrors', $errors);
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Import failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+
+            if (isset($importLog)) {
+                $this->logActivity(
+                    'imported',
+                    $importLog,
+                    "Import failed for {$fileName}: {$e->getMessage()}",
+                );
+            }
 
             return back()->with('error', 'Failed to process file')->with('importErrors', [$e->getMessage()]);
         }
