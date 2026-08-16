@@ -97,6 +97,11 @@ Same treatment as the Admin Dashboard (§2):
 - **Card headers** (Today's Field Schedule / Upcoming Schedules): `flex-wrap` so the count badges never overflow on small screens.
 - **Schedule rows**: `flex-wrap gap-2` so the status badge drops to its own line instead of being squished off-screen on narrow phones.
 
+## 14. Settings — Profile & Security — `resources/js/Pages/Settings/ProfileView.vue`, `ChangePasswordView.vue`
+
+- **Sidebar**: Preferences link removed entirely — the sidebar lists only Profile and Security. The divider (`border-t`) at the bottom of the nav is retained. Below `lg` the nav becomes a wrapping horizontal row of links; at `lg+` it's the original 180px column.
+- **Content fit**: the `grid-cols-[180px_1fr]` layout stacks below `lg` (`grid-cols-1 lg:grid-cols-[180px_1fr]`). Profile form fields are single column on mobile (`grid-cols-1 sm:grid-cols-2`); action buttons wrap (`flex-wrap justify-end gap-2`).
+
 ---
 
 ## Changelog
@@ -112,3 +117,4 @@ Same treatment as the Admin Dashboard (§2):
 | 2026-08-16 | 11 | Import Records: removed 650px min-width wrapper (w-full below sm), wrapping header/actions, smaller drop-area padding below sm |
 | 2026-08-16 | 12 | Burial Records Show: name full-width + action buttons below on <lg, wrapping buttons, scrollable tabs |
 | 2026-08-16 | 13 | Clerk Dashboard: stacked header below md, 2-col stat cards on small, wrapping card headers + schedule rows |
+| 2026-08-16 | 14 | Settings Profile/Security: Preferences moved to sidebar bottom with divider, sidebar stacks/wraps below lg, form fields single-col on mobile |

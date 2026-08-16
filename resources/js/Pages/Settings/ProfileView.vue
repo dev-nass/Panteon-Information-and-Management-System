@@ -104,10 +104,12 @@ const saveChanges = () => {
             >
                 ← Back
             </button>
-            <div class="grid grid-cols-[180px_1fr] gap-10">
+            <div
+                class="grid grid-cols-1 lg:grid-cols-[180px_1fr] gap-6 lg:gap-10"
+            >
                 <!-- LEFT SIDEBAR -->
                 <aside>
-                    <nav class="flex flex-col gap-0.5">
+                    <nav class="flex flex-wrap lg:flex-col gap-0.5">
                         <div
                             class="bg-gradient-to-r from-green-800/95 via-green-700/90 to-green-500/85 dark:from-green-900/95 dark:via-green-800/90 dark:to-green-600/85 rounded-lg"
                         >
@@ -160,28 +162,10 @@ const saveChanges = () => {
                             </svg>
                             Security
                         </Link>
-                        <a
-                            href="#"
-                            class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-800 dark:hover:text-white text-sm transition"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="15"
-                                height="15"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <circle cx="12" cy="12" r="3" />
-                                <path
-                                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                                />
-                            </svg>
-                            Preferences
-                        </a>
+
+                        <div
+                            class="w-full mt-1 pt-1 border-t border-gray-200 dark:border-neutral-700 lg:mt-2 lg:pt-2"
+                        ></div>
                     </nav>
                 </aside>
 
@@ -293,7 +277,7 @@ const saveChanges = () => {
 
                     <!-- Form fields -->
                     <div class="space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <!-- First Name -->
                             <Display
                                 v-model="localData.first_name"
@@ -332,7 +316,7 @@ const saveChanges = () => {
                     </div>
 
                     <!-- Action buttons -->
-                    <div class="mt-6 flex justify-end gap-3">
+                    <div class="mt-6 flex flex-wrap justify-end gap-2">
                         <button
                             v-if="!editing"
                             @click="editing = true"
