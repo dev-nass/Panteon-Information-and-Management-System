@@ -21,7 +21,9 @@ defineOptions({
 <template>
     <div class="p-6 space-y-6">
         <!-- HEADER -->
-        <div class="flex items-center justify-between">
+        <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
             <div>
                 <h1
                     class="text-3xl font-bold text-green-600 dark:text-green-400"
@@ -34,7 +36,7 @@ defineOptions({
                 </p>
             </div>
             <div
-                class="text-sm text-right font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-neutral-800 px-4 py-2 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-700"
+                class="w-fit text-sm md:text-right font-medium text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-neutral-800 px-4 py-2 rounded-lg shadow-sm border border-gray-200 dark:border-neutral-700"
             >
                 <svg
                     class="w-4 h-4 inline mr-1"
@@ -63,7 +65,7 @@ defineOptions({
         </div>
 
         <!-- STAT CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             <StatCard
                 title="Today's Burials"
                 :value="today_burial_count.toString()"
@@ -197,7 +199,7 @@ defineOptions({
                 <!-- TODAY'S FIELD SCHEDULE -->
                 <div class="dashboard-card bg-gray-50 dark:bg-neutral-800">
                     <div
-                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex justify-between items-center"
+                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
                     >
                         <h3
                             class="font-bold text-gray-800 dark:text-neutral-100 flex items-center"
@@ -236,7 +238,7 @@ defineOptions({
                         <div
                             v-for="schedule in today_schedules"
                             :key="schedule.id"
-                            class="p-6 flex items-start justify-between hover:bg-gray-50 dark:hover:bg-neutral-900/30 transition"
+                            class="p-6 flex flex-wrap gap-2 items-start justify-between hover:bg-gray-50 dark:hover:bg-neutral-900/30 transition"
                         >
                             <div class="flex items-start space-x-4">
                                 <div
@@ -286,7 +288,7 @@ defineOptions({
                 <!-- UPCOMING SCHEDULES (NEXT 7 DAYS) -->
                 <div class="dashboard-card bg-gray-50 dark:bg-neutral-800">
                     <div
-                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex justify-between items-center"
+                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
                     >
                         <h3
                             class="font-bold text-gray-800 dark:text-neutral-100 flex items-center"
@@ -325,7 +327,7 @@ defineOptions({
                         <div
                             v-for="task in pending_tasks"
                             :key="task.id"
-                            class="p-6 flex items-start justify-between hover:bg-gray-50 dark:hover:bg-neutral-900/30 transition"
+                            class="p-6 flex flex-wrap gap-2 items-start justify-between hover:bg-gray-50 dark:hover:bg-neutral-900/30 transition"
                         >
                             <div class="flex items-start space-x-4">
                                 <div

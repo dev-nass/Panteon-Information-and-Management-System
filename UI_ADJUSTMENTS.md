@@ -89,6 +89,14 @@
 - **Header**: below `lg` the deceased name row takes the full width and the action buttons (View on Map, Edit/Delete/COS — clerk) sit BELOW it (`flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between`); buttons wrap (`flex-wrap gap-x-3 gap-y-2`). At `lg+` the original side-by-side layout is retained.
 - **Tabs**: horizontally scrollable — the tab bar is `overflow-x-auto` with an inner `min-w-max` flex row and `whitespace-nowrap` labels; the underline stays full-width below the scrollable tabs.
 
+## 13. Clerk Dashboard — `resources/js/Pages/Clerk/DashboardView.vue`
+
+Same treatment as the Admin Dashboard (§2):
+- **Header**: below `md` the title/subtitle sit on their own row and the "Today is: <date>" badge sits below it at natural width (`w-fit`, left-aligned); side-by-side at `md+`.
+- **Stat cards**: 2-column grid on small screens (`grid-cols-2 md:grid-cols-3 lg:grid-cols-5`).
+- **Card headers** (Today's Field Schedule / Upcoming Schedules): `flex-wrap` so the count badges never overflow on small screens.
+- **Schedule rows**: `flex-wrap gap-2` so the status badge drops to its own line instead of being squished off-screen on narrow phones.
+
 ---
 
 ## Changelog
@@ -103,3 +111,4 @@
 | 2026-08-16 | 10 | Burial Records Index: table scroll containment, pagination moved inside card + wrapping links, stacked/wrapping header below lg |
 | 2026-08-16 | 11 | Import Records: removed 650px min-width wrapper (w-full below sm), wrapping header/actions, smaller drop-area padding below sm |
 | 2026-08-16 | 12 | Burial Records Show: name full-width + action buttons below on <lg, wrapping buttons, scrollable tabs |
+| 2026-08-16 | 13 | Clerk Dashboard: stacked header below md, 2-col stat cards on small, wrapping card headers + schedule rows |
