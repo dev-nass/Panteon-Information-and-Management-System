@@ -111,24 +111,24 @@ defineOptions({
         >
             <!-- HEADER -->
             <div
-                class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
+                class="px-6 py-4 grid gap-3 lg:flex lg:justify-between lg:items-center border-b border-gray-200 dark:border-neutral-700"
             >
                 <!-- Search -->
                 <Input
-                    class="max-w-md"
+                    class="w-full lg:max-w-md"
                     placeholder="Search..."
                     v-model="search"
                 />
 
                 <!-- Tabs -->
                 <div
-                    class="flex gap-2 bg-gray-100 dark:bg-neutral-900 p-1 rounded-xl"
+                    class="flex flex-wrap gap-2 bg-gray-100 dark:bg-neutral-900 p-1 rounded-xl w-full lg:w-fit"
                 >
                     <button
                         v-for="tab in ['phase', 'cluster', 'lot']"
                         :key="tab"
                         @click="activeTab = tab"
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                        class="flex-1 lg:flex-none px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition"
                         :class="
                             activeTab === tab
                                 ? 'bg-green-500/20 text-green-400'
@@ -161,7 +161,7 @@ defineOptions({
 
             <!-- CONTEXT INDICATOR -->
             <div
-                class="px-6 py-3 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 flex items-center gap-2 text-sm"
+                class="px-6 py-3 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap items-center gap-2 text-sm"
             >
                 <span
                     class="px-3 py-1 rounded-lg"

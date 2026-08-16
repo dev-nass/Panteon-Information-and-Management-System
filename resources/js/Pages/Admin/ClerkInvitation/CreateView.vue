@@ -48,7 +48,7 @@ const submitInvitation = () => {
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <div class="flex flex-col items-center" data-aos="zoom-out">
             <div class="-m-1.5 overflow-x-auto">
-                <div class="p-1.5 min-w-[580px] inline-block align-middle">
+                <div class="p-1.5 w-full inline-block align-middle">
                     <div
                         class="flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden"
                     >
@@ -122,7 +122,9 @@ const submitInvitation = () => {
                                 </p>
                             </div>
 
-                            <div class="flex justify-between items-center pt-2">
+                            <div
+                                class="flex flex-wrap justify-between items-center pt-2 gap-2"
+                            >
                                 <Link
                                     :href="
                                         route('admin.clerk_invitations.index')

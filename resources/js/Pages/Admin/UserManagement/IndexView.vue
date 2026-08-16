@@ -18,9 +18,6 @@ const page = usePage();
 const toast = useToast();
 const search = ref(props.filters.search || "");
 
-
-
-
 watch(
     () => page.props.flash,
     (flash) => {
@@ -120,361 +117,319 @@ defineOptions({
 <template>
     <div class="max-w-340 px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <div class="flex flex-col">
-            <div class="-m-1.5 overflow-x-auto">
-                <div class="p-1.5 min-w-full inline-block align-middle">
-                    <div
-                        class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
-                    >
-                        <div
-                            class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-b border-gray-200 dark:border-neutral-700"
-                        >
-                            <Input
-                                class="max-w-md"
-                                placeholder="Search by name or email"
-                                v-model="search"
-                            />
+            <div
+                class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
+            >
+                <div
+                    class="px-6 py-4 flex flex-col gap-3 lg:flex-row lg:items-center border-b border-gray-200 dark:border-neutral-700"
+                >
+                    <Input
+                        class="w-full lg:flex-1 lg:min-w-0 lg:max-w-md"
+                        placeholder="Search by name or email"
+                        v-model="search"
+                    />
 
-                            <div class="sm:col-span-2 md:grow">
-                                <div class="flex justify-end gap-x-2">
-                                    <Link
-                                        :href="
-                                            route(
-                                                'admin.clerk_invitations.create',
-                                            )
-                                        "
-                                        class="inline-flex items-center gap-2 px-3 py-2.5 text-base rounded-lg border transition duration-200 bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
+                    <div class="lg:ms-auto">
+                        <div class="flex flex-wrap gap-x-2 lg:justify-end">
+                            <Link
+                                :href="route('admin.clerk_invitations.create')"
+                                class="inline-flex items-center gap-2 px-3 py-2.5 text-base rounded-lg border transition duration-200 bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+                                    />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <line x1="19" x2="19" y1="8" y2="14" />
+                                    <line x1="22" x2="16" y1="11" y2="11" />
+                                </svg>
+                                <span class="dark:text-green-400">
+                                    Invite Clerk
+                                </span>
+                            </Link>
+
+                            <Button type="button" @click="exportUsers">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path
+                                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                    />
+                                    <polyline points="7 10 12 15 17 10" />
+                                    <line x1="12" x2="12" y1="15" y2="3" />
+                                </svg>
+                                <span class="dark:text-white">
+                                    Export CSV
+                                </span>
+                            </Button>
+
+                            <div
+                                class="hs-dropdown [--placement:bottom-right] relative inline-block"
+                                data-hs-dropdown-auto-close="inside"
+                            >
+                                <Button
+                                    id="hs-as-table-table-filter-dropdown"
+                                    type="button"
+                                    aria-haspopup="menu"
+                                    aria-expanded="false"
+                                    aria-label="Dropdown"
+                                >
+                                    <span class="dark:text-white">
+                                        Filter
+                                    </span>
+
+                                    <span
+                                        class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path
-                                                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
-                                            />
-                                            <circle cx="9" cy="7" r="4" />
-                                            <line
-                                                x1="19"
-                                                x2="19"
-                                                y1="8"
-                                                y2="14"
-                                            />
-                                            <line
-                                                x1="22"
-                                                x2="16"
-                                                y1="11"
-                                                y2="11"
-                                            />
-                                        </svg>
-                                        <span class="dark:text-green-400">
-                                            Invite Clerk
-                                        </span>
-                                    </Link>
+                                        {{
+                                            filters.filter === "clerk"
+                                                ? "Clerk"
+                                                : filters.filter === "head"
+                                                  ? "Head"
+                                                  : filters.filter === "admin"
+                                                    ? "Admin"
+                                                    : "All"
+                                        }}
+                                    </span>
+                                </Button>
 
-                                    <Button type="button" @click="exportUsers">
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        >
-                                            <path
-                                                d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                                            />
-                                            <polyline
-                                                points="7 10 12 15 17 10"
-                                            />
-                                            <line
-                                                x1="12"
-                                                x2="12"
-                                                y1="15"
-                                                y2="3"
-                                            />
-                                        </svg>
-                                        <span class="dark:text-white">
-                                            Export CSV
-                                        </span>
-                                    </Button>
-
+                                <div
+                                    class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
+                                    role="menu"
+                                    aria-orientation="vertical"
+                                    aria-labelledby="hs-as-table-table-filter-dropdown"
+                                >
                                     <div
-                                        class="hs-dropdown [--placement:bottom-right] relative inline-block"
-                                        data-hs-dropdown-auto-close="inside"
+                                        class="divide-y divide-gray-200 dark:divide-neutral-800"
                                     >
-                                        <Button
-                                            id="hs-as-table-table-filter-dropdown"
-                                            type="button"
-                                            aria-haspopup="menu"
-                                            aria-expanded="false"
-                                            aria-label="Dropdown"
+                                        <label
+                                            for="filter-all"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
                                         >
-                                            <span class="dark:text-white">
-                                                Filter
-                                            </span>
-
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="all"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-all"
+                                                :checked="
+                                                    !filters.filter ||
+                                                    filters.filter === 'all'
+                                                "
+                                                @change="applyFilter('all')"
+                                            />
                                             <span
-                                                class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >All</span
                                             >
-                                                {{
-                                                    filters.filter === "clerk"
-                                                        ? "Clerk"
-                                                        : filters.filter ===
-                                                            "head"
-                                                          ? "Head"
-                                                          : filters.filter ===
-                                                              "admin"
-                                                            ? "Admin"
-                                                            : "All"
-                                                }}
-                                            </span>
-                                        </Button>
+                                        </label>
 
-                                        <div
-                                            class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-48 z-10 bg-white dark:bg-neutral-900 border border-transparent divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
-                                            role="menu"
-                                            aria-orientation="vertical"
-                                            aria-labelledby="hs-as-table-table-filter-dropdown"
+                                        <label
+                                            for="filter-admin"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
                                         >
-                                            <div
-                                                class="divide-y divide-gray-200 dark:divide-neutral-800"
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="admin"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-admin"
+                                                :checked="
+                                                    filters.filter === 'admin'
+                                                "
+                                                @change="applyFilter('admin')"
+                                            />
+                                            <span
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >Admin</span
                                             >
-                                                <label
-                                                    for="filter-all"
-                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="filter"
-                                                        value="all"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
-                                                        id="filter-all"
-                                                        :checked="
-                                                            !filters.filter ||
-                                                            filters.filter ===
-                                                                'all'
-                                                        "
-                                                        @change="
-                                                            applyFilter('all')
-                                                        "
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >All</span
-                                                    >
-                                                </label>
+                                        </label>
 
-                                                <label
-                                                    for="filter-admin"
-                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="filter"
-                                                        value="admin"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
-                                                        id="filter-admin"
-                                                        :checked="
-                                                            filters.filter ===
-                                                            'admin'
-                                                        "
-                                                        @change="
-                                                            applyFilter('admin')
-                                                        "
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Admin</span
-                                                    >
-                                                </label>
+                                        <label
+                                            for="filter-head"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="head"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-head"
+                                                :checked="
+                                                    filters.filter === 'head'
+                                                "
+                                                @change="applyFilter('head')"
+                                            />
+                                            <span
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >Head</span
+                                            >
+                                        </label>
 
-                                                <label
-                                                    for="filter-head"
-                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="filter"
-                                                        value="head"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
-                                                        id="filter-head"
-                                                        :checked="
-                                                            filters.filter ===
-                                                            'head'
-                                                        "
-                                                        @change="
-                                                            applyFilter('head')
-                                                        "
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Head</span
-                                                    >
-                                                </label>
-
-                                                <label
-                                                    for="filter-clerk"
-                                                    class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="filter"
-                                                        value="clerk"
-                                                        class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
-                                                        id="filter-clerk"
-                                                        :checked="
-                                                            filters.filter ===
-                                                            'clerk'
-                                                        "
-                                                        @change="
-                                                            applyFilter('clerk')
-                                                        "
-                                                    />
-                                                    <span
-                                                        class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                        >Clerk</span
-                                                    >
-                                                </label>
-                                            </div>
-                                        </div>
+                                        <label
+                                            for="filter-clerk"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="clerk"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-clerk"
+                                                :checked="
+                                                    filters.filter === 'clerk'
+                                                "
+                                                @change="applyFilter('clerk')"
+                                            />
+                                            <span
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >Clerk</span
+                                            >
+                                        </label>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <table
-                            class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
-                        >
-                            <thead class="bg-gray-50 dark:bg-neutral-800">
-                                <tr>
-                                    <TableHeader @sort="sort('id')">
-                                        ID
-                                    </TableHeader>
-                                    <TableHeader @click="sort('first_name')">
-                                        Full Name
-                                    </TableHeader>
-                                    <TableHeader @click="sort('email')">
-                                        Email
-                                    </TableHeader>
-                                    <TableHeader
-                                        @click="sort('contact_number')"
-                                    >
-                                        Contact Number
-                                    </TableHeader>
-                                    <TableHeader @click="sort('role')">
-                                        Role
-                                    </TableHeader>
-                                    <TableHeader> Verification </TableHeader>
-                                </tr>
-                            </thead>
-
-                            <tbody
-                                class="divide-y divide-gray-200 dark:divide-neutral-700"
-                            >
-                                <tr
-                                    v-if="users.data.length > 0"
-                                    v-for="user in users.data"
-                                    :key="user.id"
-                                    @click="
-                                        router.visit(
-                                            route(
-                                                'admin.user_management.show',
-                                                user.id,
-                                            ),
-                                        )
-                                    "
-                                    class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
-                                >
-                                    <TableData>{{ user.id }}</TableData>
-                                    <TableData>
-                                        {{ user.first_name }}
-                                        {{ user.middle_name }}
-                                        {{ user.last_name }}
-                                    </TableData>
-                                    <TableData>
-                                        {{ user.email }}
-                                    </TableData>
-                                    <TableData>
-                                        {{ user.contact_number }}
-                                    </TableData>
-                                    <TableData>
-                                        <span
-                                            class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
-                                            :class="{
-                                                'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500':
-                                                    user.role === 'admin',
-                                                'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
-                                                    user.role === 'head',
-                                                'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
-                                                    user.role === 'clerk',
-                                            }"
-                                        >
-                                            {{ user.role }}
-                                        </span>
-                                    </TableData>
-                                    <TableData>
-                                        <span
-                                            class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
-                                            :class="
-                                                user.email_verified_at
-                                                    ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500'
-                                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500'
-                                            "
-                                        >
-                                            {{
-                                                user.email_verified_at
-                                                    ? "Verified"
-                                                    : "Pending"
-                                            }}
-                                        </span>
-                                    </TableData>
-                                </tr>
-
-                                <tr v-else>
-                                    <td
-                                        colspan="6"
-                                        class="px-6 py-8 text-center"
-                                    >
-                                        <span
-                                            class="text-sm text-gray-500 dark:text-neutral-400"
-                                            >No users found</span
-                                        >
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
+                </div>
 
-                    <div
-                        class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
+                <div class="overflow-x-auto">
+                    <table
+                        class="min-w-[880px] lg:min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
                     >
-                        <div class="max-w-md space-y-3 space-x-1.5">
-                            <template v-if="users?.meta?.links">
-                                <component
-                                    v-for="link in users.meta.links"
-                                    :key="link.url ?? link.label"
-                                    :is="link.url ? Link : 'span'"
-                                    :href="link.url"
-                                    v-html="link.label"
-                                    preserve-scroll
-                                    :class="[
-                                        'py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-neutral-400',
-                                        link.active
-                                            ? 'text-green-500'
-                                            : 'text-gray-800 dark:text-neutral-400',
-                                    ]"
-                                />
-                            </template>
-                        </div>
+                        <thead class="bg-gray-50 dark:bg-neutral-800">
+                            <tr>
+                                <TableHeader @sort="sort('id')">
+                                    ID
+                                </TableHeader>
+                                <TableHeader @click="sort('first_name')">
+                                    Full Name
+                                </TableHeader>
+                                <TableHeader @click="sort('email')">
+                                    Email
+                                </TableHeader>
+                                <TableHeader @click="sort('contact_number')">
+                                    Contact Number
+                                </TableHeader>
+                                <TableHeader @click="sort('role')">
+                                    Role
+                                </TableHeader>
+                                <TableHeader> Verification </TableHeader>
+                            </tr>
+                        </thead>
+
+                        <tbody
+                            class="divide-y divide-gray-200 dark:divide-neutral-700"
+                        >
+                            <tr
+                                v-if="users.data.length > 0"
+                                v-for="user in users.data"
+                                :key="user.id"
+                                @click="
+                                    router.visit(
+                                        route(
+                                            'admin.user_management.show',
+                                            user.id,
+                                        ),
+                                    )
+                                "
+                                class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
+                            >
+                                <TableData>{{ user.id }}</TableData>
+                                <TableData>
+                                    {{ user.first_name }}
+                                    {{ user.middle_name }}
+                                    {{ user.last_name }}
+                                </TableData>
+                                <TableData>
+                                    {{ user.email }}
+                                </TableData>
+                                <TableData>
+                                    {{ user.contact_number }}
+                                </TableData>
+                                <TableData>
+                                    <span
+                                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
+                                        :class="{
+                                            'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500':
+                                                user.role === 'admin',
+                                            'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
+                                                user.role === 'head',
+                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
+                                                user.role === 'clerk',
+                                        }"
+                                    >
+                                        {{ user.role }}
+                                    </span>
+                                </TableData>
+                                <TableData>
+                                    <span
+                                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
+                                        :class="
+                                            user.email_verified_at
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500'
+                                                : 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500'
+                                        "
+                                    >
+                                        {{
+                                            user.email_verified_at
+                                                ? "Verified"
+                                                : "Pending"
+                                        }}
+                                    </span>
+                                </TableData>
+                            </tr>
+
+                            <tr v-else>
+                                <td colspan="6" class="px-6 py-8 text-center">
+                                    <span
+                                        class="text-sm text-gray-500 dark:text-neutral-400"
+                                        >No users found</span
+                                    >
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div
+                    class="px-6 py-4 grid gap-3 md:flex md:justify-between md:items-center border-t border-gray-200 dark:border-neutral-700"
+                >
+                    <div class="max-w-md space-y-3 space-x-1.5">
+                        <template v-if="users?.meta?.links">
+                            <component
+                                v-for="link in users.meta.links"
+                                :key="link.url ?? link.label"
+                                :is="link.url ? Link : 'span'"
+                                :href="link.url"
+                                v-html="link.label"
+                                preserve-scroll
+                                :class="[
+                                    'py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-neutral-400',
+                                    link.active
+                                        ? 'text-green-500'
+                                        : 'text-gray-800 dark:text-neutral-400',
+                                ]"
+                            />
+                        </template>
                     </div>
                 </div>
             </div>

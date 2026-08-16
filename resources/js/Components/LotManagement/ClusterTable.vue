@@ -34,6 +34,33 @@ const totalPages = computed(() => {
     return Math.ceil(filteredClusters.value.length / perPage.value);
 });
 
+const visiblePages = computed(() => {
+    const total = totalPages.value;
+    const current = currentPage.value;
+
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const candidates = new Set([1, total, current - 1, current, current + 1]);
+    const sorted = [...candidates]
+        .filter((page) => page >= 1 && page <= total)
+        .sort((a, b) => a - b);
+
+    const items = [];
+    let previous = 0;
+
+    for (const page of sorted) {
+        if (page - previous > 1) {
+            items.push("…");
+        }
+        items.push(page);
+        previous = page;
+    }
+
+    return items;
+});
+
 const goToPage = (page) => {
     if (page >= 1 && page <= totalPages.value) {
         currentPage.value = page;
@@ -192,173 +219,179 @@ onMounted(() => {
             </div>
         </div>
     </div>
-    <table
-        v-else
-        class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
-    >
-        <thead class="bg-gray-50 dark:bg-neutral-800">
-            <tr>
-                <TableHeader>Name</TableHeader>
-                <TableHeader>
-                    Occupants
-                    <span class="hs-tooltip inline-block ml-1">
-                        <span
-                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
-                            >*</span
-                        >
-                        <span
-                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
-                            role="tooltip"
-                        >
-                            Occupied lots by burial record
+    <div v-else class="overflow-x-auto">
+        <table
+            class="min-w-[880px] lg:min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
+        >
+            <thead class="bg-gray-50 dark:bg-neutral-800">
+                <tr>
+                    <TableHeader>Name</TableHeader>
+                    <TableHeader>
+                        Occupants
+                        <span class="hs-tooltip inline-block ml-1">
+                            <span
+                                class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                                >*</span
+                            >
+                            <span
+                                class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                                role="tooltip"
+                            >
+                                Occupied lots by burial record
+                            </span>
                         </span>
-                    </span>
-                </TableHeader>
-                <TableHeader>
-                    Total Lots
-                    <span class="hs-tooltip inline-block ml-1">
-                        <span
-                            class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
-                            >*</span
-                        >
-                        <span
-                            class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
-                            role="tooltip"
-                        >
-                            Allowed lots for cluster
+                    </TableHeader>
+                    <TableHeader>
+                        Total Lots
+                        <span class="hs-tooltip inline-block ml-1">
+                            <span
+                                class="hs-tooltip-toggle text-red-500 cursor-help font-bold"
+                                >*</span
+                            >
+                            <span
+                                class="hs-tooltip-content hs-tooltip-shown:opacity-100 hs-tooltip-shown:visible opacity-0 transition-opacity inline-block absolute invisible z-10 py-1 px-2 bg-gray-900 text-xs font-medium text-white rounded-md shadow-sm dark:bg-neutral-700"
+                                role="tooltip"
+                            >
+                                Allowed lots for cluster
+                            </span>
                         </span>
-                    </span>
-                </TableHeader>
-                <TableHeader>Type</TableHeader>
-                <TableHeader>Coordinate</TableHeader>
-                <TableHeader v-if="userRole === 'admin'">Actions</TableHeader>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-            <tr
-                v-for="cluster in paginatedClusters"
-                :key="cluster.id"
-                @click="emit('select-cluster', cluster)"
-                class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
-            >
-                <TableData>
-                    <input
-                        v-if="editingRow?.id === cluster.id"
-                        v-model="editingRow.name"
-                        @click.stop
-                        class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
-                    />
-                    <span v-else>{{ cluster.name }}</span>
-                </TableData>
-                <TableData>{{ cluster.occupants }}</TableData>
-                <TableData>
-                    <span>{{ cluster.total_lots }} / </span>
-                    <input
-                        v-if="editingRow?.id === cluster.id"
-                        v-model.number="editingRow.total_capacity"
-                        type="number"
-                        min="1"
-                        @click.stop
-                        class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
-                    />
-                    <span v-else>{{ cluster.total_capacity }}</span>
-                </TableData>
-                <TableData>
-                    <input
-                        v-if="editingRow?.id === cluster.id"
-                        v-model="editingRow.type"
-                        @click.stop
-                        class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
-                    />
-                    <span v-else>{{ cluster.type }}</span>
-                </TableData>
-                <TableData>
-                    <button
-                        v-if="editingRow?.id === cluster.id"
-                        @click.stop="openClusterCoordinateModal(cluster)"
-                        class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
+                    </TableHeader>
+                    <TableHeader>Type</TableHeader>
+                    <TableHeader>Coordinate</TableHeader>
+                    <TableHeader v-if="userRole === 'admin'"
+                        >Actions</TableHeader
                     >
-                        {{ cluster.isCluster_mapped ? "Edit" : "Add" }}
-                    </button>
-                    <button
-                        v-else-if="cluster.isCluster_mapped"
-                        @click.stop="redirectToMap(cluster.id)"
-                        class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
-                    >
-                        View on Map
-                    </button>
-                    <span v-else class="text-gray-500 dark:text-gray-600"
-                        >Not Mapped</span
-                    >
-                </TableData>
-                <TableData>
-                    <div
-                        v-if="editingRow?.id === cluster.id"
-                        class="flex gap-2"
-                    >
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
+                <tr
+                    v-for="cluster in paginatedClusters"
+                    :key="cluster.id"
+                    @click="emit('select-cluster', cluster)"
+                    class="transition cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
+                >
+                    <TableData>
+                        <input
+                            v-if="editingRow?.id === cluster.id"
+                            v-model="editingRow.name"
+                            @click.stop
+                            class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
+                        />
+                        <span v-else>{{ cluster.name }}</span>
+                    </TableData>
+                    <TableData>{{ cluster.occupants }}</TableData>
+                    <TableData>
+                        <span>{{ cluster.total_lots }} / </span>
+                        <input
+                            v-if="editingRow?.id === cluster.id"
+                            v-model.number="editingRow.total_capacity"
+                            type="number"
+                            min="1"
+                            @click.stop
+                            class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
+                        />
+                        <span v-else>{{ cluster.total_capacity }}</span>
+                    </TableData>
+                    <TableData>
+                        <input
+                            v-if="editingRow?.id === cluster.id"
+                            v-model="editingRow.type"
+                            @click.stop
+                            class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
+                        />
+                        <span v-else>{{ cluster.type }}</span>
+                    </TableData>
+                    <TableData>
                         <button
-                            @click.stop="saveEditRow"
-                            class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
-                        >
-                            Save
-                        </button>
-                        <button
-                            @click.stop="cancelEditRow"
-                            class="px-3 py-1 text-sm rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20 border border-gray-500/30 transition-all duration-200"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                    <div v-else-if="userRole === 'admin'" class="flex gap-2">
-                        <button
-                            @click.stop="startEditRow(cluster)"
+                            v-if="editingRow?.id === cluster.id"
+                            @click.stop="openClusterCoordinateModal(cluster)"
                             class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                         >
-                            Edit
+                            {{ cluster.isCluster_mapped ? "Edit" : "Add" }}
                         </button>
                         <button
-                            @click.stop="deleteCluster(cluster.id)"
-                            class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
+                            v-else-if="cluster.isCluster_mapped"
+                            @click.stop="redirectToMap(cluster.id)"
+                            class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M10 11v6" />
-                                <path d="M14 11v6" />
-                                <path
-                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
-                                />
-                                <path d="M3 6h18" />
-                                <path
-                                    d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                />
-                            </svg>
+                            View on Map
                         </button>
-                    </div>
-                </TableData>
-            </tr>
-        </tbody>
-    </table>
+                        <span v-else class="text-gray-500 dark:text-gray-600"
+                            >Not Mapped</span
+                        >
+                    </TableData>
+                    <TableData>
+                        <div
+                            v-if="editingRow?.id === cluster.id"
+                            class="flex gap-2"
+                        >
+                            <button
+                                @click.stop="saveEditRow"
+                                class="px-3 py-1 text-sm rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/30 transition-all duration-200"
+                            >
+                                Save
+                            </button>
+                            <button
+                                @click.stop="cancelEditRow"
+                                class="px-3 py-1 text-sm rounded-lg bg-gray-500/10 text-gray-400 hover:bg-gray-500/20 border border-gray-500/30 transition-all duration-200"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                        <div
+                            v-else-if="userRole === 'admin'"
+                            class="flex gap-2"
+                        >
+                            <button
+                                @click.stop="startEditRow(cluster)"
+                                class="px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                @click.stop="deleteCluster(cluster.id)"
+                                class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="20"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M10 11v6" />
+                                    <path d="M14 11v6" />
+                                    <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                    />
+                                    <path d="M3 6h18" />
+                                    <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </TableData>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
     <!-- Pagination -->
     <div
         v-if="!loading && filteredClusters.length > 0"
-        class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700 flex items-center justify-between"
+        class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
     >
         <div class="text-sm text-gray-600 dark:text-gray-400">
             Showing {{ (currentPage - 1) * perPage + 1 }} to
             {{ Math.min(currentPage * perPage, filteredClusters.length) }} of
             {{ filteredClusters.length }} clusters
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             <button
                 @click="goToPage(currentPage - 1)"
                 :disabled="currentPage === 1"
@@ -371,19 +404,25 @@ onMounted(() => {
             >
                 Previous
             </button>
-            <button
-                v-for="page in totalPages"
-                :key="page"
-                @click="goToPage(page)"
-                class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
-                :class="
-                    currentPage === page
-                        ? 'bg-green-500 text-white border-green-500'
-                        : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
-                "
-            >
-                {{ page }}
-            </button>
+            <template v-for="(item, index) in visiblePages" :key="index">
+                <span
+                    v-if="item === '…'"
+                    class="px-3 py-1 text-sm rounded-lg text-gray-400 dark:text-neutral-500"
+                    >…</span
+                >
+                <button
+                    v-else
+                    @click="goToPage(item)"
+                    class="px-3 py-1 text-sm rounded-lg border transition-all duration-200"
+                    :class="
+                        currentPage === item
+                            ? 'bg-green-500 text-white border-green-500'
+                            : 'bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-700'
+                    "
+                >
+                    {{ item }}
+                </button>
+            </template>
             <button
                 @click="goToPage(currentPage + 1)"
                 :disabled="currentPage === totalPages"

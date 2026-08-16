@@ -48,6 +48,10 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
 
+## UI Work
+
+- Whenever the user's request involves UI (layout, styling, responsiveness, components, templates, or pages), you MUST first read `UI_ADJUSTMENTS.md` at the project root. It logs every agreed UI decision and convention (e.g., chart components are self-contained cards, tables scroll internally below `lg`). Follow and preserve those decisions; append new entries to the log whenever you make a UI change.
+
 ## Documentation Files
 
 - You must only create documentation files if explicitly requested by the user.

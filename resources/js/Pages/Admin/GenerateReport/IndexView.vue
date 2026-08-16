@@ -142,7 +142,7 @@ const generateReport = () => {
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <div class="flex flex-col items-center">
             <div class="-m-1.5 overflow-x-auto">
-                <div class="p-1.5 min-w-[600px] inline-block align-middle">
+                <div class="p-1.5 w-full inline-block align-middle">
                     <div
                         class="flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-white/10 rounded-xl shadow-lg overflow-hidden"
                     >

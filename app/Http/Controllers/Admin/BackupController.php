@@ -25,7 +25,7 @@ class BackupController extends Controller
             ->sortByDesc('last_modified')
             ->values();
 
-        return Inertia::render('Admin/Backup/IndexView', [
+        return Inertia::render('Admin/DatabaseBackup/IndexView', [
             'backups' => $files,
         ]);
     }

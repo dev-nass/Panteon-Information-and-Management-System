@@ -249,15 +249,17 @@ defineOptions({
         </div>
 
         <!-- FILTER BAR -->
-        <div class="flex flex-wrap items-center justify-between gap-4">
+        <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
             <div
-                class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl"
+                class="flex flex-wrap gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
             >
                 <button
                     v-for="option in rangeOptions"
                     :key="option.value"
                     @click="changeRange(option.value)"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                    class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition"
                     :class="
                         range === option.value
                             ? 'bg-green-500 text-white'
@@ -285,7 +287,7 @@ defineOptions({
         </div>
 
         <!-- STAT CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
             <StatCard title="Actions Today" :value="stats.today_count" />
             <StatCard title="Actions This Week" :value="stats.week_count" />
             <StatCard title="Total Actions" :value="stats.total_count" />
@@ -330,18 +332,20 @@ defineOptions({
 
         <!-- LOG TABLE / BAR GRAPH TOGGLE -->
         <div class="space-y-3">
-            <div class="flex items-center justify-between gap-4">
+            <div
+                class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            >
                 <h3 class="font-semibold text-gray-800 dark:text-neutral-200">
                     Actions Per User
                 </h3>
                 <div
-                    class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl"
+                    class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
                 >
                     <button
                         v-for="view in ['table', 'bar']"
                         :key="view"
                         @click="perUserView = view"
-                        class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                        class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition"
                         :class="
                             perUserView === view
                                 ? 'bg-green-500 text-white'
@@ -377,169 +381,174 @@ defineOptions({
                     class="px-6 py-4 border-b border-gray-200 dark:border-neutral-700"
                 >
                     <Input
-                        class="max-w-md [&_input::-webkit-search-cancel-button]:hidden"
+                        class="w-full md:max-w-md [&_input::-webkit-search-cancel-button]:hidden"
                         v-model="userSearch"
                         type="search"
                         placeholder="Search user..."
                     />
                 </div>
-                <table
-                    class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
-                >
-                    <thead class="bg-gray-50 dark:bg-neutral-800">
-                        <tr>
-                            <TableHeader> Timestamp </TableHeader>
-                            <TableHeader> User </TableHeader>
-                            <TableHeader> Action </TableHeader>
-                            <TableHeader> Description </TableHeader>
-                            <TableHeader> Details </TableHeader>
-                        </tr>
-                    </thead>
-
-                    <tbody
-                        class="divide-y divide-gray-200 dark:divide-neutral-700"
+                <div class="overflow-x-auto">
+                    <table
+                        class="min-w-[880px] lg:min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
                     >
-                        <tr
-                            v-if="logs.data.length > 0"
-                            v-for="log in logs.data"
-                            :key="log.id"
-                            class="bg-white dark:bg-neutral-800"
+                        <thead class="bg-gray-50 dark:bg-neutral-800">
+                            <tr>
+                                <TableHeader> Timestamp </TableHeader>
+                                <TableHeader> User </TableHeader>
+                                <TableHeader> Action </TableHeader>
+                                <TableHeader> Description </TableHeader>
+                                <TableHeader> Details </TableHeader>
+                            </tr>
+                        </thead>
+
+                        <tbody
+                            class="divide-y divide-gray-200 dark:divide-neutral-700"
                         >
-                            <TableData>
-                                {{ formatTimestamp(log.created_at) }}
-                            </TableData>
-                            <TableData>
-                                <Link
-                                    v-if="log.user"
-                                    :href="
-                                        route(
-                                            'admin.user_management.show',
-                                            log.user.id,
-                                        )
-                                    "
-                                    class="text-green-600 dark:text-green-400 hover:underline"
-                                >
-                                    {{ log.user.first_name }}
-                                    {{ log.user.last_name }}
-                                </Link>
-                                <span
-                                    v-else
-                                    class="text-gray-500 dark:text-neutral-400"
-                                >
-                                    System
-                                </span>
-                            </TableData>
-                            <TableData>
-                                <span
-                                    class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
-                                    :class="actionBadge(log.action)"
-                                >
-                                    {{ actionLabels[log.action] ?? log.action }}
-                                </span>
-                            </TableData>
-                            <TableData>
-                                {{ log.description }}
-                            </TableData>
-                            <TableData>
-                                <details class="group">
-                                    <summary
-                                        class="cursor-pointer list-none text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
+                            <tr
+                                v-if="logs.data.length > 0"
+                                v-for="log in logs.data"
+                                :key="log.id"
+                                class="bg-white dark:bg-neutral-800"
+                            >
+                                <TableData>
+                                    {{ formatTimestamp(log.created_at) }}
+                                </TableData>
+                                <TableData>
+                                    <Link
+                                        v-if="log.user"
+                                        :href="
+                                            route(
+                                                'admin.user_management.show',
+                                                log.user.id,
+                                            )
+                                        "
+                                        class="text-green-600 dark:text-green-400 hover:underline"
                                     >
-                                        View
-                                    </summary>
-                                    <div
-                                        v-if="log.properties"
-                                        class="mt-2 w-80 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-xs space-y-3"
+                                        {{ log.user.first_name }}
+                                        {{ log.user.last_name }}
+                                    </Link>
+                                    <span
+                                        v-else
+                                        class="text-gray-500 dark:text-neutral-400"
                                     >
-                                        <div
-                                            v-if="
-                                                propertyEntries(
-                                                    log.properties,
-                                                    'old',
-                                                ).length > 0
-                                            "
+                                        System
+                                    </span>
+                                </TableData>
+                                <TableData>
+                                    <span
+                                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
+                                        :class="actionBadge(log.action)"
+                                    >
+                                        {{
+                                            actionLabels[log.action] ??
+                                            log.action
+                                        }}
+                                    </span>
+                                </TableData>
+                                <TableData>
+                                    {{ log.description }}
+                                </TableData>
+                                <TableData>
+                                    <details class="group">
+                                        <summary
+                                            class="cursor-pointer list-none text-sm font-medium text-green-600 dark:text-green-400 hover:underline"
                                         >
-                                            <p
-                                                class="mb-1 font-semibold text-gray-700 dark:text-neutral-300"
-                                            >
-                                                Old values
-                                            </p>
-                                            <ul
-                                                class="space-y-0.5 text-gray-600 dark:text-neutral-400"
-                                            >
-                                                <li
-                                                    v-for="[
-                                                        key,
-                                                        value,
-                                                    ] in propertyEntries(
+                                            View
+                                        </summary>
+                                        <div
+                                            v-if="log.properties"
+                                            class="mt-2 w-full max-w-80 p-3 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-xs space-y-3"
+                                        >
+                                            <div
+                                                v-if="
+                                                    propertyEntries(
                                                         log.properties,
                                                         'old',
-                                                    )"
-                                                    :key="key"
+                                                    ).length > 0
+                                                "
+                                            >
+                                                <p
+                                                    class="mb-1 font-semibold text-gray-700 dark:text-neutral-300"
                                                 >
-                                                    <span
-                                                        class="font-medium text-gray-700 dark:text-neutral-300"
-                                                        >{{ key }}:</span
+                                                    Old values
+                                                </p>
+                                                <ul
+                                                    class="space-y-0.5 text-gray-600 dark:text-neutral-400"
+                                                >
+                                                    <li
+                                                        v-for="[
+                                                            key,
+                                                            value,
+                                                        ] in propertyEntries(
+                                                            log.properties,
+                                                            'old',
+                                                        )"
+                                                        :key="key"
                                                     >
-                                                    {{ value ?? "—" }}
-                                                </li>
-                                            </ul>
-                                        </div>
-                                        <div
-                                            v-if="
-                                                propertyEntries(
-                                                    log.properties,
-                                                    'new',
-                                                ).length > 0
-                                            "
-                                        >
-                                            <p
-                                                class="mb-1 font-semibold text-gray-700 dark:text-neutral-300"
-                                            >
-                                                New values
-                                            </p>
-                                            <ul
-                                                class="space-y-0.5 text-gray-600 dark:text-neutral-400"
-                                            >
-                                                <li
-                                                    v-for="[
-                                                        key,
-                                                        value,
-                                                    ] in propertyEntries(
+                                                        <span
+                                                            class="font-medium text-gray-700 dark:text-neutral-300"
+                                                            >{{ key }}:</span
+                                                        >
+                                                        {{ value ?? "—" }}
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                            <div
+                                                v-if="
+                                                    propertyEntries(
                                                         log.properties,
                                                         'new',
-                                                    )"
-                                                    :key="key"
+                                                    ).length > 0
+                                                "
+                                            >
+                                                <p
+                                                    class="mb-1 font-semibold text-gray-700 dark:text-neutral-300"
                                                 >
-                                                    <span
-                                                        class="font-medium text-gray-700 dark:text-neutral-300"
-                                                        >{{ key }}:</span
+                                                    New values
+                                                </p>
+                                                <ul
+                                                    class="space-y-0.5 text-gray-600 dark:text-neutral-400"
+                                                >
+                                                    <li
+                                                        v-for="[
+                                                            key,
+                                                            value,
+                                                        ] in propertyEntries(
+                                                            log.properties,
+                                                            'new',
+                                                        )"
+                                                        :key="key"
                                                     >
-                                                    {{ value ?? "—" }}
-                                                </li>
-                                            </ul>
+                                                        <span
+                                                            class="font-medium text-gray-700 dark:text-neutral-300"
+                                                            >{{ key }}:</span
+                                                        >
+                                                        {{ value ?? "—" }}
+                                                    </li>
+                                                </ul>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <p
-                                        v-else
-                                        class="mt-2 text-xs text-gray-500 dark:text-neutral-400"
-                                    >
-                                        No property changes recorded
-                                    </p>
-                                </details>
-                            </TableData>
-                        </tr>
+                                        <p
+                                            v-else
+                                            class="mt-2 text-xs text-gray-500 dark:text-neutral-400"
+                                        >
+                                            No property changes recorded
+                                        </p>
+                                    </details>
+                                </TableData>
+                            </tr>
 
-                        <tr v-else>
-                            <td colspan="5" class="px-6 py-8 text-center">
-                                <span
-                                    class="text-sm text-gray-500 dark:text-neutral-400"
-                                    >No activity logs found</span
-                                >
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            <tr v-else>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <span
+                                        class="text-sm text-gray-500 dark:text-neutral-400"
+                                        >No activity logs found</span
+                                    >
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
                 <!-- PAGINATION -->
                 <div

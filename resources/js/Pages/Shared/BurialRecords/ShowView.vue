@@ -363,8 +363,10 @@ onBeforeUnmount(() => {
         >
             ← Back
         </button>
-        <div class="mb-6 flex items-center justify-between">
-            <div class="flex gap-x-3">
+        <div
+            class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+        >
+            <div class="flex gap-x-3 w-full lg:w-auto">
                 <div
                     class="flex items-center justify-center size-13 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
                 >
@@ -396,10 +398,10 @@ onBeforeUnmount(() => {
                 </article>
             </div>
 
-            <div>
+            <div class="w-full lg:w-auto">
                 <article
                     v-if="!editing"
-                    class="flex space-x-3 items-center justify-center"
+                    class="flex flex-wrap gap-x-3 gap-y-2 items-center"
                 >
                     <button
                         @click="redirectToMap"
@@ -497,7 +499,7 @@ onBeforeUnmount(() => {
                         COS
                     </Link>
                 </article>
-                <div class="flex gap-x-3">
+                <div class="flex flex-wrap gap-x-3 gap-y-2">
                     <button
                         v-if="editing"
                         :class="{
@@ -520,20 +522,24 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- Tabs -->
-        <div class="flex border-b border-gray-200 dark:border-neutral-700 mb-6">
-            <button
-                v-for="tab in tabs"
-                :key="tab.key"
-                @click="activeTab = tab.key"
-                class="px-4 py-2 text-sm font-medium transition"
-                :class="
-                    activeTab === tab.key
-                        ? 'border-b-2 border-green-500 text-green-600 dark:text-green-400'
-                        : 'text-gray-500 dark:text-gray-400 hover:text-green-500'
-                "
-            >
-                {{ tab.label }}
-            </button>
+        <div
+            class="mb-6 overflow-x-auto border-b border-gray-200 dark:border-neutral-700"
+        >
+            <div class="flex min-w-max">
+                <button
+                    v-for="tab in tabs"
+                    :key="tab.key"
+                    @click="activeTab = tab.key"
+                    class="px-4 py-2 text-sm font-medium whitespace-nowrap transition"
+                    :class="
+                        activeTab === tab.key
+                            ? 'border-b-2 border-green-500 text-green-600 dark:text-green-400'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-green-500'
+                    "
+                >
+                    {{ tab.label }}
+                </button>
+            </div>
         </div>
 
         <!-- Card Container -->

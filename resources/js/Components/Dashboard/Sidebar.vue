@@ -399,29 +399,6 @@ const handleLogout = () => {
                                     </svg>
                                     Profile
                                 </Link>
-                                <a
-                                    class="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-100 dark:hover:bg-neutral-800 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100 dark:focus:bg-neutral-800"
-                                    href="#"
-                                >
-                                    <svg
-                                        class="shrink-0 size-4"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    >
-                                        <path
-                                            d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-                                        />
-                                        <circle cx="12" cy="12" r="3" />
-                                    </svg>
-                                    Settings
-                                </a>
                                 <button
                                     @click="handleLogout"
                                     class="w-full flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-red-50 dark:focus:bg-red-900/20"
@@ -637,9 +614,7 @@ const handleLogout = () => {
                 <li v-if="user.role === 'admin'">
                     <SidebarLink
                         :href="route('admin.backup.index')"
-                        :isActive="
-                            page.component === 'Admin/Backup/IndexView'
-                        "
+                        :isActive="page.component === 'Admin/DatabaseBackup/IndexView'"
                     >
                         <template v-slot:icon>
                             <span
@@ -663,7 +638,7 @@ const handleLogout = () => {
                                 </svg>
                             </span>
                         </template>
-                        <template v-slot:text> Backup </template>
+                        <template v-slot:text> Database Backup </template>
                     </SidebarLink>
                 </li>
 
