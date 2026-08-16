@@ -261,7 +261,9 @@ defineOptions({
 <template>
     <div class="p-6 space-y-6">
         <!-- HEADER WITH TABS -->
-        <div class="flex items-center justify-between">
+        <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
             <div>
                 <h1
                     class="text-3xl font-bold text-green-600 dark:text-green-400"
@@ -273,13 +275,13 @@ defineOptions({
                 </p>
             </div>
             <div
-                class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl"
+                class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
             >
                 <button
                     v-for="tab in ['summary', 'phases', 'clusters']"
                     :key="tab"
                     @click="changeTab(tab)"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                    class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium transition"
                     :class="
                         activeTab === tab
                             ? 'bg-green-500 text-white'
@@ -294,16 +296,16 @@ defineOptions({
         <!-- FILTER TABS AND YEAR SELECTOR (Only for Summary) -->
         <div
             v-if="activeTab === 'summary'"
-            class="flex items-center justify-between gap-4"
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
         >
             <div
-                class="flex gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-fit"
+                class="flex flex-wrap gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
             >
                 <button
                     v-for="filter in ['today', 'weekly', 'monthly', 'yearly']"
                     :key="filter"
                     @click="changeFilter(filter)"
-                    class="px-4 py-2 rounded-lg text-sm font-medium transition"
+                    class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition"
                     :class="
                         activeFilter === filter
                             ? 'bg-green-500 text-white'
@@ -314,7 +316,7 @@ defineOptions({
                 </button>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 w-fit">
                 <label
                     class="text-sm font-medium text-gray-600 dark:text-gray-300"
                 >
@@ -337,7 +339,7 @@ defineOptions({
         </div>
 
         <!-- STAT CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
                 title="Total Burial Records"
                 :value="stats.total_burial_records.toString()"
@@ -357,70 +359,54 @@ defineOptions({
         </div>
 
         <!-- SUMMARY TAB CONTENT -->
-        <div v-if="activeTab === 'summary'" class="grid lg:grid-cols-3 gap-6">
+        <div
+            v-if="activeTab === 'summary'"
+            class="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6"
+        >
             <!-- LEFT COLUMN -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-2 space-y-3">
                 <!-- ACTIVITY CHART -->
-                <div class="dashboard-card">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-semibold">
-                            {{
-                                activeFilter === "today"
-                                    ? "Today Activity"
-                                    : activeFilter === "weekly"
-                                      ? "Weekly Activity"
-                                      : activeFilter === "yearly"
-                                        ? "Yearly Activity"
-                                        : "Monthly Activity"
-                            }}
-                        </h3>
-                    </div>
-
-                    <div class="h-80">
-                        <BarChart
-                            v-if="performanceData"
-                            :chartData="performanceData"
-                            :chartOptions="performanceOptions"
-                        />
-                    </div>
-                </div>
+                <h3 class="font-semibold">
+                    {{
+                        activeFilter === "today"
+                            ? "Today Activity"
+                            : activeFilter === "weekly"
+                              ? "Weekly Activity"
+                              : activeFilter === "yearly"
+                                ? "Yearly Activity"
+                                : "Monthly Activity"
+                    }}
+                </h3>
+                <BarChart
+                    v-if="performanceData"
+                    :chartData="performanceData"
+                    :chartOptions="performanceOptions"
+                />
             </div>
 
             <!-- RIGHT COLUMN -->
-            <div class="space-y-6">
+            <div class="space-y-3">
                 <!-- STATISTICS OVERVIEW -->
-                <div class="dashboard-card">
-                    <h3 class="mb-4 font-semibold">Statistics Overview</h3>
-
-                    <div class="h-64">
-                        <DoughnutChart
-                            :chartData="attendanceData"
-                            :chartOptions="attendanceOptions"
-                        />
-                    </div>
-                </div>
+                <h3 class="font-semibold">Statistics Overview</h3>
+                <DoughnutChart
+                    :chartData="attendanceData"
+                    :chartOptions="attendanceOptions"
+                />
             </div>
         </div>
 
         <!-- PHASES TAB CONTENT -->
-        <div v-if="activeTab === 'phases'" class="space-y-6">
-            <div class="dashboard-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold">Phase Occupancy</h3>
-                </div>
-
-                <div class="h-96">
-                    <HorizontalBarChart
-                        v-if="phaseOccupancyData"
-                        :chartData="phaseOccupancyData"
-                        :chartOptions="phaseOccupancyOptions"
-                    />
-                </div>
-            </div>
+        <div v-if="activeTab === 'phases'" class="space-y-3">
+            <h3 class="font-semibold">Phase Occupancy</h3>
+            <HorizontalBarChart
+                v-if="phaseOccupancyData"
+                :chartData="phaseOccupancyData"
+                :chartOptions="phaseOccupancyOptions"
+            />
         </div>
 
         <!-- CLUSTERS TAB CONTENT -->
-        <div v-if="activeTab === 'clusters'" class="space-y-6">
+        <div v-if="activeTab === 'clusters'" class="space-y-3">
             <div class="flex items-center gap-6 flex-wrap">
                 <div class="flex items-center gap-2">
                     <label
@@ -462,29 +448,22 @@ defineOptions({
                 </div>
             </div>
 
-            <div class="dashboard-card">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-semibold">Cluster Occupancy</h3>
-                </div>
+            <h3 class="font-semibold">Cluster Occupancy</h3>
 
-                <div
-                    v-if="
-                        clusterOccupancyData &&
-                        clusterOccupancyData.labels.length > 0
-                    "
-                >
-                    <HorizontalBarChart
-                        :chartData="clusterOccupancyData"
-                        :chartOptions="clusterOccupancyOptions"
-                        :height="clusterChartHeight"
-                    />
-                </div>
-                <div
-                    v-else
-                    class="text-center py-12 text-gray-500 dark:text-gray-400"
-                >
-                    No clusters found
-                </div>
+            <HorizontalBarChart
+                v-if="
+                    clusterOccupancyData &&
+                    clusterOccupancyData.labels.length > 0
+                "
+                :chartData="clusterOccupancyData"
+                :chartOptions="clusterOccupancyOptions"
+                :height="clusterChartHeight"
+            />
+            <div
+                v-else
+                class="h-100 flex items-center justify-center rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-gray-400"
+            >
+                No clusters found
             </div>
 
             <div
