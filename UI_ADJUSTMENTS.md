@@ -118,3 +118,12 @@ Same treatment as the Admin Dashboard (§2):
 | 2026-08-16 | 12 | Burial Records Show: name full-width + action buttons below on <lg, wrapping buttons, scrollable tabs |
 | 2026-08-16 | 13 | Clerk Dashboard: stacked header below md, 2-col stat cards on small, wrapping card headers + schedule rows |
 | 2026-08-16 | 14 | Settings Profile/Security: Preferences moved to sidebar bottom with divider, sidebar stacks/wraps below lg, form fields single-col on mobile |
+| 2026-08-18 | 17 | Certificate Templates (new): upload card + list with Fields Mapped badges, table scroll containment; Field Editor: per-page PDF canvas + overlay boxes, wrapping toolbar with Add Box toggle/field select/Save; COS Show: template dropdown + field-count label, Generating… button state |
+
+## 17. Certificate Templates — Index & Editor — `resources/js/Pages/Clerk/CertificateTemplate/IndexView.vue`, `EditorView.vue`
+
+- **Upload card**: same responsive treatment as Import Records (§11) — `w-full sm:max-w-[650px]`, wrapping header, reduced drop-area padding below `sm` (`p-8 sm:p-[3rem]`), wrapping action row.
+- **Table scroll containment**: same treatment as §5–§10 — only the table scrolls (`overflow-x-auto`, `min-w-[880px] lg:min-w-full`); header with count badge stays fixed. Fields Mapped column uses green "N fields" / yellow "Not set yet" badges.
+- **Editor toolbar**: wraps below `md` (`flex-wrap`); Add Box toggle, selected-box field `<select>`, Delete Box, unassigned-count badge, and Save sit in one row at `lg+`.
+- **PDF pages**: each page renders at 1.5× into a bordered card with page-number header; the fabric overlay is absolutely positioned over it so boxes scale with the page.
+- **COS Show**: template `<select>` is full-width (`md:col-span-2`) with helper text; error text under the dropdown; Generate shows "Generating…" and is disabled while filling.

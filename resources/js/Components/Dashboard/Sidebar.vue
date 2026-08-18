@@ -47,6 +47,10 @@ const roleRoutes = {
             route: "clerk.burial_records.index",
             component: "Shared/BurialRecords/IndexView",
         },
+        certificate_templates: {
+            route: "clerk.certificate_templates.index",
+            component: "Clerk/CertificateTemplate/IndexView",
+        },
     },
 };
 
@@ -802,6 +806,44 @@ const handleLogout = () => {
                             </svg>
                         </template>
                         <template v-slot:text> Burial Records </template>
+                    </SidebarLink>
+                </li>
+                <li v-if="user.role === 'clerk'">
+                    <SidebarLink
+                        :href="
+                            route(
+                                roleRoutes[userRole].certificate_templates
+                                    .route,
+                            )
+                        "
+                        :isActive="
+                            page.component ===
+                            'Clerk/CertificateTemplate/IndexView'
+                        "
+                    >
+                        <template v-slot:icon>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-file-text-icon lucide-file-text"
+                            >
+                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                                <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                                <path d="M10 9H8" />
+                                <path d="M16 13H8" />
+                                <path d="M16 17H8" />
+                            </svg>
+                        </template>
+                        <template v-slot:text>
+                            Certificate Templates
+                        </template>
                     </SidebarLink>
                 </li>
 

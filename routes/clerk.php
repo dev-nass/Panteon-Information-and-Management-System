@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\BurialScheduleApiController;
 use App\Http\Controllers\Clerk\BurialRecordController;
 use App\Http\Controllers\Clerk\BurialScheduleController;
+use App\Http\Controllers\Clerk\CertificateTemplateController;
 use App\Http\Controllers\Clerk\CertificatieOfServiceController;
 use App\Http\Controllers\Clerk\DashboardController;
 use App\Http\Controllers\Clerk\LotManagementController;
@@ -39,6 +40,13 @@ Route::prefix('clerk')
         Route::controller(CertificatieOfServiceController::class)->group(function () {
             Route::get('/burial-records/{burial_record}/certificate-of-service', 'show')->name('certificate_of_service.show');
             Route::post('/burial-records/{burial_record}/certificate-of-service', 'generate')->name('certificate_of_service.generate');
+        });
+
+        Route::controller(CertificateTemplateController::class)->group(function () {
+            Route::get('/certificate-templates', 'index')->name('certificate_templates.index');
+            Route::post('/certificate-templates', 'store')->name('certificate_templates.store');
+            Route::get('/certificate-templates/{certificate_template}/file', 'file')->name('certificate_templates.file');
+            Route::delete('/certificate-templates/{certificate_template}', 'destroy')->name('certificate_templates.destroy');
         });
 
         Route::controller(LotManagementController::class)->group(function () {
