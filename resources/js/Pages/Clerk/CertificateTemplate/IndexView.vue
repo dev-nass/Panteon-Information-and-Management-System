@@ -6,6 +6,7 @@ import { useToast } from "vue-toast-notification";
 
 import Button from "@/Components/Form/Button.vue";
 import Input from "@/Components/Form/Input.vue";
+import Modal from "@/Components/Modal.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 
 defineOptions({
@@ -25,6 +26,7 @@ const fileError = ref("");
 const isDragging = ref(false);
 const isUploading = ref(false);
 const isDeleting = ref(null);
+const previewTemplate = ref(null);
 
 watch(
     () => page.props.flash,
@@ -325,9 +327,7 @@ const formatDate = (date) =>
                                         <path
                                             d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
                                         />
-                                        <polyline
-                                            points="14 2 14 8 20 8"
-                                        />
+                                        <polyline points="14 2 14 8 20 8" />
                                     </svg>
                                 </div>
                                 <div>
@@ -405,7 +405,9 @@ const formatDate = (date) =>
                 </div>
 
                 <div v-if="!templates || templates.length === 0" class="p-8">
-                    <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+                    <p
+                        class="text-center text-sm text-gray-500 dark:text-gray-400"
+                    >
                         No templates uploaded yet. Upload a .pdf template above.
                     </p>
                 </div>
@@ -464,34 +466,67 @@ const formatDate = (date) =>
                                     {{ formatDate(template.created_at) }}
                                 </td>
                                 <td class="px-6 py-4 text-end">
-                                    <button
-                                        type="button"
-                                        @click="deleteTemplate(template)"
-                                        :disabled="isDeleting === template.id"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            stroke-width="2"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
+                                    <div class="flex gap-2 justify-end">
+                                        <button
+                                            type="button"
+                                            :data-hs-overlay="'#preview-template-modal'"
+                                            @click="previewTemplate = template"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                                         >
-                                            <path d="M3 6h18" />
-                                            <path
-                                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
-                                            />
-                                            <path
-                                                d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                            />
-                                        </svg>
-                                        <span v-if="isDeleting === template.id">Deleting...</span>
-                                        <span v-else>Delete</span>
-                                    </button>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path
+                                                    d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+                                                />
+                                                <circle cx="12" cy="12" r="3" />
+                                            </svg>
+                                            Preview
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="deleteTemplate(template)"
+                                            :disabled="
+                                                isDeleting === template.id
+                                            "
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="16"
+                                                height="16"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="2"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M3 6h18" />
+                                                <path
+                                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                                />
+                                                <path
+                                                    d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                                />
+                                            </svg>
+                                            <span
+                                                v-if="
+                                                    isDeleting === template.id
+                                                "
+                                                >Deleting...</span
+                                            >
+                                            <span v-else>Delete</span>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -500,4 +535,29 @@ const formatDate = (date) =>
             </div>
         </div>
     </div>
+
+    <!-- Template Preview Modal -->
+    <Modal id="preview-template-modal" size="screen" no-padding>
+        <template #main>
+            <div class="w-full h-full">
+                <h3
+                    :id="'preview-template-modal-label'"
+                    class="px-6 pt-4 pb-2 text-lg font-semibold text-gray-800 dark:text-gray-200 text-start"
+                >
+                    {{ previewTemplate?.name }}
+                </h3>
+                <iframe
+                    v-if="previewTemplate"
+                    :src="
+                        route(
+                            'clerk.certificate_templates.file',
+                            previewTemplate.id,
+                        )
+                    "
+                    class="w-full h-[80vh] rounded-xl"
+                    title="Template preview"
+                />
+            </div>
+        </template>
+    </Modal>
 </template>
