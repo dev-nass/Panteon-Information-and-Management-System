@@ -5,18 +5,19 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('imported_logs', function (Blueprint $table) {
+        Schema::create('imported_excel_logs', function (Blueprint $table) {
             $table->id();
 
             $table->string('file_name');
             $table->enum('status', ['pending', 'processing', 'successful', 'failed'])
-                  ->default('pending');
+                ->default('pending');
 
             $table->foreignIdFor(User::class, 'imported_by')->nullable()->constrained()->nullOnDelete();
 

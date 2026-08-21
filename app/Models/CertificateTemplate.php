@@ -15,19 +15,8 @@ class CertificateTemplate extends Model
     protected $fillable = [
         'name',
         'file_path',
-        'fields',
         'uploaded_by',
     ];
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'fields' => 'array',
-        ];
-    }
 
     /**
      * @return BelongsTo<User, $this>

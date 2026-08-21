@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(User::class, 'user_id')->nullable()->constrained()->nullOnDelete();
-            $table->enum('action', ['created', 'updated', 'deleted', 'role_changed', 'imported']);
+            $table->enum('action', ['created', 'updated', 'deleted', 'role_changed', 'imported', 'generated']);
             $table->string('subject_type');
             $table->unsignedBigInteger('subject_id');
             $table->text('description');

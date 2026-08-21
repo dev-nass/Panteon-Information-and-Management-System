@@ -49,8 +49,6 @@ it('requires authentication to access certificate template pages', function () {
 
     $this->delete(route('clerk.certificate_templates.destroy', 1))->assertRedirect(route('login'));
 
-    $this->get(route('clerk.certificate_templates.editor', 1))->assertRedirect(route('login'));
-
     $this->get(route('clerk.certificate_templates.file', 1))->assertRedirect(route('login'));
 });
 
@@ -64,10 +62,6 @@ it('only allows clerks to access certificate template pages', function () {
         ->assertForbidden();
 
     $template = CertificateTemplate::factory()->create();
-
-    actingAs($this->admin)
-        ->get(route('clerk.certificate_templates.editor', $template))
-        ->assertForbidden();
 
     actingAs($this->admin)
         ->delete(route('clerk.certificate_templates.destroy', $template))
@@ -140,60 +134,6 @@ it('rejects an oversized pdf upload', function () {
         ->assertSessionHasErrors('file');
 
     expect(CertificateTemplate::count())->toBe(0);
-});
-
-it('shows the editor with saved field mappings', function () {
-    $template = CertificateTemplate::factory()->create([
-        'name' => 'COS Standard',
-        'fields' => [
-            ['field' => 'deceased_name', 'page' => 0, 'x' => 100, 'y' => 200, 'w' => 300, 'h' => 20],
-        ],
-    ]);
-
-    actingAs($this->clerk)
-        ->get(route('clerk.certificate_templates.editor', $template))
-        ->assertSuccessful()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Clerk/CertificateTemplate/EditorView')
-            ->where('template.name', 'COS Standard')
-            ->where('template.fields.0.field', 'deceased_name'));
-});
-
-it('saves field mappings', function () {
-    $template = CertificateTemplate::factory()->create();
-
-    actingAs($this->clerk)
-        ->put(route('clerk.certificate_templates.fields', $template), [
-            'fields' => [
-                ['field' => 'deceased_name', 'page' => 0, 'x' => 100.5, 'y' => 200, 'w' => 300, 'h' => 20],
-                ['field' => 'relationship', 'page' => 1, 'x' => 50, 'y' => 60, 'w' => 120, 'h' => 15],
-            ],
-        ])
-        ->assertRedirect()
-        ->assertSessionHas('success', 'Template fields saved.');
-
-    $template->refresh();
-
-    expect($template->fields)->toBe([
-        ['field' => 'deceased_name', 'page' => 0, 'x' => 100.5, 'y' => 200, 'w' => 300, 'h' => 20],
-        ['field' => 'relationship', 'page' => 1, 'x' => 50, 'y' => 60, 'w' => 120, 'h' => 15],
-    ]);
-});
-
-it('rejects invalid field mappings', function () {
-    $template = CertificateTemplate::factory()->create();
-
-    actingAs($this->clerk)
-        ->put(route('clerk.certificate_templates.fields', $template), [
-            'fields' => [
-                ['field' => 'not_a_real_field', 'page' => 0, 'x' => 100, 'y' => 200, 'w' => 300, 'h' => 20],
-            ],
-        ])
-        ->assertSessionHasErrors('fields.0.field');
-
-    $template->refresh();
-
-    expect($template->fields)->toBeNull();
 });
 
 it('streams the template file for download', function () {

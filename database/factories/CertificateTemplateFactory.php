@@ -21,7 +21,6 @@ class CertificateTemplateFactory extends Factory
         return [
             'name' => fake()->words(3, true),
             'file_path' => 'certificate_templates/'.fake()->uuid().'.pdf',
-            'fields' => null,
             'uploaded_by' => User::factory(),
         ];
     }

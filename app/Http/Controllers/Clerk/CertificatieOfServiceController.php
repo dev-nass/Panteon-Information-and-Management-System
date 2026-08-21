@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Clerk;
 use App\Http\Controllers\Controller;
 use App\Models\BurialRecord;
 use App\Models\CertificateTemplate;
+use App\Traits\LogsActivity;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use setasign\Fpdi\Fpdi;
 
 class CertificatieOfServiceController extends Controller
 {
+    use LogsActivity;
+
     public function show(BurialRecord $burial_record)
     {
         $burial_record->load([
@@ -29,7 +33,6 @@ class CertificatieOfServiceController extends Controller
             ->map(fn (CertificateTemplate $template) => [
                 'id' => $template->id,
                 'name' => $template->name,
-                'fields' => $template->fields ?? [],
             ]);
 
         return Inertia::render('Clerk/CertificateOfService/ShowView', [
@@ -68,7 +71,16 @@ class CertificatieOfServiceController extends Controller
             'data' => $data,
         ])->output();
 
+        $description = "Generated certificate of service for {$data['deceased_name']}";
+
+        if (! empty($data['template_id'])) {
+            $templateName = CertificateTemplate::find($data['template_id'])?->name;
+            $description .= " using template \"{$templateName}\"";
+        }
+
         if (empty($data['template_id'])) {
+            $this->logActivity('generated', $burial_record, $description);
+
             return response($contentPdf, 200, [
                 'Content-Type' => 'application/pdf',
                 'Content-Disposition' => 'attachment; filename="certificate_of_service_'.$burial_record->id.'.pdf"',
@@ -82,7 +94,7 @@ class CertificatieOfServiceController extends Controller
         $contentTmp = tempnam(sys_get_temp_dir(), 'cos_content_');
         file_put_contents($contentTmp, $contentPdf);
 
-        $fpdi = new \setasign\Fpdi\Fpdi();
+        $fpdi = new Fpdi;
         $fpdi->SetAutoPageBreak(false);
 
         // Use template page count as the page driver
@@ -90,7 +102,7 @@ class CertificatieOfServiceController extends Controller
 
         for ($p = 1; $p <= $templatePageCount; $p++) {
             $bgTpl = $fpdi->importPage($p);
-            $size  = $fpdi->getTemplateSize($bgTpl);
+            $size = $fpdi->getTemplateSize($bgTpl);
 
             $fpdi->AddPage(
                 $size['width'] > $size['height'] ? 'L' : 'P',
@@ -117,6 +129,8 @@ class CertificatieOfServiceController extends Controller
 
         $filename = 'certificate_of_service_'.$burial_record->id.'.pdf';
 
+        $this->logActivity('generated', $burial_record, $description);
+
         return response($fpdi->Output('S', $filename), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
@@ -135,6 +149,7 @@ class CertificatieOfServiceController extends Controller
             escapeshellarg($out),
             escapeshellarg($sourcePath)
         ));
+
         return $out;
     }
 }
