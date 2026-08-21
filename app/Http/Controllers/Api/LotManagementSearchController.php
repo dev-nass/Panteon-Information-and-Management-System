@@ -4,33 +4,31 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ClusterResource;
-use App\Http\Resources\PhaseResource;
 use App\Http\Resources\LotResource;
+use App\Http\Resources\PhaseResource;
 use App\Models\Cluster;
-use App\Models\Phase;
 use App\Models\Lot;
+use App\Models\Phase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LotManagementSearchController extends Controller
 {
-
     /**
      * Description: Fetch phase by phase_id
      */
-    public function phase()
+    public function phase(Request $request)
     {
-        $phaseId = request('phase_id');
-
-        if (!$phaseId) {
-            return PhaseResource::collection([]);
-        }
+        $validated = $request->validate([
+            'phase_id' => 'required|integer',
+        ]);
 
         $phase = DB::table('phases')
-            ->where('id', $phaseId)
+            ->where('id', $validated['phase_id'])
             ->select('id', 'phase_name', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->first();
 
-        if (!$phase) {
+        if (! $phase) {
             return PhaseResource::collection([]);
         }
 
@@ -43,20 +41,18 @@ class LotManagementSearchController extends Controller
     /**
      * Description: Fetch cluster by cluster_id
      */
-    public function cluster()
+    public function cluster(Request $request)
     {
-        $clusterId = request('cluster_id');
-
-        if (!$clusterId) {
-            return ClusterResource::collection([]);
-        }
+        $validated = $request->validate([
+            'cluster_id' => 'required|integer',
+        ]);
 
         $cluster = DB::table('clusters')
-            ->where('id', $clusterId)
+            ->where('id', $validated['cluster_id'])
             ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->first();
 
-        if (!$cluster) {
+        if (! $cluster) {
             return ClusterResource::collection([]);
         }
 
@@ -67,7 +63,7 @@ class LotManagementSearchController extends Controller
                 $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
             },
             'lots.burialRecords.deceasedRecord',
-            'lots.burialRecords.user'
+            'lots.burialRecords.user',
         ]);
 
         return ClusterResource::collection([$clusterModel]);
@@ -76,20 +72,18 @@ class LotManagementSearchController extends Controller
     /**
      * Description: Fetch lot by lot_id
      */
-    public function lot()
+    public function lot(Request $request)
     {
-        $lotId = request('lot_id');
-
-        if (!$lotId) {
-            return LotResource::collection([]);
-        }
+        $validated = $request->validate([
+            'lot_id' => 'required|integer',
+        ]);
 
         $lot = DB::table('lots')
-            ->where('id', $lotId)
+            ->where('id', $validated['lot_id'])
             ->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->first();
 
-        if (!$lot) {
+        if (! $lot) {
             return LotResource::collection([]);
         }
 
@@ -97,7 +91,7 @@ class LotManagementSearchController extends Controller
         $lotModel->coordinates = $lot->coordinates;
         $lotModel->load([
             'burialRecords.deceasedRecord',
-            'burialRecords.user'
+            'burialRecords.user',
         ]);
 
         return LotResource::collection([$lotModel]);

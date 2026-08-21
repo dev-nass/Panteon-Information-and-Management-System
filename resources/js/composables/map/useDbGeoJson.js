@@ -32,7 +32,9 @@ export function useDbGeoJson() {
         }
 
         try {
-            const response = await fetch(route("api.map.phases"));
+            const response = await fetch(route("api.map.phases"), {
+                credentials: "same-origin",
+            });
 
             if (!response.ok) {
                 throw new Error("Failed to fetch phases");
@@ -91,7 +93,8 @@ export function useDbGeoJson() {
                     minLng: bounds.getWest(),
                     maxLng: bounds.getEast(),
                     zoom: currentZoom,
-                })
+                }),
+                { credentials: "same-origin" }
             );
 
             const json = await response.json();

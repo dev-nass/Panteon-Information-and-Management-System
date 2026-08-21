@@ -77,6 +77,7 @@ const fetchClusters = async () => {
     try {
         const response = await fetch(
             route("api.lot.management.clusters", props.phaseId),
+            { credentials: "same-origin" }
         );
         const data = await response.json();
         clusters.value = data;

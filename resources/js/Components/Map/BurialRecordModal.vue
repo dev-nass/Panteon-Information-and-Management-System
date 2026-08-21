@@ -42,6 +42,7 @@ watch(
         try {
             const response = await fetch(
                 route("api.map.cluster.burials", { clusterId: newClusterId }),
+                { credentials: "same-origin" }
             );
             const data = await response.json();
             fetchedFeature.value = data.data;

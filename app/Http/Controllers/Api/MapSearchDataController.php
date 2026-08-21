@@ -5,19 +5,24 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ClusterResource;
 use App\Models\Cluster;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MapSearchDataController extends Controller
 {
-
     /**
      * TODO: Create a two function for search, one for user side and the this existing is for clerk
      * TODO: Remember to also fetch the pathways and junctions later on
      */
-    public function search()
+    public function search(Request $request)
     {
-        $search = request('search');
-        $burialId = request('burial_id');
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'burial_id' => 'nullable|integer',
+        ]);
+
+        $search = $validated['search'] ?? null;
+        $burialId = $validated['burial_id'] ?? null;
 
         // If burial_id is provided, fetch specific cluster for that burial
         if ($burialId) {
@@ -25,7 +30,7 @@ class MapSearchDataController extends Controller
                 ->where('id', $burialId)
                 ->value('lot_id');
 
-            if (!$lotId) {
+            if (! $lotId) {
                 return ClusterResource::collection([]);
             }
 
@@ -38,7 +43,7 @@ class MapSearchDataController extends Controller
                 ->select('id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
                 ->first();
 
-            if (!$cluster) {
+            if (! $cluster) {
                 return ClusterResource::collection([]);
             }
 
@@ -50,7 +55,7 @@ class MapSearchDataController extends Controller
                         ->where('id', $lotId);
                 },
                 'lots.burialRecords.deceasedRecord',
-                'lots.burialRecords.user'
+                'lots.burialRecords.user',
             ]);
 
             return ClusterResource::collection([$clusterModel]);
@@ -87,8 +92,9 @@ class MapSearchDataController extends Controller
                             ->whereIn('id', $lotIds);
                     },
                     'lots.burialRecords.deceasedRecord',
-                    'lots.burialRecords.user'
+                    'lots.burialRecords.user',
                 ]);
+
                 return $clusterModel;
             });
 
