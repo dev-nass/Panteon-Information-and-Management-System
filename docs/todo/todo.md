@@ -42,14 +42,14 @@
 
 ### Most Priority
 
-- Certificate of Service
+- [x] Certificate of Service
     - Should be .docs where they can freely change; No hard
       coding the design.
-- Separate page for log/activity reporting
+- [x] Separate page for log/activity reporting
     - Database Backup (.sql) schema
     - Proper filtering showing all logs, not just
       per page.
-- Database backup process
+- [x] Database backup process
 - Analytics
 - Account activation for admin side
 - UI admin dashboards
