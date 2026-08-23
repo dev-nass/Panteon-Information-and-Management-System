@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BurialRecordIndexRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\User;
 use App\Services\BurialRecordService;
@@ -105,26 +106,16 @@ class UserManagementController extends Controller
             ->with('success', 'User deleted successfully');
     }
 
-    public function show(Request $request, User $user)
+    public function show(BurialRecordIndexRequest $request, User $user)
     {
-        $search = $request->search;
-        $filter = $request->filter ?? 'all';
-        $disposal = $request->disposal;
-
-        $allowedSorts = [
-            'id',
-            'deceased_first_name',
-            'deceased_date_of_birth',
-            'deceased_date_of_death',
-            'deceased_date_of_depository',
-        ];
-        $sortField = in_array($request->sort_field, $allowedSorts)
-            ? $request->sort_field
-            : 'id';
-
-        $sortDirection = $request->sort_direction ?? 'desc';
-
-        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter, $disposal, $user->id);
+        $burialRecords = $this->service->index(
+            $request->sortField(),
+            $request->sortDirection(),
+            $request->search,
+            $request->filterValue(),
+            $request->disposal,
+            $user->id,
+        );
 
         return Inertia::render('Admin/UserManagement/ShowView', [
             'user_data' => $user->loadCount('burialRecords'),
