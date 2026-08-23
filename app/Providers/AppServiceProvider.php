@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(10)->by($request->input('email') . '|' . $request->ip())
+            return Limit::perMinute(10)->by($request->input('email').'|'.$request->ip())
                 ->response(function () {
                     return back()->withErrors([
                         'email' => 'Too many login attempts. Please try again in a few moments.',
@@ -46,6 +46,10 @@ class AppServiceProvider extends ServiceProvider
                         'email' => 'Too many registration attempts. Please try again later.',
                     ]);
                 });
+        });
+
+        RateLimiter::for('mapSearch', function (Request $request) {
+            return Limit::perMinute(30)->by($request->ip());
         });
     }
 }

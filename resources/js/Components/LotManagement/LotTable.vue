@@ -76,6 +76,7 @@ const fetchLots = async () => {
     try {
         const response = await fetch(
             route("api.lot.management.lots", props.clusterId),
+            { credentials: "same-origin" }
         );
         const data = await response.json();
         lots.value = data;

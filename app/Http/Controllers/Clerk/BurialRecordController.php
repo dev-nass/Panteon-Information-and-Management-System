@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BurialRecordIndexRequest;
 use App\Http\Requests\Clerk\BurialRecordStoreRequest;
 use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
@@ -18,34 +19,22 @@ class BurialRecordController extends Controller
     public function __construct(protected BurialRecordService $service) {}
 
     // handles tha diplay of table view, any form of filter is present or not
-    public function index()
+    public function index(BurialRecordIndexRequest $request)
     {
-
-        $search = request('search');
-        $filter = request('filter', 'all');
-        $disposal = request('disposal');
-
-        $allowedSorts = [
-            'id',
-            'deceased_first_name',
-            'deceased_date_of_birth',
-            'deceased_date_of_death',
-            'deceased_date_of_depository',
-        ];
-        $sortField = in_array(request('sort_field'), $allowedSorts)
-            ? request('sort_field')
-            : 'id';
-
-        $sortDirection = request('sort_direction', 'desc');
-
-        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter, $disposal);
+        $burialRecords = $this->service->index(
+            $request->sortField(),
+            $request->sortDirection(),
+            $request->search,
+            $request->filterValue(),
+            $request->disposal,
+        );
 
         return Inertia::render('Shared/BurialRecords/IndexView', [
             'burial_records' => BurialRecordResource::collection(
                 $burialRecords
             ),
 
-            'filters' => request()->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
+            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
         ]);
     }
 

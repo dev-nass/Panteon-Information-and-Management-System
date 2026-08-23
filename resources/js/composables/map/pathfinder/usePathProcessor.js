@@ -20,8 +20,8 @@ export function pathFinder() {
             error.value = null;
 
             const [junctionsRes, pathwaysRes] = await Promise.all([
-                fetch(route("api.junctions")), // Replace with your actual route name
-                fetch(route("api.pathways")), // Replace with your actual route name
+                fetch(route("api.junctions"), { credentials: "same-origin" }),
+                fetch(route("api.pathways"), { credentials: "same-origin" }),
             ]);
 
             if (!junctionsRes.ok || !pathwaysRes.ok) {

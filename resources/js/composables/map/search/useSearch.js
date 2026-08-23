@@ -9,7 +9,7 @@ import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProces
 import { useDbGeoJson } from "@/composables/map/useDbGeoJson";
 
 export function useSearch() {
-    const { search, suggestions, loading, isOnSearchMode, searchResultLayer } =
+    const { search, suggestions, loading, isOnSearchMode, rateLimitError, searchResultLayer } =
         useMapSearchStates();
     const { map, phaseLayerGroup, phaseVisibility, clusterLayers, uniqueTypes } =
         useMapStates();
@@ -43,6 +43,7 @@ export function useSearch() {
      * Description: Fetch Burial Records as the user types
      */
     const fetchSuggestions = debounce(async () => {
+        rateLimitError.value = false;
         if (!search.value) {
             suggestions.value = [];
             return;
@@ -59,6 +60,13 @@ export function useSearch() {
                     credentials: "same-origin",
                 },
             );
+
+            if (response.status === 429) {
+                rateLimitError.value = true;
+                suggestions.value = [];
+                return;
+            }
+
             if (!response.ok) throw new Error("Failed to fetch suggestions");
 
             const data = await response.json();
@@ -246,6 +254,7 @@ export function useSearch() {
     const clearSearch = () => {
         suggestions.value = [];
         search.value = "";
+        rateLimitError.value = false;
 
         // Remove the old layer group from the map entirely and recreate it
         // so no stale zoom-animation listeners survive into the next search

@@ -36,6 +36,7 @@ const actionOptions = [
     { value: "deleted", label: "Deleted" },
     { value: "role_changed", label: "Role Changed" },
     { value: "imported", label: "Imported" },
+    { value: "generated", label: "Generated" },
 ];
 
 const actionBadgeColors = {
@@ -47,6 +48,8 @@ const actionBadgeColors = {
         "bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400",
     imported:
         "bg-purple-100 text-purple-800 dark:bg-purple-500/10 dark:text-purple-400",
+    generated:
+        "bg-cyan-100 text-cyan-800 dark:bg-cyan-500/10 dark:text-cyan-400",
 };
 
 const actionChartColors = {
@@ -55,6 +58,7 @@ const actionChartColors = {
     deleted: "rgba(239,68,68,0.8)",
     role_changed: "rgba(245,158,11,0.8)",
     imported: "rgba(168,85,247,0.8)",
+    generated: "rgba(6,182,212,0.8)",
 };
 
 const actionLabels = {
@@ -63,6 +67,7 @@ const actionLabels = {
     deleted: "Deleted",
     role_changed: "Role Changed",
     imported: "Imported",
+    generated: "Generated",
 };
 
 const actionsPerDayData = computed(() => {

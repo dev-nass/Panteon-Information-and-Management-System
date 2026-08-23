@@ -10,6 +10,7 @@ const props = defineProps({
     burial_record_id: { type: Number, required: true },
     prefilled: { type: Object, required: true },
     csrf_token: { type: String, required: true },
+    templates: { type: Array, default: () => [] },
 });
 
 const form = ref({
@@ -24,6 +25,7 @@ const form = ref({
     relationship: props.prefilled.relationship ?? "",
 });
 
+const templateId = ref(null);
 const errors = ref({});
 
 const requiredFields = [
@@ -54,7 +56,7 @@ const goBack = () => {
     router.visit(route("clerk.burial_records.show", props.burial_record_id));
 };
 
-const generate = () => {
+const generate = async () => {
     errors.value = {};
 
     for (const field of requiredFields) {
@@ -65,7 +67,6 @@ const generate = () => {
 
     if (Object.keys(errors.value).length) return;
 
-    // Build and submit a native form for file download
     const f = document.createElement("form");
     f.method = "POST";
     f.action = route(
@@ -73,7 +74,12 @@ const generate = () => {
         props.burial_record_id,
     );
 
-    const fields = { ...form.value, _token: props.csrf_token };
+    const fields = {
+        ...form.value,
+        _token: props.csrf_token,
+        template_id: templateId.value ?? "",
+    };
+
     for (const [key, value] of Object.entries(fields)) {
         const input = document.createElement("input");
         input.type = "hidden";
@@ -109,6 +115,38 @@ defineOptions({ layout: Dashboard });
 
             <!-- FORM -->
             <div class="px-6 py-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="md:col-span-2">
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Certificate Template
+                    </label>
+                    <select
+                        v-model="templateId"
+                        class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none"
+                    >
+                        <option :value="null">
+                            Plain (text-only PDF)
+                        </option>
+                        <option
+                            v-for="template in templates"
+                            :key="template.id"
+                            :value="template.id"
+                        >
+                            {{ template.name }}
+                        </option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        Choose an uploaded template to use as the background, or keep "Plain" for no background.
+                    </p>
+                    <span
+                        v-if="errors.template_id"
+                        class="block mt-1 text-red-500 text-sm"
+                    >
+                        {{ errors.template_id }}
+                    </span>
+                </div>
+
                 <div>
                     <label
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"

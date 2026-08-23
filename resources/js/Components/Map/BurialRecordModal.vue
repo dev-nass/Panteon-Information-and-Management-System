@@ -1,7 +1,10 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
+import { Link, usePage } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
 import { route } from "ziggy-js";
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
 
 const props = defineProps({
     clusterId: { type: Number, default: null },
@@ -42,6 +45,7 @@ watch(
         try {
             const response = await fetch(
                 route("api.map.cluster.burials", { clusterId: newClusterId }),
+                { credentials: "same-origin" },
             );
             const data = await response.json();
             fetchedFeature.value = data.data;
@@ -379,6 +383,7 @@ const paginatedBurials = computed(() => {
                                 <div class="flex items-center gap-2">
                                     <!-- Primary -->
                                     <Link
+                                        v-if="user !== null"
                                         :href="
                                             route(
                                                 'clerk.burial_records.show',

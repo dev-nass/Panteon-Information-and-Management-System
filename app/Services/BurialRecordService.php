@@ -20,14 +20,15 @@ class BurialRecordService
         protected LotRepository $lot_repo
     ) {}
 
-    public function index(string $sortField, string $sortDirection, ?string $search, string $filter, ?string $disposal = null)
+    public function index(string $sortField, string $sortDirection, ?string $search, string $filter, ?string $disposal = null, ?int $userId = null)
     {
         return $this->burial_repo->getBurialRecordsWithFilters(
             $sortField,
             $sortDirection,
             $search,
             $filter,
-            $disposal
+            $disposal,
+            $userId
         )->paginate(25)->withQueryString();
     }
 

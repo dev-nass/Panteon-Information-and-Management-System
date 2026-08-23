@@ -6,7 +6,7 @@ import { useToast } from "vue-toast-notification";
 import Input from "@/Components/Form/Input.vue";
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
-import PhaseePlottingModal from "@/Components/Map/PhaseePlottingModal.vue";
+import PhasePlottingModal from "@/Components/Map/PhasePlottingModal.vue";
 import ClusterPlottingModal from "@/Components/Map/ClusterPlottingModal.vue";
 import BulkLotPlottingModal from "@/Components/Map/BulkLotPlottingModal.vue";
 
@@ -780,7 +780,7 @@ watch(
         </div>
 
         <!-- Phase Plotting Modal -->
-        <PhaseePlottingModal
+        <PhasePlottingModal
             v-if="showPhaseModal"
             @coordinates-set="handlePhaseCoordinatesSet"
             @close="closePhaseModal"
