@@ -17,12 +17,16 @@ class BurialRecordRepository extends Repository
         string $sortDirection,
         ?string $search,
         string $filter,
-        ?string $disposal
+        ?string $disposal,
+        ?int $userId = null
     ) {
         return $this->query()->with(['deceasedRecord', 'lot', 'user'])
 
             ->leftJoin('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
             ->select('burial_records.*')
+            ->when($userId, function ($q) use ($userId) {
+                $q->where('burial_records.user_id', $userId);
+            })
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
                     $q2->whereRaw("CONCAT(deceased_records.first_name, ' ', deceased_records.last_name) like ?", ["%{$search}%"])

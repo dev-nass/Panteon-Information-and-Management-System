@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed } from "vue";
 import { Link, usePage, router } from "@inertiajs/vue3";
-import { isEqual } from "lodash";
+import { isEqual, debounce } from "lodash";
 import { useToast } from "vue-toast-notification";
 
 import Display from "@/Components/Display.vue";
@@ -11,6 +11,8 @@ import TableData from "@/Components/Table/TableData.vue";
 
 const props = defineProps({
     user_data: { type: Object, required: true },
+    burial_records: { type: Object, default: () => ({ data: [], meta: {} }) },
+    filters: { type: Object, default: () => ({}) },
 });
 
 const page = usePage();
@@ -19,12 +21,27 @@ const errors = computed(() => page.props.errors || {});
 
 const currentUser = computed(() => page.props.auth.user);
 
-const activeTab = ref("profile");
+const activeTab = ref(new URLSearchParams(window.location.search).get("tab") || "profile");
+
+watch(
+    () => page.url,
+    (newUrl) => {
+        const tab = new URLSearchParams(newUrl.split("?")[1] || "").get("tab");
+        if (tab) activeTab.value = tab;
+    },
+);
 const tabs = [
     { key: "profile", label: "Profile" },
     { key: "account", label: "Account" },
     { key: "records", label: "Records" },
 ];
+
+const switchTab = (tabKey) => {
+    activeTab.value = tabKey;
+    const url = new URL(window.location);
+    url.searchParams.set("tab", tabKey);
+    window.history.replaceState({}, "", url);
+};
 
 const back = () => {
     router.visit(route("admin.user_management.index"));
@@ -111,10 +128,6 @@ const cancelDelete = () => {
     HSOverlay.close("#delete-user-modal");
 };
 
-const viewRecord = (record) => {
-    router.visit(route("admin.burial_records.show", record.id));
-};
-
 const formatDate = (date) => {
     if (!date) return "Not verified";
     return new Date(date).toLocaleDateString("en-US", {
@@ -131,6 +144,70 @@ const canDelete = computed(
         localData.value.id !== currentUser.value.id &&
         localData.value.role !== "admin",
 );
+
+const search = ref(props.filters.search || "");
+
+const currentFilters = computed(() => ({
+    search: search.value,
+    filter: props.filters.filter || "all",
+    sort_field: props.filters.sort_field || "id",
+    sort_direction: props.filters.sort_direction || "desc",
+    disposal: props.filters.disposal || "",
+}));
+
+const reloadRecords = (overrides = {}) => {
+    const url = new URL(window.location.href);
+    const data = Object.fromEntries(url.searchParams.entries());
+    Object.assign(data, currentFilters.value, overrides, { tab: activeTab.value });
+    if (!data.disposal) delete data.disposal;
+    if (!("page" in overrides)) delete data.page;
+    router.get(route("admin.user_management.show", props.user_data.id), data, {
+        preserveState: true,
+        replace: true,
+        only: ["burial_records", "filters"],
+    });
+};
+
+const debounceSearch = debounce(() => {
+    reloadRecords({ search: search.value });
+}, 500);
+
+const applyFilter = (filterValue) => {
+    reloadRecords({ filter: filterValue });
+};
+
+const applyDisposalFilter = (disposalValue) => {
+    reloadRecords({
+        disposal: currentFilters.value.disposal === disposalValue ? "" : disposalValue,
+    });
+};
+
+const sort = (field) => {
+    let direction = "asc";
+    if (currentFilters.value.sort_field === field && currentFilters.value.sort_direction === "asc") {
+        direction = "desc";
+    }
+    reloadRecords({ sort_field: field, sort_direction: direction });
+};
+
+const viewRecord = (record) => {
+    router.visit(route("admin.burial_records.show", record.burial.id));
+};
+
+const paginationLinks = computed(() => {
+    return (props.burial_records?.meta?.links || []).map((link) => {
+        if (!link.url) return link;
+        const url = new URL(link.url);
+        url.searchParams.set("tab", activeTab.value);
+        return { ...link, url: url.toString() };
+    });
+});
+
+const disposalTypes = [
+    { value: "burial", label: "Burial" },
+    { value: "muslim", label: "Muslim" },
+    { value: "cremation", label: "Cremation" },
+];
 
 defineOptions({
     layout: Dashboard,
@@ -361,7 +438,7 @@ defineOptions({
             <button
                 v-for="tab in tabs"
                 :key="tab.key"
-                @click="activeTab = tab.key"
+                @click="switchTab(tab.key)"
                 class="px-4 py-2 text-sm font-medium transition"
                 :class="
                     activeTab === tab.key
@@ -524,56 +601,186 @@ defineOptions({
             </div>
 
             <!-- Records Tab -->
-            <div v-if="activeTab === 'records'">
-                <table
-                    v-if="localData.burial_records?.length > 0"
-                    class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
-                >
-                    <thead class="bg-gray-50 dark:bg-neutral-800">
-                        <tr>
-                            <TableHeader>ID</TableHeader>
-                            <TableHeader>Deceased Name</TableHeader>
-                            <TableHeader>Date of Burial</TableHeader>
-                            <TableHeader>Phase</TableHeader>
-                            <TableHeader>Cluster</TableHeader>
-                            <TableHeader>Lot</TableHeader>
-                        </tr>
-                    </thead>
-                    <tbody
-                        class="divide-y divide-gray-200 dark:divide-neutral-700"
-                    >
-                        <tr
-                            v-for="record in localData.burial_records"
-                            :key="record.id"
-                            @click="viewRecord(record)"
-                            class="cursor-pointer bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700"
-                        >
-                            <TableData>{{ record.id }}</TableData>
-                            <TableData>
-                                {{ record.deceased_record?.first_name }}
-                                {{ record.deceased_record?.last_name }}
-                            </TableData>
-                            <TableData>
-                                {{ record.deceased_record?.date_of_depository }}
-                            </TableData>
-                            <TableData>
-                                {{ record.lot?.cluster?.phase?.phase_name }}
-                            </TableData>
-                            <TableData>
-                                {{ record.lot?.cluster?.cluster_name }}
-                            </TableData>
-                            <TableData>
-                                {{ record.lot?.column }}{{ record.lot?.row }}
-                            </TableData>
-                        </tr>
-                    </tbody>
-                </table>
-
+            <div v-if="activeTab === 'records'" class="p-0">
                 <div
-                    v-else
-                    class="text-center py-12 text-gray-500 dark:text-neutral-400"
+                    class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
                 >
-                    No burial records created by this user.
+                    <!-- Header -->
+                    <div
+                        class="px-6 py-4 grid gap-3 lg:flex lg:justify-between lg:items-center border-b border-gray-200 dark:border-neutral-700"
+                    >
+                        <input
+                            v-model="search"
+                            @input="debounceSearch"
+                            type="text"
+                            placeholder="Search by name..."
+                            class="w-full lg:max-w-md rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+
+                        <div class="flex flex-wrap gap-x-2">
+                            <!-- Disposal filter -->
+                            <div
+                                v-for="disposal in disposalTypes"
+                                :key="disposal.value"
+                                @click="applyDisposalFilter(disposal.value)"
+                                class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium cursor-pointer transition"
+                                :class="
+                                    filters.disposal === disposal.value
+                                        ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500'
+                                        : 'bg-gray-100 text-gray-600 dark:bg-neutral-700 dark:text-neutral-400 hover:bg-gray-200 dark:hover:bg-neutral-600'
+                                "
+                            >
+                                {{ disposal.label }}
+                            </div>
+
+                            <!-- Status filter -->
+                            <div class="hs-dropdown relative inline-block">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-neutral-700 dark:text-neutral-400 hover:bg-gray-200 dark:hover:bg-neutral-600 transition"
+                                >
+                                    {{
+                                        filters.filter === "buried"
+                                            ? "Buried"
+                                            : filters.filter === "pending"
+                                              ? "Pending"
+                                              : filters.filter === "assigned"
+                                                ? "Assigned"
+                                                : filters.filter === "unassigned"
+                                                  ? "Unassigned"
+                                                  : "Status"
+                                    }}
+                                </button>
+                                <div
+                                    class="hs-dropdown-menu transition-[opacity,margin] duration hs-dropdown-open:opacity-100 opacity-0 hidden min-w-32 z-10 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 divide-y divide-gray-200 dark:divide-neutral-800 shadow-md rounded-lg mt-2"
+                                >
+                                    <div
+                                        v-for="opt in [
+                                            { value: 'all', label: 'All' },
+                                            { value: 'buried', label: 'Buried' },
+                                            { value: 'pending', label: 'Pending' },
+                                            { value: 'assigned', label: 'Assigned' },
+                                            { value: 'unassigned', label: 'Unassigned' },
+                                        ]"
+                                        :key="opt.value"
+                                        @click="applyFilter(opt.value)"
+                                        class="px-3 py-2 text-sm text-gray-800 dark:text-neutral-200 hover:bg-gray-50 dark:hover:bg-neutral-800 cursor-pointer"
+                                    >
+                                        {{ opt.label }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table
+                            class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700"
+                        >
+                            <thead class="bg-gray-50 dark:bg-neutral-800">
+                                <tr>
+                                    <TableHeader @click="sort('id')">
+                                        ID
+                                    </TableHeader>
+                                    <TableHeader
+                                        @click="sort('deceased_first_name')"
+                                    >
+                                        Full Name
+                                    </TableHeader>
+                                    <TableHeader
+                                        @click="sort('deceased_date_of_depository')"
+                                    >
+                                        Burial Date
+                                    </TableHeader>
+                                    <TableHeader>Phase</TableHeader>
+                                    <TableHeader>Cluster</TableHeader>
+                                    <TableHeader>Lot</TableHeader>
+                                    <TableHeader>Lot Status</TableHeader>
+                                </tr>
+                            </thead>
+                            <tbody
+                                class="divide-y divide-gray-200 dark:divide-neutral-700"
+                            >
+                                <tr
+                                    v-if="burial_records.data?.length > 0"
+                                    v-for="record in burial_records.data"
+                                    :key="record.burial.id"
+                                    @click="viewRecord(record)"
+                                    class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
+                                >
+                                    <TableData>{{ record.burial.id }}</TableData>
+                                    <TableData>
+                                        {{ record.deceased.first_name }}
+                                        {{ record.deceased.last_name }}
+                                    </TableData>
+                                    <TableData>
+                                        {{ record.deceased.burial.date ?? "N/A" }}
+                                    </TableData>
+                                    <TableData>
+                                        {{ record.cluster?.cluster?.properties?.phase ?? "N/A" }}
+                                    </TableData>
+                                    <TableData>
+                                        {{ record.cluster?.cluster?.properties?.name ?? "N/A" }}
+                                    </TableData>
+                                    <TableData>
+                                        {{
+                                            record.lot?.lot?.properties?.column
+                                                ? `${record.lot.lot.properties.column}${record.lot.lot.properties.row}`
+                                                : "N/A"
+                                        }}
+                                    </TableData>
+                                    <TableData>
+                                        <span
+                                            v-if="record.lot?.lot?.properties?.lot_id"
+                                            class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
+                                        >
+                                            Assigned
+                                        </span>
+                                        <span
+                                            v-else
+                                            class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500"
+                                        >
+                                            Unassigned
+                                        </span>
+                                    </TableData>
+                                </tr>
+                                <tr v-else>
+                                    <td colspan="7" class="px-6 py-8 text-center">
+                                        <span
+                                            class="text-sm text-gray-500 dark:text-neutral-400"
+                                            >No records found</span
+                                        >
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer / Pagination -->
+                    <div
+                        class="px-6 py-4 border-t border-gray-200 dark:border-neutral-700"
+                    >
+                        <div class="flex flex-wrap gap-2 max-w-md">
+                                <template v-if="paginationLinks.length">
+                                <component
+                                    v-for="(link, index) in paginationLinks"
+                                    :key="`${link.label}-${index}`"
+                                    :is="link.url ? Link : 'span'"
+                                    :href="link.url"
+                                    preserve-scroll
+                                    :only="['burial_records', 'filters']"
+                                    v-html="link.label"
+                                    :class="[
+                                        'py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-neutral-400',
+                                        link.active
+                                            ? 'text-green-500'
+                                            : 'text-gray-800 dark:text-neutral-400',
+                                    ]"
+                                />
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

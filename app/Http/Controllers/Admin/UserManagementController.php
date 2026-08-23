@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BurialRecordResource;
 use App\Models\User;
+use App\Services\BurialRecordService;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,6 +14,8 @@ use Rap2hpoutre\FastExcel\FastExcel;
 class UserManagementController extends Controller
 {
     use LogsActivity;
+
+    public function __construct(protected BurialRecordService $service) {}
 
     public function index(Request $request)
     {
@@ -101,16 +105,31 @@ class UserManagementController extends Controller
             ->with('success', 'User deleted successfully');
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
-        $user->loadCount('burialRecords');
-        $user->load([
-            'burialRecords.deceasedRecord',
-            'burialRecords.lot.cluster.phase',
-        ]);
+        $search = $request->search;
+        $filter = $request->filter ?? 'all';
+        $disposal = $request->disposal;
+
+        $allowedSorts = [
+            'id',
+            'deceased_first_name',
+            'deceased_date_of_birth',
+            'deceased_date_of_death',
+            'deceased_date_of_depository',
+        ];
+        $sortField = in_array($request->sort_field, $allowedSorts)
+            ? $request->sort_field
+            : 'id';
+
+        $sortDirection = $request->sort_direction ?? 'desc';
+
+        $burialRecords = $this->service->index($sortField, $sortDirection, $search, $filter, $disposal, $user->id);
 
         return Inertia::render('Admin/UserManagement/ShowView', [
-            'user_data' => $user,
+            'user_data' => $user->loadCount('burialRecords'),
+            'burial_records' => BurialRecordResource::collection($burialRecords),
+            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
         ]);
     }
 
