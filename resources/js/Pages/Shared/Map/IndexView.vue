@@ -37,7 +37,7 @@ const {
     mode,
     context,
 } = useMapStates();
-const { search, suggestions, isOnSearchMode } = useMapSearchStates();
+const { search, suggestions, isOnSearchMode, rateLimitError } = useMapSearchStates();
 
 // compsable
 const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
@@ -302,6 +302,7 @@ onBeforeUnmount(() => {
                 v-model="search"
                 :suggestions="suggestions"
                 :isOnSearch="isOnSearchMode"
+                :rateLimitError="rateLimitError"
                 @input="fetchSuggestions"
                 @select-suggestion="
                     (suggestion) => fetchClusterByBurialId(suggestion.burial_id)

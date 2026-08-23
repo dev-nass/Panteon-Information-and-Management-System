@@ -23,7 +23,7 @@ const { toggleMapFeatures, togglePhaseVisibility } = useMap();
 const { phaseVisibility, clusterVisibility, uniqueTypes } = useMapStates();
 const { fetchSuggestions, fetchClusterByBurialId, clearSearch } = useSearch();
 // clearSearch from useSearch handles both searchResultLayer + isOnSearchMode reset
-const { search, suggestions, isOnSearchMode } = useMapSearchStates();
+const { search, suggestions, isOnSearchMode, rateLimitError } = useMapSearchStates();
 
 const mapContainer = ref(null);
 const phaseModalFeature = ref(null);
@@ -144,6 +144,7 @@ onBeforeUnmount(() => {
                         v-model="search"
                         :suggestions="suggestions"
                         :isOnSearch="isOnSearchMode"
+                        :rateLimitError="rateLimitError"
                         placeholder="Search deceased name..."
                         @input="fetchSuggestions"
                         @select-suggestion="

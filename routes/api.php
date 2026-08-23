@@ -13,7 +13,7 @@ Route::controller(MapDataController::class)->group(function () {
     Route::get('/data/cluster/{clusterId}/burials', 'clusterBurialRecords')->name('api.map.cluster.burials');
 });
 
-Route::controller(MapSearchDataController::class)->group(function () {
+Route::controller(MapSearchDataController::class)->middleware('throttle:mapSearch')->group(function () {
     Route::get('/data-search/burials', 'search')->name('api.map.search');
 });
 
@@ -23,7 +23,6 @@ Route::controller(PathfinderController::class)->group(function () {
 });
 
 Route::group(['middleware' => ['auth']], function () {
-
 
     // Description: Fetch respective data; Used on LotManagement "View on Map"
     Route::controller(LotManagementSearchController::class)->group(function () {

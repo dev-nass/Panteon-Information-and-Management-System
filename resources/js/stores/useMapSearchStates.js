@@ -5,6 +5,7 @@ const search = ref("");
 const suggestions = ref([]);
 const loading = ref(false);
 const isOnSearchMode = ref(false);
+const rateLimitError = ref(false);
 
 // null by default — created fresh each time initializeMap runs
 const searchResultLayer = ref(null);
@@ -15,6 +16,7 @@ export function useMapSearchStates() {
         suggestions,
         loading,
         isOnSearchMode,
+        rateLimitError,
         searchResultLayer,
     };
 }

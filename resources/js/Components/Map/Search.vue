@@ -21,6 +21,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    rateLimitError: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 console.log(props.suggestions);
@@ -133,9 +137,17 @@ const clearSearch = () => {
                 </div>
             </template>
 
+            <!-- Rate Limit Error -->
+            <p
+                v-if="rateLimitError"
+                class="px-3 py-2 text-sm text-red-600 dark:text-red-400"
+            >
+                Too many requests. Please wait a moment before searching again.
+            </p>
+
             <!-- Empty State -->
             <p
-                v-else
+                v-else-if="!suggestions.length"
                 class="px-3 py-2 text-sm text-gray-400 dark:text-gray-500"
             >
                 No results found
