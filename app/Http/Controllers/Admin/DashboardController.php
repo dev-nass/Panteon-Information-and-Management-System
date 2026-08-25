@@ -22,16 +22,26 @@ class DashboardController extends Controller
         $clusterPage = $request->get('cluster_page', 1);
         $clusterType = $request->get('cluster_type');
 
+        $filters = [
+            'age_range' => $request->filled('age_range') ? $request->get('age_range') : null,
+            'barangay' => $request->filled('barangay') ? $request->get('barangay') : null,
+        ];
+
         $data = [
-            'stats' => $this->dashboardService->getTotalStats(),
-            'disposal_stats' => $this->dashboardService->getDisposalStats(),
+            'stats' => $this->dashboardService->getTotalStats($filters),
+            'disposal_stats' => $this->dashboardService->getDisposalStats($filters),
             'current_tab' => $tab,
             'current_filter' => $filter,
             'selected_year' => (int) $year,
+            'active_filters' => $filters,
         ];
 
         if ($tab === 'summary') {
-            $data['activity_data'] = $this->dashboardService->getActivityData($filter, (int) $year);
+            $summaryFilters = array_merge($filters, ['year' => (int) $year]);
+            $data['activity_data'] = $this->dashboardService->getActivityData($filter, (int) $year, $summaryFilters);
+            $data['demographic_data'] = $this->dashboardService->getAgeDistribution($summaryFilters);
+            $data['geographic_data'] = $this->dashboardService->getGeographicDistribution($summaryFilters);
+            $data['filter_options'] = $this->dashboardService->getFilterOptions();
         } elseif ($tab === 'phases') {
             $data['phase_data'] = $this->getPhaseOccupancyData();
         } elseif ($tab === 'clusters') {

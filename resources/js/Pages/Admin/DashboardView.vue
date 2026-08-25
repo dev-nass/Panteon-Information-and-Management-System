@@ -2,6 +2,7 @@
 import Button from "@/Components/Form/Button.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import StatCard from "@/Components/Dashboard/StatCard.vue";
+import DashboardFiltersModal from "@/Components/Dashboard/DashboardFiltersModal.vue";
 
 import BarChart from "@/Components/Charts/BarChart.vue";
 import DoughnutChart from "@/Components/Charts/DoughnutChart.vue";
@@ -14,6 +15,13 @@ const props = defineProps({
     stats: { type: Object, required: true },
     disposal_stats: { type: Object, required: true },
     activity_data: { type: Object, default: null },
+    demographic_data: { type: Object, default: null },
+    geographic_data: { type: Object, default: null },
+    filter_options: { type: Object, default: () => ({ barangays: [] }) },
+    active_filters: {
+        type: Object,
+        default: () => ({ age_range: null, barangay: null }),
+    },
     phase_data: { type: Object, default: null },
     cluster_data: { type: Object, default: null },
     phases: { type: Array, default: () => [] },
@@ -30,11 +38,18 @@ const selectedYear = ref(props.selected_year);
 const selectedPhaseId = ref(props.selected_phase_id);
 const selectedType = ref(props.selected_type);
 
+const activeAgeRange = ref(props.active_filters?.age_range ?? null);
+const activeBarangay = ref(props.active_filters?.barangay ?? null);
+
 const currentYear = new Date().getFullYear();
 const yearOptions = Array.from(
     { length: currentYear - 2013 + 1 },
     (_, i) => 2013 + i,
 ).reverse();
+
+const hasActiveDashboardFilters = computed(() => {
+    return activeAgeRange.value !== null || activeBarangay.value !== null;
+});
 
 const changeTab = (tab) => {
     activeTab.value = tab;
@@ -45,7 +60,13 @@ const changeFilter = (filter) => {
     activeFilter.value = filter;
     router.get(
         route("admin.dashboard"),
-        { tab: activeTab.value, filter, year: selectedYear.value },
+        {
+            tab: activeTab.value,
+            filter,
+            year: selectedYear.value,
+            age_range: activeAgeRange.value,
+            barangay: activeBarangay.value,
+        },
         { preserveState: true },
     );
 };
@@ -57,9 +78,69 @@ const changeYear = () => {
             tab: activeTab.value,
             filter: activeFilter.value,
             year: selectedYear.value,
+            age_range: activeAgeRange.value,
+            barangay: activeBarangay.value,
         },
         { preserveState: true },
     );
+};
+
+const applyDashboardFilters = (filters) => {
+    activeAgeRange.value = filters.age_range;
+    activeBarangay.value = filters.barangay;
+    router.get(
+        route("admin.dashboard"),
+        {
+            tab: activeTab.value,
+            filter: activeFilter.value,
+            year: selectedYear.value,
+            age_range: filters.age_range,
+            barangay: filters.barangay,
+        },
+        { preserveState: true },
+    );
+};
+
+const resetDashboardFilters = () => {
+    activeAgeRange.value = null;
+    activeBarangay.value = null;
+    router.get(
+        route("admin.dashboard"),
+        {
+            tab: activeTab.value,
+            filter: activeFilter.value,
+            year: selectedYear.value,
+        },
+        { preserveState: true },
+    );
+};
+
+const removeFilter = (key) => {
+    if (key === "age_range") activeAgeRange.value = null;
+    if (key === "barangay") activeBarangay.value = null;
+    router.get(
+        route("admin.dashboard"),
+        {
+            tab: activeTab.value,
+            filter: activeFilter.value,
+            year: selectedYear.value,
+            age_range: activeAgeRange.value,
+            barangay: activeBarangay.value,
+        },
+        { preserveState: true },
+    );
+};
+
+const formatAgeRange = (range) => {
+    const map = {
+        "0-12": "Child (0-12)",
+        "13-19": "Teen (13-19)",
+        "20-39": "Young Adult (20-39)",
+        "40-59": "Adult (40-59)",
+        "60-74": "Senior (60-74)",
+        "75+": "Elderly (75+)",
+    };
+    return map[range] || range;
 };
 
 const changePhase = () => {
@@ -157,6 +238,65 @@ const attendanceOptions = {
     maintainAspectRatio: false,
     cutout: "70%",
 };
+
+/* AGE DISTRIBUTION DATA */
+const ageDistributionData = computed(() => {
+    if (!props.demographic_data) return null;
+    return {
+        labels: props.demographic_data.labels,
+        datasets: [
+            {
+                label: "Records",
+                data: props.demographic_data.values,
+                backgroundColor: [
+                    "rgba(59,130,246,0.7)",
+                    "rgba(99,102,241,0.7)",
+                    "rgba(34,197,94,0.7)",
+                    "rgba(234,179,8,0.7)",
+                    "rgba(249,115,22,0.7)",
+                    "rgba(239,68,68,0.7)",
+                    "rgba(156,163,175,0.5)",
+                ],
+                borderWidth: 0,
+            },
+        ],
+    };
+});
+
+const ageDistributionOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+};
+
+/* GEOGRAPHIC DISTRIBUTION DATA */
+const geographicDistributionData = computed(() => {
+    if (!props.geographic_data) return null;
+    return {
+        labels: props.geographic_data.labels,
+        datasets: [
+            {
+                label: "Records",
+                data: props.geographic_data.values,
+                backgroundColor: "rgba(34,197,94,0.7)",
+                borderColor: "rgba(34,197,94,1)",
+                borderWidth: 1,
+            },
+        ],
+    };
+});
+
+const geographicDistributionOptions = {
+    indexAxis: "y",
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+};
+
+const geoChartHeight = computed(() => {
+    const count = props.geographic_data?.labels?.length ?? 0;
+    return `${Math.max(count * 44, 176)}px`;
+});
 
 /* PHASE OCCUPANCY DATA */
 const phaseOccupancyData = computed(() => {
@@ -293,48 +433,138 @@ defineOptions({
             </div>
         </div>
 
-        <!-- FILTER TABS AND YEAR SELECTOR (Only for Summary) -->
+        <!-- FILTER TABS AND CONTROLS (Only for Summary) -->
         <div
             v-if="activeTab === 'summary'"
-            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+            class="space-y-3"
         >
             <div
-                class="flex flex-wrap gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
+                class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
             >
-                <button
-                    v-for="filter in ['today', 'weekly', 'monthly', 'yearly']"
-                    :key="filter"
-                    @click="changeFilter(filter)"
-                    class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition"
-                    :class="
-                        activeFilter === filter
-                            ? 'bg-green-500 text-white'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'
-                    "
+                <div
+                    class="flex flex-wrap gap-2 bg-gray-100 dark:bg-neutral-800 p-1 rounded-xl w-full md:w-fit"
                 >
-                    {{ filter.charAt(0).toUpperCase() + filter.slice(1) }}
-                </button>
+                    <button
+                        v-for="filter in ['today', 'weekly', 'monthly', 'yearly']"
+                        :key="filter"
+                        @click="changeFilter(filter)"
+                        class="flex-1 md:flex-none px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition"
+                        :class="
+                            activeFilter === filter
+                                ? 'bg-green-500 text-white'
+                                : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'
+                        "
+                    >
+                        {{ filter.charAt(0).toUpperCase() + filter.slice(1) }}
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3 flex-wrap">
+                    <!-- YEAR SELECTOR (only on yearly) -->
+                    <div
+                        v-if="activeFilter === 'yearly'"
+                        class="flex items-center gap-2"
+                    >
+                        <label
+                            class="text-sm font-medium text-gray-600 dark:text-gray-300"
+                        >
+                            Year:
+                        </label>
+                        <select
+                            v-model="selectedYear"
+                            @change="changeYear"
+                            class="px-3 py-2 border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                        >
+                            <option
+                                v-for="year in yearOptions"
+                                :key="year"
+                                :value="year"
+                            >
+                                {{ year }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- FILTERS BUTTON -->
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition"
+                        :class="
+                            hasActiveDashboardFilters
+                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30'
+                                : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-gray-400 hover:bg-green-500/10 border border-transparent'
+                        "
+                        data-hs-overlay="#dashboard-filters-modal"
+                    >
+                        <svg
+                            class="size-4"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
+                        </svg>
+                        Filters
+                        <span
+                            v-if="hasActiveDashboardFilters"
+                            class="size-5 inline-flex items-center justify-center rounded-full bg-green-500 text-white text-xs font-bold"
+                        >
+                            {{ (activeAgeRange ? 1 : 0) + (activeBarangay ? 1 : 0) }}
+                        </span>
+                    </button>
+                </div>
             </div>
 
-            <div class="flex items-center gap-2 w-fit">
-                <label
-                    class="text-sm font-medium text-gray-600 dark:text-gray-300"
+            <!-- ACTIVE FILTER CHIPS -->
+            <div
+                v-if="hasActiveDashboardFilters"
+                class="flex flex-wrap items-center gap-2"
+            >
+                <span
+                    class="text-xs text-gray-500 dark:text-gray-400"
                 >
-                    Year:
-                </label>
-                <select
-                    v-model="selectedYear"
-                    @change="changeYear"
-                    class="px-3 py-2 border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
+                    Active filters:
+                </span>
+
+                <button
+                    v-if="activeAgeRange"
+                    @click="removeFilter('age_range')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 hover:bg-green-500/20 transition"
                 >
-                    <option
-                        v-for="year in yearOptions"
-                        :key="year"
-                        :value="year"
+                    Age: {{ formatAgeRange(activeAgeRange) }}
+                    <svg
+                        class="size-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
                     >
-                        {{ year }}
-                    </option>
-                </select>
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
+
+                <button
+                    v-if="activeBarangay"
+                    @click="removeFilter('barangay')"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/30 hover:bg-blue-500/20 transition"
+                >
+                    {{ activeBarangay.charAt(0).toUpperCase() + activeBarangay.slice(1) }}
+                    <svg
+                        class="size-3"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -359,39 +589,81 @@ defineOptions({
         </div>
 
         <!-- SUMMARY TAB CONTENT -->
-        <div
-            v-if="activeTab === 'summary'"
-            class="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-3 lg:gap-6"
-        >
-            <!-- LEFT COLUMN -->
-            <div class="lg:col-span-2 space-y-3">
-                <!-- ACTIVITY CHART -->
-                <h3 class="font-semibold">
-                    {{
-                        activeFilter === "today"
-                            ? "Today Activity"
-                            : activeFilter === "weekly"
-                              ? "Weekly Activity"
-                              : activeFilter === "yearly"
-                                ? "Yearly Activity"
-                                : "Monthly Activity"
-                    }}
-                </h3>
-                <BarChart
-                    v-if="performanceData"
-                    :chartData="performanceData"
-                    :chartOptions="performanceOptions"
-                />
+        <div v-if="activeTab === 'summary'" class="space-y-6">
+            <!-- TOP ROW: Activity + Doughnut -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- LEFT COLUMN -->
+                <div class="lg:col-span-2 space-y-3">
+                    <h3 class="font-semibold">
+                        {{
+                            activeFilter === "today"
+                                ? "Today Activity"
+                                : activeFilter === "weekly"
+                                  ? "Weekly Activity"
+                                  : activeFilter === "yearly"
+                                    ? "Yearly Activity"
+                                    : "Monthly Activity"
+                        }}
+                    </h3>
+                    <BarChart
+                        v-if="performanceData"
+                        :chartData="performanceData"
+                        :chartOptions="performanceOptions"
+                    />
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="space-y-3">
+                    <h3 class="font-semibold">Statistics Overview</h3>
+                    <DoughnutChart
+                        :chartData="attendanceData"
+                        :chartOptions="attendanceOptions"
+                    />
+                </div>
             </div>
 
-            <!-- RIGHT COLUMN -->
-            <div class="space-y-3">
-                <!-- STATISTICS OVERVIEW -->
-                <h3 class="font-semibold">Statistics Overview</h3>
-                <DoughnutChart
-                    :chartData="attendanceData"
-                    :chartOptions="attendanceOptions"
-                />
+            <!-- BOTTOM ROW: Demographics + Geography -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- AGE DISTRIBUTION -->
+                <div class="space-y-3">
+                    <h3 class="font-semibold">Age Distribution</h3>
+                    <BarChart
+                        v-if="
+                            ageDistributionData &&
+                            ageDistributionData.datasets[0].data.some(
+                                (v) => v > 0,
+                            )
+                        "
+                        :chartData="ageDistributionData"
+                        :chartOptions="ageDistributionOptions"
+                    />
+                    <div
+                        v-else
+                        class="h-64 flex items-center justify-center rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-gray-400"
+                    >
+                        No age data available
+                    </div>
+                </div>
+
+                <!-- GEOGRAPHIC DISTRIBUTION -->
+                <div class="space-y-3">
+                    <h3 class="font-semibold">Residence by Barangay</h3>
+                    <HorizontalBarChart
+                        v-if="
+                            geographicDistributionData &&
+                            geographicDistributionData.labels.length > 0
+                        "
+                        :chartData="geographicDistributionData"
+                        :chartOptions="geographicDistributionOptions"
+                        :height="geoChartHeight"
+                    />
+                    <div
+                        v-else
+                        class="h-64 flex items-center justify-center rounded-xl bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 text-sm text-gray-500 dark:text-gray-400"
+                    >
+                        No geographic data available
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -494,5 +766,13 @@ defineOptions({
                 </button>
             </div>
         </div>
+
+        <!-- FILTERS MODAL -->
+        <DashboardFiltersModal
+            :filterOptions="filter_options"
+            :activeFilters="active_filters"
+            @apply="applyDashboardFilters"
+            @reset="resetDashboardFilters"
+        />
     </div>
 </template>

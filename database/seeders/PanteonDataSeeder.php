@@ -212,7 +212,7 @@ class PanteonDataSeeder extends Seeder
     {
         $this->command->info('Importing deceased records from Excel file...');
 
-        $excelPath = public_path('data/panteon-cleaned-data.xlsx');
+        $excelPath = public_path('data/pppanteon-cleaned-data.xlsx');
 
         if (! file_exists($excelPath)) {
             $this->command->error("Excel file not found at {$excelPath}");
