@@ -128,8 +128,12 @@ const startUpload = () => {
         },
         onError: (errors) => {
             isUploading.value = false;
+            const rawFile = errors.file;
+            const rawName = errors.name;
+            const fileMsg = Array.isArray(rawFile) ? rawFile[0] : rawFile;
+            const nameMsg = Array.isArray(rawName) ? rawName[0] : rawName;
             const errorMsg =
-                errors.file || errors.name || "Failed to upload template";
+                fileMsg || nameMsg || "Failed to upload template. Ensure the file is a valid PDF under 10MB.";
             fileError.value = errorMsg;
             toast.error(errorMsg, {
                 position: "top-right",
@@ -156,6 +160,13 @@ const deleteTemplate = (template) => {
             });
         },
     });
+};
+
+const openPreview = (template) => {
+    previewTemplate.value = template;
+    if (typeof HSOverlay !== "undefined") {
+        HSOverlay.open("#preview-template-modal");
+    }
 };
 
 const formatDate = (date) =>
@@ -469,8 +480,7 @@ const formatDate = (date) =>
                                     <div class="flex gap-2 justify-end">
                                         <button
                                             type="button"
-                                            :data-hs-overlay="'#preview-template-modal'"
-                                            @click="previewTemplate = template"
+                                            @click="openPreview(template)"
                                             class="inline-flex items-center gap-1.5 px-3 py-1 text-sm rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border border-blue-500/30 transition-all duration-200"
                                         >
                                             <svg

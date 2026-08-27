@@ -38,6 +38,11 @@ class CertificateTemplateController extends Controller
             'file' => 'required|file|mimes:pdf|max:10240',
         ]);
 
+        $dir = Storage::disk('local')->path('certificate_templates');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
         $path = $request->file('file')->storeAs(
             'certificate_templates',
             Str::uuid().'.pdf',
