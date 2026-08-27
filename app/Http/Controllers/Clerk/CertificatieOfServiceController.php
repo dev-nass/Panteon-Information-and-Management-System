@@ -22,10 +22,13 @@ class CertificatieOfServiceController extends Controller
             'deceasedRecord',
             'deceasedRecord.applicant',
             'lot',
+            'lot.cluster',
         ]);
 
         $deceased = $burial_record->deceasedRecord;
         $applicant = $deceased?->applicant;
+
+        $isColumbarium = $burial_record->lot?->cluster?->cluster_type === 'columbarium';
 
         $templates = CertificateTemplate::with('uploadedBy')
             ->latest('created_at')
@@ -40,34 +43,44 @@ class CertificatieOfServiceController extends Controller
             'csrf_token' => csrf_token(),
             'prefilled' => [
                 'deceased_name' => trim("{$deceased->first_name} {$deceased->middle_name} {$deceased->last_name}"),
-                'deceased_address' => $deceased->address,
+                'deceased_address' => $this->formatDeceasedAddress($deceased->address),
                 'date_of_death' => $deceased->date_of_death,
                 'place_of_death' => $deceased->place_of_death,
                 'date_of_depository' => $deceased->date_of_depository,
                 'burial_place' => $deceased->burial_place,
+                'cremation_place' => $deceased->cremation_place,
                 'applicant_name' => $applicant ? trim("{$applicant->first_name} {$applicant->middle_name} {$applicant->last_name}") : '',
                 'relationship' => $applicant?->relationship ?? '',
             ],
+            'is_columbarium' => $isColumbarium,
             'templates' => $templates,
         ]);
     }
 
     public function generate(Request $request, BurialRecord $burial_record)
     {
+        $burial_record->load('lot.cluster');
+        $isColumbarium = $burial_record->lot?->cluster?->cluster_type === 'columbarium';
+
         $data = $request->validate([
             'deceased_name' => 'required|string|max:255',
             'deceased_address' => 'required|string|max:255',
             'date_of_death' => 'required|date',
             'place_of_death' => 'required|string|max:255',
             'date_of_depository' => 'required|date',
-            'burial_place' => 'required|string|max:255',
+            'burial_place' => $isColumbarium ? 'nullable|string|max:255' : 'required|string|max:255',
+            'cremation_place' => $isColumbarium ? 'required|string|max:255' : 'nullable|string|max:255',
             'applicant_name' => 'required|string|max:255',
             'applicant_address' => 'required|string|max:255',
             'relationship' => 'required|string|max:255',
             'template_id' => 'nullable|integer|exists:certificate_templates,id',
         ]);
 
-        $contentPdf = Pdf::loadView('certificates.certificate_of_service_content', [
+        $viewName = $isColumbarium
+            ? 'certificates.certificate_of_service_content_cremation'
+            : 'certificates.certificate_of_service_content';
+
+        $contentPdf = Pdf::loadView($viewName, [
             'data' => $data,
         ])->output();
 
@@ -151,5 +164,20 @@ class CertificatieOfServiceController extends Controller
         ));
 
         return $out;
+    }
+
+    private function formatDeceasedAddress(?string $address): string
+    {
+        if (empty($address)) {
+            return 'N/A';
+        }
+
+        $address = trim($address);
+
+        if (str_starts_with($address, 'Brgy.')) {
+            return $address.', City of Dasmariñas, Cavite';
+        }
+
+        return 'Brgy. '.$address.', City of Dasmariñas, Cavite';
     }
 }

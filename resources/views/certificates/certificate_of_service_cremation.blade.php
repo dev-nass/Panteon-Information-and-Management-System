@@ -255,9 +255,9 @@
                 Passed away on
                 {{ $data['date_of_death'] ? \Carbon\Carbon::parse($data['date_of_death'])->format('F d, Y') : 'N/A' }},
                 at {{ $data['place_of_death'] ?? 'N/A' }}.
-                His/her <u>burial</u> took place on
+                His/her cremation took place on
                 <strong>{{ $data['date_of_depository'] ? \Carbon\Carbon::parse($data['date_of_depository'])->format('F d, Y') : 'N/A' }}</strong>
-                at <strong>{{ $data['burial_place'] ?? 'Panteon De Dasmariñas' }}</strong>.
+                at <strong>{{ $data['cremation_place'] ?? 'Panteon De Dasmariñas' }}</strong>.
             </div>
 
             <div class="body-text">
@@ -268,7 +268,7 @@
 
             <div class="body-text">
                 This Certification is being issued for his/her application for
-                <strong>Interment/Inurnment / and other purposes.</strong>
+                <strong>Inurnment / Columbarium / and other purposes.</strong>
             </div>
 
             <div class="body-text-center">

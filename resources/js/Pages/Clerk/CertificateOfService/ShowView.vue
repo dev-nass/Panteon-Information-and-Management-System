@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { router } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
@@ -11,6 +11,7 @@ const props = defineProps({
     prefilled: { type: Object, required: true },
     csrf_token: { type: String, required: true },
     templates: { type: Array, default: () => [] },
+    is_columbarium: { type: Boolean, default: false },
 });
 
 const form = ref({
@@ -20,6 +21,7 @@ const form = ref({
     place_of_death: props.prefilled.place_of_death ?? "",
     date_of_depository: props.prefilled.date_of_depository ?? "",
     burial_place: props.prefilled.burial_place ?? "",
+    cremation_place: props.prefilled.cremation_place ?? "",
     applicant_name: props.prefilled.applicant_name ?? "",
     applicant_address: "",
     relationship: props.prefilled.relationship ?? "",
@@ -28,17 +30,24 @@ const form = ref({
 const templateId = ref(null);
 const errors = ref({});
 
-const requiredFields = [
-    "deceased_name",
-    "deceased_address",
-    "date_of_death",
-    "place_of_death",
-    "date_of_depository",
-    "burial_place",
-    "applicant_name",
-    "applicant_address",
-    "relationship",
-];
+const requiredFields = computed(() => {
+    const fields = [
+        "deceased_name",
+        "deceased_address",
+        "date_of_death",
+        "place_of_death",
+        "date_of_depository",
+        "applicant_name",
+        "applicant_address",
+        "relationship",
+    ];
+    if (props.is_columbarium) {
+        fields.push("cremation_place");
+    } else {
+        fields.push("burial_place");
+    }
+    return fields;
+});
 
 const fieldLabels = {
     deceased_name: "Deceased name",
@@ -47,6 +56,7 @@ const fieldLabels = {
     place_of_death: "Place of death",
     date_of_depository: "Date of depository",
     burial_place: "Burial place",
+    cremation_place: "Cremation place",
     applicant_name: "Applicant name",
     applicant_address: "Applicant address",
     relationship: "Relationship to deceased",
@@ -59,7 +69,7 @@ const goBack = () => {
 const generate = async () => {
     errors.value = {};
 
-    for (const field of requiredFields) {
+    for (const field of requiredFields.value) {
         if (!form.value[field]) {
             errors.value[field] = `${fieldLabels[field]} is required.`;
         }
@@ -110,7 +120,23 @@ defineOptions({ layout: Dashboard });
                 >
                     Certificate of Service
                 </h2>
-                <Button @click="goBack">Back</Button>
+                <div class="flex items-center gap-3">
+                    <span
+                        :class="
+                            is_columbarium
+                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        "
+                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                    >
+                        {{
+                            is_columbarium
+                                ? "Cremation / Columbarium"
+                                : "Normal Burial"
+                        }}
+                    </span>
+                    <Button @click="goBack">Back</Button>
+                </div>
             </div>
 
             <!-- FORM -->
@@ -125,9 +151,7 @@ defineOptions({ layout: Dashboard });
                         v-model="templateId"
                         class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none"
                     >
-                        <option :value="null">
-                            Plain (text-only PDF)
-                        </option>
+                        <option :value="null">Plain (text-only PDF)</option>
                         <option
                             v-for="template in templates"
                             :key="template.id"
@@ -137,7 +161,8 @@ defineOptions({ layout: Dashboard });
                         </option>
                     </select>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Choose an uploaded template to use as the background, or keep "Plain" for no background.
+                        Choose an uploaded template to use as the background, or
+                        keep "Plain" for no background.
                     </p>
                     <span
                         v-if="errors.template_id"
@@ -236,7 +261,7 @@ defineOptions({ layout: Dashboard });
                     </span>
                 </div>
 
-                <div>
+                <div v-if="!is_columbarium">
                     <label
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
@@ -252,6 +277,25 @@ defineOptions({ layout: Dashboard });
                         class="text-red-500 text-sm"
                     >
                         {{ errors.burial_place }}
+                    </span>
+                </div>
+
+                <div v-else>
+                    <label
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                    >
+                        Cremation Place
+                        <span class="text-red-400">*</span>
+                    </label>
+                    <Input
+                        v-model="form.cremation_place"
+                        placeholder="e.g. Panteon De Dasmariñas"
+                    />
+                    <span
+                        v-if="errors.cremation_place"
+                        class="text-red-500 text-sm"
+                    >
+                        {{ errors.cremation_place }}
                     </span>
                 </div>
 
