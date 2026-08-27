@@ -6,7 +6,7 @@
     <title>Certification of Service</title>
     <style>
         @page {
-            margin: 220px 85px;
+            margin: 320px 85px 220px 85px;
             size: A4;
         }
 
@@ -24,7 +24,7 @@
             letter-spacing: 6px;
             color: #222;
             text-align: center;
-            margin: 0 0 45px 0;
+            margin: 0 0 55px 0;
         }
 
         .body-text {
@@ -32,14 +32,14 @@
             line-height: 1.9;
             text-align: justify;
             text-indent: 40px;
-            margin-bottom: 16px;
+            margin-bottom: 22px;
         }
 
         .body-text-center {
             font-size: 14px;
             line-height: 1.9;
             text-align: center;
-            margin: 40px 0 0 0;
+            margin: 55px 0 0 0;
         }
     </style>
 </head>

@@ -15,9 +15,29 @@
             font-size: 14px;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         /* ── WAVE BANDS (images, not CSS curves — DomPDF renders these pixel-perfect) ── */
+        .wave-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .wave-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1;
+        }
+
         .wave-top img,
         .wave-bottom img {
             width: 100%;
@@ -29,6 +49,7 @@
              Bottom padding reserves space so text never runs under the fixed footer wave. */
         .content {
             padding: 0 45px 140px 45px;
+            margin-top: 360px;
         }
 
         /* ── HEADER ──
@@ -174,7 +195,7 @@
              regardless of how much (or little) content precedes it — this is what was
              missing before, since a normal-flow element just sits wherever the content ends. */
         .footer-wrap {
-            position: fixed;
+            position: relative;
             bottom: 0;
             left: 0;
             width: 100%;
@@ -255,9 +276,9 @@
                 Passed away on
                 {{ $data['date_of_death'] ? \Carbon\Carbon::parse($data['date_of_death'])->format('F d, Y') : 'N/A' }},
                 at {{ $data['place_of_death'] ?? 'N/A' }}.
-                His/her cremation took place on
+                His/her <u>burial</u> took place on
                 <strong>{{ $data['date_of_depository'] ? \Carbon\Carbon::parse($data['date_of_depository'])->format('F d, Y') : 'N/A' }}</strong>
-                at <strong>{{ $data['cremation_place'] ?? 'Panteon De Dasmariñas' }}</strong>.
+                at <strong>{{ $data['burial_place'] ?? 'Panteon De Dasmariñas' }}</strong>.
             </div>
 
             <div class="body-text">
@@ -268,7 +289,7 @@
 
             <div class="body-text">
                 This Certification is being issued for his/her application for
-                <strong>Inurnment / Columbarium / and other purposes.</strong>
+                <strong>Interment/Inurnment / and other purposes.</strong>
             </div>
 
             <div class="body-text-center">
