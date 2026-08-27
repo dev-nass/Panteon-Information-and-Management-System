@@ -22,6 +22,12 @@ Route::controller(PathfinderController::class)->group(function () {
     Route::get('/pathways', 'pathways')->name('api.pathways');
 });
 
+Route::get('/barangays', function () {
+    return response()->json(
+        json_decode(file_get_contents(public_path('data/barangays.json')), true)
+    );
+})->name('api.barangays');
+
 Route::group(['middleware' => ['auth']], function () {
 
     // Description: Fetch respective data; Used on LotManagement "View on Map"

@@ -13,6 +13,11 @@ const props = defineProps({
 
 const toast = useToast();
 
+const barangays = ref([]);
+const barangayNames = computed(() =>
+    barangays.value.map((b) => b.name).sort(),
+);
+
 const activeTab = ref("personal");
 const tabs = [
     { key: "personal", label: "Personal Info" },
@@ -51,6 +56,7 @@ const form = useForm({
     nationality: "",
     occupation_name: "",
     address: "",
+    otherAddress: "",
     lgbtq: "",
     precinct_num: "",
 
@@ -116,7 +122,14 @@ watch(
     },
 );
 
-onMounted(() => {
+onMounted(async () => {
+    try {
+        const res = await fetch(route("api.barangays"));
+        barangays.value = await res.json();
+    } catch {
+        barangays.value = [];
+    }
+
     const modal = document.getElementById("burial-type-modal");
 
     if (modal) {
@@ -166,6 +179,10 @@ const handleClusterChange = (clusterId) => {
 };
 
 const submitForm = () => {
+    if (form.address === "Other") {
+        form.address = form.otherAddress;
+    }
+
     form.post(route("clerk.burial_records.store"), {
         onSuccess: () => {
             form.reset();
@@ -389,18 +406,47 @@ defineOptions({
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
-                            Address
+                            Barangay
                         </label>
-                        <Input
+                        <select
                             v-model="form.address"
-                            placeholder="Enter address"
+                            class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
                             required
-                        />
+                        >
+                            <option value="" disabled>Select barangay</option>
+                            <option
+                                v-for="name in barangayNames"
+                                :key="name"
+                                :value="name"
+                            >
+                                {{ name }}
+                            </option>
+                            <option value="Other">Other</option>
+                        </select>
                         <span
                             v-if="form.errors.address"
                             class="text-red-500 text-sm"
                         >
                             {{ form.errors.address }}
+                        </span>
+                    </div>
+
+                    <div v-if="form.address === 'Other'" class="md:col-span-2">
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        >
+                            Address (Other)
+                        </label>
+                        <Input
+                            v-model="form.otherAddress"
+                            placeholder="Enter address"
+                            required
+                        />
+                        <span
+                            v-if="form.errors.otherAddress"
+                            class="text-red-500 text-sm"
+                        >
+                            {{ form.errors.otherAddress }}
                         </span>
                     </div>
 
