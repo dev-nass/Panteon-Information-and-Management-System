@@ -30,6 +30,8 @@ class DashboardController extends Controller
         $data = [
             'stats' => $this->dashboardService->getTotalStats($filters),
             'disposal_stats' => $this->dashboardService->getDisposalStats($filters),
+            'total_stats' => $this->dashboardService->getTotalStats(),
+            'total_disposal_stats' => $this->dashboardService->getDisposalStats(),
             'current_tab' => $tab,
             'current_filter' => $filter,
             'selected_year' => (int) $year,

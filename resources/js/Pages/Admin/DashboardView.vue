@@ -14,6 +14,8 @@ import { router } from "@inertiajs/vue3";
 const props = defineProps({
     stats: { type: Object, required: true },
     disposal_stats: { type: Object, required: true },
+    total_stats: { type: Object, required: true },
+    total_disposal_stats: { type: Object, required: true },
     activity_data: { type: Object, default: null },
     demographic_data: { type: Object, default: null },
     geographic_data: { type: Object, default: null },
@@ -207,14 +209,23 @@ const performanceOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
+    scales: {
+        x: {
+            title: { display: true, text: "Time Period", font: { size: 12 } },
+        },
+        y: {
+            title: { display: true, text: "Number of Records", font: { size: 12 } },
+            beginAtZero: true,
+        },
+    },
 };
 
 /* DOUGHNUT DATA */
 const attendanceData = computed(() => {
-    const burial = props.disposal_stats.burial || 0;
-    const cremation = props.disposal_stats.cremation || 0;
-    const occupied = props.stats.occupied_lots || 0;
-    const available = props.stats.available_lots || 0;
+    const burial = props.total_disposal_stats.burial || 0;
+    const cremation = props.total_disposal_stats.cremation || 0;
+    const occupied = props.total_stats.occupied_lots || 0;
+    const available = props.total_stats.available_lots || 0;
 
     return {
         labels: ["Burial", "Cremation", "Occupied Lots", "Available Lots"],
@@ -267,6 +278,15 @@ const ageDistributionOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
+    scales: {
+        x: {
+            title: { display: true, text: "Age Group", font: { size: 12 } },
+        },
+        y: {
+            title: { display: true, text: "Number of Records", font: { size: 12 } },
+            beginAtZero: true,
+        },
+    },
 };
 
 /* GEOGRAPHIC DISTRIBUTION DATA */
@@ -291,6 +311,15 @@ const geographicDistributionOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
+    scales: {
+        x: {
+            title: { display: true, text: "Number of Records", font: { size: 12 } },
+            beginAtZero: true,
+        },
+        y: {
+            title: { display: true, text: "Barangay", font: { size: 12 } },
+        },
+    },
 };
 
 const geoChartHeight = computed(() => {
@@ -330,8 +359,15 @@ const phaseOccupancyOptions = {
         legend: { display: true, position: "top" },
     },
     scales: {
-        x: { stacked: true },
-        y: { stacked: true },
+        x: {
+            stacked: true,
+            title: { display: true, text: "Number of Lots", font: { size: 12 } },
+            beginAtZero: true,
+        },
+        y: {
+            stacked: true,
+            title: { display: true, text: "Phase", font: { size: 12 } },
+        },
     },
 };
 
@@ -383,8 +419,15 @@ const clusterOccupancyOptions = {
         legend: { display: true, position: "top" },
     },
     scales: {
-        x: { stacked: true },
-        y: { stacked: true },
+        x: {
+            stacked: true,
+            title: { display: true, text: "Number of Lots", font: { size: 12 } },
+            beginAtZero: true,
+        },
+        y: {
+            stacked: true,
+            title: { display: true, text: "Cluster", font: { size: 12 } },
+        },
     },
 };
 
@@ -623,7 +666,7 @@ defineOptions({
             </div>
 
             <!-- BOTTOM ROW: Demographics + Geography -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-6">
                 <!-- AGE DISTRIBUTION -->
                 <div class="space-y-3">
                     <h3 class="font-semibold">Age Distribution</h3>
