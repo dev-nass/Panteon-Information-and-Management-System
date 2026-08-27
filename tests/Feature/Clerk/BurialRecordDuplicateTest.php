@@ -62,6 +62,28 @@ it('blocks creation when same name and date_of_death already exists', function (
         ->and($duplicate->last_name)->toBe('Santos');
 });
 
+it('blocks creation when same name and date_of_depository already exists', function () {
+    DeceasedRecord::factory()->create([
+        'first_name' => 'Jose',
+        'last_name' => 'Rizal',
+        'date_of_birth' => '1861-06-19',
+        'date_of_death' => '1896-12-30',
+        'date_of_depository' => '1897-01-15',
+        'applicant_id' => Applicant::factory()->create(['contact_number' => '09123456789'])->id,
+    ]);
+
+    $duplicate = $this->normalizer->findDuplicateDeceased(
+        'Jose',
+        'Rizal',
+        '1861-06-19',
+        '1896-12-30',
+        '1897-01-15'
+    );
+
+    expect($duplicate)->not->toBeNull()
+        ->and($duplicate->first_name)->toBe('Jose');
+});
+
 it('allows creation when name matches but dates differ', function () {
     DeceasedRecord::factory()->create([
         'first_name' => 'Pedro',
@@ -117,6 +139,7 @@ it('handles null dates in duplicate check', function () {
         'last_name' => 'Ibarra',
         'date_of_birth' => null,
         'date_of_death' => null,
+        'date_of_depository' => null,
         'applicant_id' => Applicant::factory()->create(['contact_number' => '09123456789'])->id,
     ]);
 
@@ -124,9 +147,62 @@ it('handles null dates in duplicate check', function () {
         'Crisostomo',
         'Ibarra',
         null,
+        null,
         null
     );
 
     expect($duplicate)->not->toBeNull()
         ->and($duplicate->first_name)->toBe('Crisostomo');
+});
+
+it('excludes current record when checking for duplicates during update', function () {
+    $record = DeceasedRecord::factory()->create([
+        'first_name' => 'Juan',
+        'last_name' => 'Dela Cruz',
+        'date_of_birth' => '1950-01-15',
+        'date_of_death' => '2020-06-20',
+        'date_of_depository' => '2020-07-01',
+        'applicant_id' => Applicant::factory()->create(['contact_number' => '09123456789'])->id,
+    ]);
+
+    $duplicate = $this->normalizer->findDuplicateDeceased(
+        'Juan',
+        'Dela Cruz',
+        '1950-01-15',
+        '2020-06-20',
+        '2020-07-01',
+        $record->id
+    );
+
+    expect($duplicate)->toBeNull();
+});
+
+it('finds duplicate for different record during update', function () {
+    DeceasedRecord::factory()->create([
+        'first_name' => 'Juan',
+        'last_name' => 'Dela Cruz',
+        'date_of_birth' => '1950-01-15',
+        'date_of_death' => '2020-06-20',
+        'applicant_id' => Applicant::factory()->create(['contact_number' => '09123456789'])->id,
+    ]);
+
+    $otherRecord = DeceasedRecord::factory()->create([
+        'first_name' => 'Pedro',
+        'last_name' => 'Garcia',
+        'date_of_birth' => '1955-08-20',
+        'date_of_death' => '2018-11-30',
+        'applicant_id' => Applicant::factory()->create(['contact_number' => '09123456789'])->id,
+    ]);
+
+    $duplicate = $this->normalizer->findDuplicateDeceased(
+        'Juan',
+        'Dela Cruz',
+        '1950-01-15',
+        '2021-03-10',
+        null,
+        $otherRecord->id
+    );
+
+    expect($duplicate)->not->toBeNull()
+        ->and($duplicate->first_name)->toBe('Juan');
 });

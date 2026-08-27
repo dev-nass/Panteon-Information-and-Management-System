@@ -116,18 +116,41 @@ class RecordNormalizationService
         string $firstName,
         string $lastName,
         ?string $dateOfBirth,
-        ?string $dateOfDeath
+        ?string $dateOfDeath,
+        ?string $dateOfDepository = null,
+        ?int $excludeId = null
     ): ?DeceasedRecord {
         $query = DeceasedRecord::where('first_name', $firstName)
             ->where('last_name', $lastName);
 
-        $query->where(function ($q) use ($dateOfBirth, $dateOfDeath) {
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        $hasDateMatch = false;
+
+        $query->where(function ($q) use ($dateOfBirth, $dateOfDeath, $dateOfDepository, &$hasDateMatch) {
             if ($dateOfBirth !== null) {
                 $q->where('date_of_birth', $dateOfBirth);
+                $hasDateMatch = true;
             }
 
             if ($dateOfDeath !== null) {
-                $q->orWhere('date_of_death', $dateOfDeath);
+                if ($hasDateMatch) {
+                    $q->orWhere('date_of_death', $dateOfDeath);
+                } else {
+                    $q->where('date_of_death', $dateOfDeath);
+                    $hasDateMatch = true;
+                }
+            }
+
+            if ($dateOfDepository !== null) {
+                if ($hasDateMatch) {
+                    $q->orWhere('date_of_depository', $dateOfDepository);
+                } else {
+                    $q->where('date_of_depository', $dateOfDepository);
+                    $hasDateMatch = true;
+                }
             }
         });
 

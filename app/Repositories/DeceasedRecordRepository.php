@@ -26,7 +26,8 @@ class DeceasedRecordRepository extends Repository
             $validated['first_name'],
             $validated['last_name'],
             $birthDate,
-            $deathDate
+            $deathDate,
+            $validated['burial_date'] ?? null
         );
 
         if ($duplicate) {
@@ -70,6 +71,21 @@ class DeceasedRecordRepository extends Repository
         $birthDate = $data['birth']['date'] ?? null;
         $deathDate = $data['death']['date'] ?? null;
         $explicitAge = $data['age'] ?? null;
+
+        $duplicate = $this->normalizer->findDuplicateDeceased(
+            $data['first_name'],
+            $data['last_name'],
+            $birthDate,
+            $deathDate,
+            $data['burial']['date'] ?? null,
+            $deceased->id
+        );
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'deceased.first_name' => "A record for {$data['first_name']} {$data['last_name']} already exists (ID: {$duplicate->id}).",
+            ]);
+        }
 
         return $this->update($deceased, [
             'first_name' => $data['first_name'],

@@ -161,10 +161,16 @@ const saveChanges = () => {
                 editing.value = false;
                 $toast.success("Burial record updated successfully!");
             },
-            onError: () => {
-                $toast.error(
-                    "Failed to update burial record. Please check the form for errors.",
-                );
+            onError: (errors) => {
+                const duplicateError =
+                    errors["deceased.first_name"] || errors.first_name;
+                if (duplicateError?.includes("already exists")) {
+                    $toast.error(duplicateError, { duration: 8000 });
+                } else {
+                    $toast.error(
+                        "Failed to update burial record. Please check the form for errors.",
+                    );
+                }
             },
             preserveScroll: true,
             preserveState: false, // updates the record on show after updating

@@ -109,7 +109,8 @@ class ImportingController extends Controller
                         $deceasedData['first_name'],
                         $deceasedData['last_name'],
                         $deceasedData['date_of_birth'],
-                        $deceasedData['date_of_death']
+                        $deceasedData['date_of_death'],
+                        $deceasedData['date_of_depository']
                     );
 
                     if ($existingRecord) {
