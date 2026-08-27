@@ -594,6 +594,7 @@ onBeforeUnmount(() => {
                 />
                 <Display
                     label="Date of Birth"
+                    type="date"
                     :modelValue="localData.deceased?.birth?.date"
                     :editing="editing"
                     :error="errors['deceased.birth.date']"
@@ -667,6 +668,7 @@ onBeforeUnmount(() => {
             >
                 <Display
                     label="Date of Death"
+                    type="date"
                     :modelValue="localData.deceased?.death?.date"
                     :editing="editing"
                     @update:modelValue="
@@ -714,6 +716,7 @@ onBeforeUnmount(() => {
                 />
                 <Display
                     label="Cremation Date"
+                    type="date"
                     :modelValue="localData.deceased?.cremation?.date"
                     :editing="editing"
                     @update:modelValue="

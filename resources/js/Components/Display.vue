@@ -14,6 +14,28 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["update:modelValue"]);
+
+const displayValue = computed(() => {
+    if (props.editing || !props.modelValue) {
+        return props.modelValue;
+    }
+
+    if (props.type === "date") {
+        const date = new Date(props.modelValue + "T00:00:00");
+
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    }
+
+    if (props.type === "time") {
+        return props.modelValue.substring(0, 5);
+    }
+
+    return props.modelValue;
+});
 </script>
 
 <template>
@@ -22,8 +44,8 @@ const emit = defineEmits(["update:modelValue"]);
             {{ label }}
         </label>
         <input
-            :type="type"
-            :value="modelValue"
+            :type="editing ? type : 'text'"
+            :value="displayValue"
             @input="$emit('update:modelValue', $event.target.value)"
             :disabled="!editing"
             placeholder="—"
