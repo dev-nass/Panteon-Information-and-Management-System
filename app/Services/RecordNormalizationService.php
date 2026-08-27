@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DeceasedRecord;
 use Carbon\Carbon;
 
 class RecordNormalizationService
@@ -106,5 +107,30 @@ class RecordNormalizationService
         }
 
         return $explicitAge;
+    }
+
+    /**
+     * Check if a deceased record with the same name and dates already exists.
+     */
+    public function findDuplicateDeceased(
+        string $firstName,
+        string $lastName,
+        ?string $dateOfBirth,
+        ?string $dateOfDeath
+    ): ?DeceasedRecord {
+        $query = DeceasedRecord::where('first_name', $firstName)
+            ->where('last_name', $lastName);
+
+        $query->where(function ($q) use ($dateOfBirth, $dateOfDeath) {
+            if ($dateOfBirth !== null) {
+                $q->where('date_of_birth', $dateOfBirth);
+            }
+
+            if ($dateOfDeath !== null) {
+                $q->orWhere('date_of_death', $dateOfDeath);
+            }
+        });
+
+        return $query->first();
     }
 }

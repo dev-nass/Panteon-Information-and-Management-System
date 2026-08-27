@@ -189,7 +189,11 @@ const submitForm = () => {
             toast.success("Burial record created successfully!");
         },
         onError: (errors) => {
-            toast.error("Please fix the validation errors before submitting.");
+            if (errors.first_name?.includes("already exists")) {
+                toast.error(errors.first_name, { duration: 8000 });
+            } else {
+                toast.error("Please fix the validation errors before submitting.");
+            }
         },
     });
 };

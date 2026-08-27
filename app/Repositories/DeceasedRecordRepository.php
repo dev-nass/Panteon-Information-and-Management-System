@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\DeceasedRecord;
 use App\Services\RecordNormalizationService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 
 class DeceasedRecordRepository extends Repository
 {
@@ -20,6 +21,19 @@ class DeceasedRecordRepository extends Repository
         $birthDate = $validated['birth_date'] ?? null;
         $deathDate = $validated['death_date'] ?? null;
         $explicitAge = $validated['age'] ?? null;
+
+        $duplicate = $this->normalizer->findDuplicateDeceased(
+            $validated['first_name'],
+            $validated['last_name'],
+            $birthDate,
+            $deathDate
+        );
+
+        if ($duplicate) {
+            throw ValidationException::withMessages([
+                'first_name' => "A record for {$validated['first_name']} {$validated['last_name']} already exists (ID: {$duplicate->id}).",
+            ]);
+        }
 
         return $this->create([
             'applicant_id' => $applicantId,

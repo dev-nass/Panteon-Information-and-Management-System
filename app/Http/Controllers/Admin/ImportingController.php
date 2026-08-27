@@ -105,10 +105,12 @@ class ImportingController extends Controller
                     }
 
                     // Check if deceased record already exists
-                    $existingRecord = DeceasedRecord::where('first_name', $deceasedData['first_name'])
-                        ->where('last_name', $deceasedData['last_name'])
-                        ->where('date_of_depository', $deceasedData['date_of_depository'])
-                        ->first();
+                    $existingRecord = $this->normalizer->findDuplicateDeceased(
+                        $deceasedData['first_name'],
+                        $deceasedData['last_name'],
+                        $deceasedData['date_of_birth'],
+                        $deceasedData['date_of_death']
+                    );
 
                     if ($existingRecord) {
                         $errors[] = "Row {$rowNumber}: Deceased record already exists (ID: {$existingRecord->id})";
