@@ -159,7 +159,6 @@ class ImportingController extends Controller
 
                     $birthDate = $deceasedData['date_of_birth'];
                     $deathDate = $deceasedData['date_of_death'];
-                    $explicitAge = $deceasedData['age'] ?? null;
 
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
@@ -173,7 +172,6 @@ class ImportingController extends Controller
                         'date_of_depository' => $deceasedData['date_of_depository'],
                         'cremation_date' => $deceasedData['cremation_date'],
                         'cremation_place' => $deceasedData['cremation_place'],
-                        'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
                         'precinct_num' => $deceasedData['precinct_num'] ?? null,
                         'corpse_disposal' => match ($importType) {
                             'normal' => 'burial',

@@ -29,10 +29,7 @@ class BurialRecordStoreRequest extends FormRequest
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',
             'last_name' => 'required|string|max:255',
-            'age' => 'nullable|integer',
-            'birth_date' => $corpseDisposal === 'cremation'
-                ? 'required|date'
-                : 'nullable|date',
+            'birth_date' => 'required|date',
             'civil_status' => 'nullable|string|max:255',
             'religion' => 'nullable|string|max:255',
             'nationality' => 'nullable|string|max:255',
@@ -83,7 +80,6 @@ class BurialRecordStoreRequest extends FormRequest
             'first_name',
             'middle_name',
             'last_name',
-            'age',
             'birth_date',
             'civil_status',
             'religion',

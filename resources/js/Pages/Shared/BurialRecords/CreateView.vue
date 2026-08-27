@@ -49,7 +49,6 @@ const form = useForm({
     first_name: "",
     middle_name: "",
     last_name: "",
-    age: "",
     birth_date: "",
     civil_status: "",
     religion: "",
@@ -323,32 +322,12 @@ defineOptions({
                         <label
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                         >
-                            Age
-                        </label>
-                        <Input
-                            v-model="form.age"
-                            type="number"
-                            placeholder="Enter age"
-                            required
-                        />
-                        <span
-                            v-if="form.errors.age"
-                            class="text-red-500 text-sm"
-                        >
-                            {{ form.errors.age }}
-                        </span>
-                    </div>
-
-                    <div>
-                        <label
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                        >
                             Date of Birth
                         </label>
                         <Input
                             v-model="form.birth_date"
                             type="date"
-                            :required="isCremation"
+                            required
                         />
                         <span
                             v-if="form.errors.birth_date"

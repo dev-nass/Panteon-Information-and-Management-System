@@ -20,7 +20,6 @@ class DeceasedRecordRepository extends Repository
     {
         $birthDate = $validated['birth_date'] ?? null;
         $deathDate = $validated['death_date'] ?? null;
-        $explicitAge = $validated['age'] ?? null;
 
         $duplicate = $this->normalizer->findDuplicateDeceased(
             $validated['first_name'],
@@ -41,7 +40,6 @@ class DeceasedRecordRepository extends Repository
             'first_name' => $validated['first_name'],
             'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
-            'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
             'date_of_birth' => $birthDate,
             'date_of_death' => $deathDate,
             'cause_of_death' => $validated['death_cause'] ?? null,
@@ -70,7 +68,6 @@ class DeceasedRecordRepository extends Repository
     {
         $birthDate = $data['birth']['date'] ?? null;
         $deathDate = $data['death']['date'] ?? null;
-        $explicitAge = $data['age'] ?? null;
 
         $duplicate = $this->normalizer->findDuplicateDeceased(
             $data['first_name'],
@@ -91,7 +88,6 @@ class DeceasedRecordRepository extends Repository
             'first_name' => $data['first_name'],
             'middle_name' => $data['middle_name'] ?? null,
             'last_name' => $data['last_name'],
-            'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
             'date_of_birth' => $birthDate,
             'civil_status' => $data['civil_status'] ?? null,
             'religion' => $data['religion'] ?? null,

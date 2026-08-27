@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -10,7 +11,6 @@ class DeceasedRecord extends Model
 {
     use HasFactory;
 
-    //
     protected $fillable = [
         'applicant_id',
         'first_name',
@@ -40,6 +40,13 @@ class DeceasedRecord extends Model
         'precinct_num',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (DeceasedRecord $record) {
+            $record->computeAge();
+        });
+    }
+
     public function burialRecords(): HasOne
     {
         return $this->hasOne(BurialRecord::class);
@@ -48,5 +55,19 @@ class DeceasedRecord extends Model
     public function applicant()
     {
         return $this->belongsTo(Applicant::class);
+    }
+
+    private function computeAge(): void
+    {
+        $birth = $this->date_of_birth ? Carbon::parse($this->date_of_birth) : null;
+        $death = $this->date_of_death ? Carbon::parse($this->date_of_death) : null;
+
+        if ($birth && $death) {
+            $this->age = $birth->diffInYears($death);
+        } elseif ($birth) {
+            $this->age = $birth->diffInYears(Carbon::now());
+        } else {
+            $this->age = null;
+        }
     }
 }

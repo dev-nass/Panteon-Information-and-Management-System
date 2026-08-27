@@ -304,7 +304,6 @@ class PanteonDataSeeder extends Seeder
                         'address' => $address,
                         'date_of_birth' => $dateOfBirth,
                         'date_of_death' => $dateOfDeath,
-                        'age' => $this->normalizer->computeAge($dateOfBirth, $dateOfDeath),
                         'date_of_depository' => $burialDate,
                         'corpse_disposal' => 'burial',
                     ]);
