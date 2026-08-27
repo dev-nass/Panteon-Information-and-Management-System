@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ImportedLog extends Model
+class ImportedExcelLog extends Model
 {
     protected $fillable = ['file_name', 'status'];
 

@@ -3,31 +3,38 @@
 namespace App\Repositories;
 
 use App\Models\DeceasedRecord;
+use App\Services\RecordNormalizationService;
 use Illuminate\Database\Eloquent\Model;
 
 class DeceasedRecordRepository extends Repository
 {
-    public function __construct(DeceasedRecord $model)
-    {
-        return parent::__construct($model);
+    public function __construct(
+        DeceasedRecord $model,
+        protected RecordNormalizationService $normalizer
+    ) {
+        parent::__construct($model);
     }
 
     public function createDeceasedRecord(array $validated, int $applicantId): Model
     {
+        $birthDate = $validated['birth_date'] ?? null;
+        $deathDate = $validated['death_date'] ?? null;
+        $explicitAge = $validated['age'] ?? null;
+
         return $this->create([
             'applicant_id' => $applicantId,
             'first_name' => $validated['first_name'],
             'middle_name' => $validated['middle_name'] ?? null,
             'last_name' => $validated['last_name'],
-            'age' => $validated['age'] ?? null,
-            'date_of_birth' => $validated['birth_date'] ?? null,
-            'date_of_death' => $validated['death_date'] ?? null,
+            'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
+            'date_of_birth' => $birthDate,
+            'date_of_death' => $deathDate,
             'cause_of_death' => $validated['death_cause'] ?? null,
             'place_of_death' => $validated['death_place'] ?? null,
             'civil_status' => $validated['civil_status'] ?? null,
             'religion' => $validated['religion'] ?? null,
             'nationality' => $validated['nationality'] ?? null,
-            'address' => $validated['address'] ?? null,
+            'address' => $this->normalizer->normalizeAddress($validated['address'] ?? null),
             'occupation' => $validated['occupation_name'] ?? null,
             'corpse_disposal' => $validated['corpse_disposal'] ?? null,
             'cremation_place' => $validated['cremation_place'] ?? null,
@@ -46,20 +53,24 @@ class DeceasedRecordRepository extends Repository
 
     public function updateDeceasedRecord(Model $deceased, array $data): bool
     {
+        $birthDate = $data['birth']['date'] ?? null;
+        $deathDate = $data['death']['date'] ?? null;
+        $explicitAge = $data['age'] ?? null;
+
         return $this->update($deceased, [
             'first_name' => $data['first_name'],
             'middle_name' => $data['middle_name'] ?? null,
             'last_name' => $data['last_name'],
-            'age' => $data['age'] ?? null,
-            'date_of_birth' => $data['birth']['date'] ?? null,
+            'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
+            'date_of_birth' => $birthDate,
             'civil_status' => $data['civil_status'] ?? null,
             'religion' => $data['religion'] ?? null,
             'nationality' => $data['nationality'] ?? null,
             'occupation' => $data['occupation']['name'] ?? null,
-            'address' => $data['address'] ?? null,
+            'address' => $this->normalizer->normalizeAddress($data['address'] ?? null),
             'part_of_LGBTQ' => $data['lgbtq'] ?? null,
             'precinct_num' => $data['precinct_num'] ?? null,
-            'date_of_death' => $data['death']['date'] ?? null,
+            'date_of_death' => $deathDate,
             'cause_of_death' => $data['death']['cause'] ?? null,
             'place_of_death' => $data['death']['place'] ?? null,
             'corpse_disposal' => $data['corpse_disposal'] ?? null,

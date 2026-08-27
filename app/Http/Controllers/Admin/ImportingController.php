@@ -6,22 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Applicant;
 use App\Models\BurialRecord;
 use App\Models\DeceasedRecord;
-use App\Models\ImportedLog;
+use App\Models\ImportedExcelLog;
 use App\Models\Lot;
+use App\Services\RecordNormalizationService;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
-use PhpOffice\PhpSpreadsheet\IOFactory; // Noel
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportingController extends Controller
 {
     use LogsActivity;
 
+    public function __construct(
+        protected RecordNormalizationService $normalizer
+    ) {}
+
     public function index()
     {
-        $logs = ImportedLog::orderBy('created_at', 'desc')->limit(50)->get();
+        $logs = ImportedExcelLog::orderBy('created_at', 'desc')->limit(50)->get();
 
         return Inertia::render('Admin/ImportRecord/IndexView', [
             'importLogs' => $logs,
@@ -61,7 +66,7 @@ class ImportingController extends Controller
 
             DB::beginTransaction();
 
-            $importLog = ImportedLog::create([
+            $importLog = ImportedExcelLog::create([
                 'file_name' => $fileName,
                 'imported_by' => auth()->id(),
                 'status' => 'processing',
@@ -149,19 +154,23 @@ class ImportingController extends Controller
                         $applicantId = $applicant->id;
                     }
 
+                    $birthDate = $deceasedData['date_of_birth'];
+                    $deathDate = $deceasedData['date_of_death'];
+                    $explicitAge = $deceasedData['age'] ?? null;
+
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
                         'applicant_id' => $applicantId,
                         'first_name' => $deceasedData['first_name'],
                         'middle_name' => $deceasedData['middle_name'],
                         'last_name' => $deceasedData['last_name'],
-                        'address' => $deceasedData['address'],
-                        'date_of_birth' => $deceasedData['date_of_birth'],
-                        'date_of_death' => $deceasedData['date_of_death'],
+                        'address' => $this->normalizer->normalizeAddress($deceasedData['address']),
+                        'date_of_birth' => $birthDate,
+                        'date_of_death' => $deathDate,
                         'date_of_depository' => $deceasedData['date_of_depository'],
                         'cremation_date' => $deceasedData['cremation_date'],
                         'cremation_place' => $deceasedData['cremation_place'],
-                        'age' => $deceasedData['age'] ?? null,
+                        'age' => $this->normalizer->computeAge($birthDate, $deathDate, $explicitAge),
                         'precinct_num' => $deceasedData['precinct_num'] ?? null,
                         'corpse_disposal' => match ($importType) {
                             'normal' => 'burial',
@@ -246,18 +255,18 @@ class ImportingController extends Controller
      */
     private function parseNormalRow(array $row): array
     {
-        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
-        $applicantName = $this->parseFullName(trim($row[3] ?? ''));
+        $deceasedName = $this->normalizer->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->normalizer->parseFullName(trim($row[3] ?? ''));
 
         return [
             'deceased' => [
                 'first_name' => $deceasedName['first_name'],
                 'middle_name' => $deceasedName['middle_name'],
                 'last_name' => $deceasedName['last_name'],
-                'address' => $this->titleCase(trim($row[7] ?? '') ?: '') ?: null,
+                'address' => $this->normalizer->normalizeAddress($row[7] ?? null),
                 'date_of_birth' => null,
                 'date_of_death' => null,
-                'date_of_depository' => $this->parseDate($row[1] ?? null),
+                'date_of_depository' => $this->normalizer->parseDate($row[1] ?? null),
                 'cremation_date' => null,
                 'cremation_place' => null,
             ],
@@ -284,8 +293,8 @@ class ImportingController extends Controller
      */
     private function parseColumbariumRow(array $row): array
     {
-        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
-        $applicantName = $this->parseFullName(trim($row[9] ?? ''));
+        $deceasedName = $this->normalizer->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->normalizer->parseFullName(trim($row[9] ?? ''));
 
         $precinctNum = trim($row[1] ?? '');
         $age = trim($row[14] ?? '');
@@ -295,12 +304,12 @@ class ImportingController extends Controller
                 'first_name' => $deceasedName['first_name'],
                 'middle_name' => $deceasedName['middle_name'],
                 'last_name' => $deceasedName['last_name'],
-                'address' => $this->titleCase(trim($row[3] ?? '') ?: '') ?: null,
-                'date_of_birth' => $this->parseDate($row[4] ?? null),
-                'date_of_death' => $this->parseDate($row[5] ?? null),
-                'date_of_depository' => $this->parseDate($row[7] ?? null),
-                'cremation_date' => $this->parseDate($row[6] ?? null),
-                'cremation_place' => $this->titleCase(trim($row[8] ?? '') ?: '') ?: null,
+                'address' => $this->normalizer->normalizeAddress($row[3] ?? null),
+                'date_of_birth' => $this->normalizer->parseDate($row[4] ?? null),
+                'date_of_death' => $this->normalizer->parseDate($row[5] ?? null),
+                'date_of_depository' => $this->normalizer->parseDate($row[7] ?? null),
+                'cremation_date' => $this->normalizer->parseDate($row[6] ?? null),
+                'cremation_place' => $this->normalizer->normalizeAddress($row[8] ?? null),
                 'age' => is_numeric($age) ? (int) $age : null,
                 'precinct_num' => is_numeric($precinctNum) ? (int) $precinctNum : null,
             ],
@@ -309,7 +318,7 @@ class ImportingController extends Controller
                 'middle_name' => $applicantName['middle_name'],
                 'last_name' => $applicantName['last_name'],
                 'contact_number' => trim($row[11] ?? '') ?: null,
-                'relationship' => $this->titleCase(trim($row[10] ?? '') ?: '') ?: null,
+                'relationship' => $this->normalizer->normalizeName($row[10] ?? null),
             ],
             'lot' => [
                 'phase_name' => 'clbm',
@@ -325,8 +334,8 @@ class ImportingController extends Controller
      */
     private function parseMuslimRow(array $row): array
     {
-        $deceasedName = $this->parseFullName(trim($row[2] ?? ''));
-        $applicantName = $this->parseFullName(trim($row[6] ?? ''));
+        $deceasedName = $this->normalizer->parseFullName(trim($row[2] ?? ''));
+        $applicantName = $this->normalizer->parseFullName(trim($row[6] ?? ''));
 
         return [
             'deceased' => [
@@ -353,58 +362,5 @@ class ImportingController extends Controller
                 'apt_number' => trim($row[12] ?? ''),
             ],
         ];
-    }
-
-    private function parseFullName($fullName)
-    {
-        $parts = preg_split('/\s+/', trim($fullName));
-        $count = count($parts);
-
-        if ($count === 0) {
-            return ['first_name' => null, 'middle_name' => null, 'last_name' => null];
-        } elseif ($count === 1) {
-            return ['first_name' => $this->titleCase($parts[0]), 'middle_name' => null, 'last_name' => null];
-        } else {
-            // First name and last name only, disregard middle name
-            $firstName = array_shift($parts);
-            $lastName = array_pop($parts);
-
-            return [
-                'first_name' => $this->titleCase($firstName),
-                'middle_name' => null,
-                'last_name' => $this->titleCase($lastName),
-            ];
-        }
-    }
-
-    private function titleCase(string $value): string
-    {
-        return ucwords(strtolower(trim($value)));
-    }
-
-    private function parseDate($date)
-    {
-        if (empty($date)) {
-            return null;
-        }
-
-        try {
-            // Try to parse Excel date format
-            if (is_numeric($date)) {
-                $unixDate = ($date - 25569) * 86400;
-
-                return date('Y-m-d', $unixDate);
-            }
-
-            // Try standard date formats
-            $timestamp = strtotime($date);
-            if ($timestamp === false) {
-                return null;
-            }
-
-            return date('Y-m-d', $timestamp);
-        } catch (\Exception $e) {
-            return null;
-        }
     }
 }

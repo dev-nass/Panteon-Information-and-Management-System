@@ -7,14 +7,17 @@ use App\Models\Cluster;
 use App\Models\DeceasedRecord;
 use App\Models\Lot;
 use App\Models\Phase;
+use App\Services\RecordNormalizationService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-use function GuzzleHttp\json_encode;
-
 class PanteonDataSeeder extends Seeder
 {
+    public function __construct(
+        protected RecordNormalizationService $normalizer
+    ) {}
+
     /**
      * Run the database seeds.
      */
@@ -47,8 +50,6 @@ class PanteonDataSeeder extends Seeder
         $this->command->info('Seeding phases from GeoJSON...');
 
         foreach ($geoJsonData['features'] as $feature) {
-            // $phase_attributes = $feature['properties'];
-
             $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             DB::statement('INSERT INTO phases(phase_name, coordinates, created_at, updated_at) VALUES (?, ST_GeomFromGeoJSON(?), NOW(), NOW())', [
@@ -251,8 +252,8 @@ class PanteonDataSeeder extends Seeder
                 try {
                     // Parse deceased name
                     $fullName = trim($row[2]);
-                    $nameParts = $this->parseFullName($fullName);
-                    $burialDate = $this->parseDate($row[1]);
+                    $nameParts = $this->normalizer->parseFullName($fullName);
+                    $burialDate = $this->normalizer->parseDate($row[1]);
 
                     // Find lot based on phase, cluster, and apt number
                     $phaseName = trim($row[4] ?? '');
@@ -280,7 +281,7 @@ class PanteonDataSeeder extends Seeder
                     $applicantId = null;
                     $applicantName = trim($row[3] ?? '');
                     if (! empty($applicantName)) {
-                        $applicantParts = $this->parseFullName($applicantName);
+                        $applicantParts = $this->normalizer->parseFullName($applicantName);
                         $applicant = Applicant::create([
                             'first_name' => $applicantParts['first_name'] ?? '',
                             'middle_name' => $applicantParts['middle_name'],
@@ -290,13 +291,20 @@ class PanteonDataSeeder extends Seeder
                         $applicantId = $applicant->id;
                     }
 
+                    $address = $this->normalizer->normalizeAddress($row[7] ?? null);
+                    $dateOfBirth = $this->normalizer->parseDate($row[8] ?? null);
+                    $dateOfDeath = $this->normalizer->parseDate($row[9] ?? null);
+
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
                         'applicant_id' => $applicantId,
                         'first_name' => $nameParts['first_name'] ?? '',
                         'middle_name' => $nameParts['middle_name'],
                         'last_name' => $nameParts['last_name'] ?? '',
-                        'address' => $row[7] ?? null,
+                        'address' => $address,
+                        'date_of_birth' => $dateOfBirth,
+                        'date_of_death' => $dateOfDeath,
+                        'age' => $this->normalizer->computeAge($dateOfBirth, $dateOfDeath),
                         'date_of_depository' => $burialDate,
                         'corpse_disposal' => 'burial',
                     ]);
@@ -336,55 +344,6 @@ class PanteonDataSeeder extends Seeder
 
         } catch (\Exception $e) {
             $this->command->error("Failed to import deceased records: {$e->getMessage()}");
-        }
-    }
-
-    private function parseFullName($fullName)
-    {
-        $parts = preg_split('/\s+/', trim($fullName));
-        $count = count($parts);
-
-        // Capitalize each part properly
-        $parts = array_map(function ($part) {
-            return ucwords(strtolower($part));
-        }, $parts);
-
-        if ($count === 0) {
-            return ['first_name' => '', 'middle_name' => null, 'last_name' => ''];
-        } elseif ($count === 1) {
-            return ['first_name' => $parts[0], 'middle_name' => null, 'last_name' => ''];
-        } else {
-            $firstName = array_shift($parts);
-            $lastName = array_pop($parts);
-            $middleName = ! empty($parts) ? implode(' ', $parts) : null;
-
-            return ['first_name' => $firstName, 'middle_name' => $middleName, 'last_name' => $lastName];
-        }
-    }
-
-    private function parseDate($date)
-    {
-        if (empty($date)) {
-            return null;
-        }
-
-        try {
-            // Try to parse Excel date format
-            if (is_numeric($date)) {
-                $unixDate = ($date - 25569) * 86400;
-
-                return date('Y-m-d', $unixDate);
-            }
-
-            // Try standard date formats
-            $timestamp = strtotime($date);
-            if ($timestamp === false) {
-                return null;
-            }
-
-            return date('Y-m-d', $timestamp);
-        } catch (\Exception $e) {
-            return null;
         }
     }
 }

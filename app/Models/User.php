@@ -57,7 +57,7 @@ class User extends Authenticatable
 
     public function importLogs()
     {
-        return $this->hasMany(ImportedLog::class);
+        return $this->hasMany(ImportedExcelLog::class);
     }
 
     public function burialRecords(): HasMany
