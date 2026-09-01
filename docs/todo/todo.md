@@ -14,3 +14,10 @@
 ### Add-Ons (Must have)
 
 - Registration "user agreement"
+
+### Issues
+
+- [ ] Backup now is not working
+- [ ] Certificate of Service
+    - Consult Panteon for the actual template
+    - if they rejected, use ai to forcefully copy the template
