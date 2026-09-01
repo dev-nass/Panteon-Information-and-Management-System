@@ -21,3 +21,4 @@
 - [ ] Certificate of Service
     - Consult Panteon for the actual template
     - if they rejected, use ai to forcefully copy the template
+- [ ] Org chart should be included on the user side UI
