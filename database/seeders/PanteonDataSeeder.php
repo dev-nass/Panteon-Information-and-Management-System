@@ -184,7 +184,7 @@ class PanteonDataSeeder extends Seeder
                     INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
                     VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
                 ', [
-                    $attributes['row'] ?? null,
+                    strtoupper($attributes['row'] ?? ''),
                     $attributes['id'] ?? null,
                     $clusterId,
                     $geometryJson,
@@ -261,7 +261,7 @@ class PanteonDataSeeder extends Seeder
                     $aptNumber = trim($row[6] ?? '');
 
                     $column = preg_replace('/\D/', '', $aptNumber);
-                    $rowLetter = preg_replace('/\d/', '', $aptNumber);
+                    $rowLetter = strtoupper(preg_replace('/\d/', '', $aptNumber));
 
                     $lot = null;
                     if (! empty($column) && ! empty($rowLetter)) {
