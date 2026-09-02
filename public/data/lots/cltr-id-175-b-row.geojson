@@ -10,7 +10,6 @@
             "type": "Feature",
             "properties": {
                 "id": 1,
-                "id": 1,
                 "cluster_id": "175",
                 "column": null,
                 "row": "B"
