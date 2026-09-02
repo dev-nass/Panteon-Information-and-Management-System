@@ -292,8 +292,6 @@ class PanteonDataSeeder extends Seeder
                     }
 
                     $address = $this->normalizer->normalizeAddress($row[7] ?? null);
-                    $dateOfBirth = $this->normalizer->parseDate($row[8] ?? null);
-                    $dateOfDeath = $this->normalizer->parseDate($row[9] ?? null);
 
                     // Create deceased record
                     $deceased = DeceasedRecord::create([
@@ -302,8 +300,8 @@ class PanteonDataSeeder extends Seeder
                         'middle_name' => $nameParts['middle_name'],
                         'last_name' => $nameParts['last_name'] ?? '',
                         'address' => $address,
-                        'date_of_birth' => $dateOfBirth,
-                        'date_of_death' => $dateOfDeath,
+                        'date_of_birth' => null,
+                        'date_of_death' => null,
                         'date_of_depository' => $burialDate,
                         'corpse_disposal' => 'burial',
                     ]);
