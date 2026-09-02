@@ -494,7 +494,7 @@
             "properties": {
                 "id": 169,
                 "phase_id": "7",
-                "name": "4 S",
+                "name": "4S",
                 "type": "underground"
             },
             "geometry": {
@@ -536,7 +536,7 @@
             "properties": {
                 "id": 171,
                 "phase_id": "7",
-                "name": "5 S",
+                "name": "5S",
                 "type": "underground"
             },
             "geometry": {
