@@ -132,16 +132,17 @@ cloudflared tunnel route dns panteon-dev panteon.yourdomain.com
 
 ## 5. Local Server Requirements
 
-### Start Your Laravel Server
+### Start Your Laravel Server + Queue Worker
 
-Ensure your local server is running before starting the tunnel:
+Ensure your local server **and queue worker** are running before starting the tunnel (since 2026-09-04 Gmail mail is queued — see `docs/todo/gmail-smtp-hybrid-plan.md`):
 
 ```bash
-# Option 1: Laravel built-in server
-php artisan serve --port=8000
+# Option 1: Single command — recommended, runs serve + queue:listen + pail + vite together
+composer run dev
 
-# Option 2: Using composer dev script (runs all services)
-composer dev
+# Option 2: Manual — two terminals:
+# Terminal 1: php artisan serve --host=0.0.0.0 --port=8000
+# Terminal 2: php artisan queue:work --sleep=3 --tries=3 --verbose  # keep open while tunnel is up, else jobs stay queued
 
 # Option 3: Using LAMPP/XAMPP (if Apache is already running on port 80)
 # Update the tunnel command to point to the correct port:
@@ -236,6 +237,7 @@ Your MySQL database running on `127.0.0.1:3306` is **not exposed** by the tunnel
 | **Mixed content warnings** | Ensure `APP_URL` uses `https://`, not `http://`. |
 | **Redirect loops** | Check that `SESSION_DOMAIN` is not set to a domain that doesn't match the tunnel URL. |
 | **CORS errors** | Add tunnel domain to `config/cors.php` `allowed_origins`. |
+| **Mail queued but not sent** | `PasswordResetMail`/`ClerkInvitationMail` are `ShouldQueue` (`QUEUE_CONNECTION=database`) — no worker running | Run `composer run dev` or `php artisan queue:work --sleep=3 --tries=3 --verbose`; verify `php artisan queue:failed` |
 | **"Host is not trusted"** | Add tunnel domain to trusted hosts in `AppServiceProvider`. |
 
 ### Verify Tunnel is Working
@@ -253,13 +255,24 @@ tail -f storage/logs/laravel.log
 ## 9. Quick Reference Commands
 
 ```bash
-# Start quick tunnel
+# Start Laravel + queue worker (REQUIRED since 2026-09-04 Gmail queue — see docs/todo/gmail-smtp-hybrid-plan.md)
+# Option A (recommended, includes queue:listen):
+composer run dev
+# Option B (separate terminals):
+# Terminal 1: php artisan serve --host=0.0.0.0 --port=8000
+# Terminal 2: php artisan queue:work --sleep=3 --tries=3 --verbose
+
+# Start quick tunnel (new terminal)
 cloudflared tunnel --url http://localhost:8000
 
 # Start named tunnel
 cloudflared tunnel run panteon-dev
 
-# Stop tunnel
+# Verify queue while tunnel is up
+php artisan queue:failed  # 0
+# Or: php artisan tinker --execute 'echo DB::table("jobs")->count()." jobs\n";'
+
+# Stop tunnel/worker
 Ctrl+C
 
 # Check tunnel status
@@ -268,6 +281,8 @@ cloudflared tunnel info panteon-dev
 # List all tunnels
 cloudflared tunnel list
 ```
+
+> **Note:** `PasswordResetMail` / `ClerkInvitationMail` are `ShouldQueue` via `QUEUE_CONNECTION=database` + `MAIL_MAILER=failover` (Gmail `panteondedasmasystem@gmail.com`). Without a running `queue:work`/`queue:listen`, mail stays in `jobs` table and inbox will not receive mail.
 
 ---
 

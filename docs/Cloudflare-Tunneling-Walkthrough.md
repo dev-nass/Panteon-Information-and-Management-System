@@ -28,15 +28,22 @@ sudo /opt/lampp/lampp start
 
 ---
 
-## Step 1: Start the Laravel Server
+## Step 1: Start the Laravel Server + Queue Worker
 
-In **Terminal 1**:
+In **Terminal 1** (and **Terminal 1b** for queue if not using `composer run dev`):
 
 ```bash
-php artisan serve
+# Option A (recommended) — starts serve + queue:listen + vite together:
+composer run dev
+
+# Option B — separate:
+# Terminal 1: php artisan serve --host=0.0.0.0 --port=8000
+# Terminal 1b: php artisan queue:work --sleep=3 --tries=3 --verbose
 ```
 
-Verify it runs on `http://localhost:8000`.
+> **Since 2026-09-04:** Gmail mail is queued (`ShouldQueue`, `QUEUE_CONNECTION=database`). Without a running `queue:work`/`queue:listen`, password-reset and clerk-invite emails stay in `jobs` and won't send — keep the worker open while tunnel is up.
+
+Verify `http://localhost:8000` loads and `php artisan queue:failed` shows 0.
 
 ---
 
@@ -117,13 +124,14 @@ php artisan config:clear && npm run build
 
 ## Issues Encountered and Resolutions
 
-| Issue | Cause | Resolution |
-|---|---|---|
-| **502 Bad Gateway** | Laravel server not started before tunnel | Run `php artisan serve` in a separate terminal first |
-| **500 Internal Server Error** | MySQL not running (session driver = `database`) | Run `sudo /opt/lampp/lampp start` |
-| **`classList` null error** | Assets built with `npm run dev` (Vite dev server on port 5173 not proxied by tunnel) | Run `npm run build` instead |
-| **Mixed Content (assets)** | `ASSET_URL` not set to HTTPS | Add `ASSET_URL=https://<tunnel-url>` to `.env` and rebuild |
-| **Mixed Content (XHR/navigation)** | Laravel doesn't trust Cloudflare proxy headers — generates `http://` URLs despite `APP_URL=https://` | Add `trustProxies` config in `bootstrap/app.php` |
+| Issue                              | Cause                                                                                                | Resolution                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **502 Bad Gateway**                | Laravel server not started before tunnel                                                             | Run `php artisan serve` in a separate terminal first                                                                                                            |
+| **500 Internal Server Error**      | MySQL not running (session driver = `database`)                                                      | Run `sudo /opt/lampp/lampp start`                                                                                                                               |
+| **`classList` null error**         | Assets built with `npm run dev` (Vite dev server on port 5173 not proxied by tunnel)                 | Run `npm run build` instead                                                                                                                                     |
+| **Mixed Content (assets)**         | `ASSET_URL` not set to HTTPS                                                                         | Add `ASSET_URL=https://<tunnel-url>` to `.env` and rebuild                                                                                                      |
+| **Mixed Content (XHR/navigation)** | Laravel doesn't trust Cloudflare proxy headers — generates `http://` URLs despite `APP_URL=https://` | Add `trustProxies` config in `bootstrap/app.php`                                                                                                                |
+| **Mail not received (queue)**      | `ShouldQueue` mail stays in `jobs` — no `queue:work` running (since 2026-09-04 Gmail hybrid)         | Run `composer run dev` (includes `queue:listen`) or `php artisan queue:work --sleep=3 --tries=3 --verbose` in second terminal; check `php artisan queue:failed` |
 
 ---
 
@@ -141,15 +149,41 @@ php artisan config:clear && npm run build
 # Start MySQL (if using LAMPP)
 sudo /opt/lampp/lampp start
 
-# Start Laravel server
-php artisan serve
+# Start Laravel server + queue worker (REQUIRED for Gmail mail — jobs stay queued without worker)
+# Option A (recommended) — single command, includes queue:listen + serve + pail + vite:
+composer run dev
+# Option B — separate terminals:
+# Terminal 1: php artisan serve --host=0.0.0.0 --port=8000
+# Terminal 2: php artisan queue:work --sleep=3 --tries=3 --verbose  # keep open while tunnel is up
 
-# Start quick tunnel
+# Start quick tunnel (new terminal)
 cloudflared tunnel --url http://localhost:8000
 
-# After tunnel URL changes — update .env, then:
+# After tunnel URL changes — update .env (APP_URL + ASSET_URL), then:
 php artisan config:clear && npm run build
 
-# Stop tunnel
-Ctrl+C
+# Verify queue (while tunnel is up)
+php artisan queue:failed  # expect 0; DB::table("jobs")->count() should be 0 after worker DONE
+
+# Stop
+Ctrl+C (tunnel), Ctrl+C (worker/serve)
+```
+
+> **Since 2026-09-04:** Mail (`PasswordResetMail`, `ClerkInvitationMail`) is `ShouldQueue` via `QUEUE_CONNECTION=database` + Gmail `failover` (`docs/todo/gmail-smtp-hybrid-plan.md`). Without a running `queue:work`/`queue:listen`, `forgot-password` and clerk invites will queue but not send.
+
+## Tested on September 04
+
+```bash
+cloudflared tunnel --url http://localhost:8000
+# update the .env
+
+php artisan config:clear && npm run build
+
+# term 1
+php artisan serve
+# term 2
+php artisan queue:work --sleep=3 --tries=3 --verbose
+
+# or but not working for me
+composer run dev
 ```
