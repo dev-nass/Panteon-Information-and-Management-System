@@ -7,6 +7,7 @@ use App\Mail\ClerkInvitationMail;
 use App\Models\ClerkInvitation;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -79,7 +80,13 @@ class ClerkInvitationController extends Controller
 
         $url = route('clerk.register', ['token' => $token]);
 
-        Mail::to($request->email)->send(new ClerkInvitationMail($url));
+        try {
+            Mail::to($request->email)->send(new ClerkInvitationMail($url));
+        } catch (\Throwable $e) {
+            Log::error('Mail queue dispatch failed', ['email' => $request->email, 'exception' => $e->getMessage()]);
+
+            return back()->withErrors(['email' => 'Could not queue email, please try again.']);
+        }
 
         return back()->with('success', "Invitation sent to {$request->email}");
     }

@@ -9,7 +9,7 @@
 **Goal:** Deliver transactional mail (password reset + clerk invitation) via free Gmail SMTP (`smtp.gmail.com:587`) that works on both a cheap VPS and Laravel Cloud without host-specific code branches.
 
 **Scope includes:**
-- Gmail account/App Password setup (you create `panteon.system@gmail.com`)
+- Gmail account/App Password setup (created `panteondedasmasystem@gmail.com`)
 - Code changes to queued mailables + failover mailer
 - Hosting-agnostic `database` queue
 - VPS Supervisor + Cloud Worker playbooks
@@ -71,22 +71,22 @@ HTTP POST /forgot-password
 
 ### Phase A — Google Account (you, 5 min, outside Laravel)
 
-1. Create new Gmail `panteon.system@gmail.com` (or chosen name).
-2. Enable 2-Step Verification (Google Account > Security).
-3. Create App Password (Security > App Passwords > `Panteon System`) → copy 16-char key, remove spaces (`abcd efgh ijkl mnop` → `abcdefghijklmnop`).
-4. Store only in `.env` / Cloud Secrets, never commit.
+1. Created `panteondedasmasystem@gmail.com` — **DONE 2026-09-04**.
+2. 2-Step Verification enabled.
+3. App Password `gmap qcid zcko qvod` → `gmapqcidzckoqvod` injected into `.env:60` — **DONE**, verified via `queue:work --once` (3s DONE, 0 failed).
+4. Stored only in `.env` / Cloud Secrets, never commit.
 
 ### Phase B — Code Changes (single branch for both hosts)
 
-**1. `.env` + `.env.example:50-57`:**
+**1. `.env` + `.env.example:50-57` — DONE 2026-09-04:**
 ```env
 MAIL_MAILER=failover
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=panteon.system@gmail.com
-MAIL_PASSWORD=abcdefghijklmnop
+MAIL_USERNAME=panteondedasmasystem@gmail.com
+MAIL_PASSWORD=gmapqcidzckoqvod # real App Password in .env, placeholder in .env.example
 MAIL_ENCRYPTION=tls
-MAIL_FROM_ADDRESS=panteon.system@gmail.com # MUST == MAIL_USERNAME for Gmail
+MAIL_FROM_ADDRESS=panteondedasmasystem@gmail.com # MUST == MAIL_USERNAME for Gmail
 MAIL_FROM_NAME="Panteon De Dasmariñas"
 MAIL_SCHEME=null
 QUEUE_CONNECTION=database
@@ -284,7 +284,7 @@ Monitor: `php artisan queue:failed`, `tail -f storage/logs/laravel.log`, Supervi
 
 ## 12. Open Questions Resolved
 
-1. Gmail account: **you will create new `panteon.system@gmail.com`** — plan uses `config('mail.from.address')` so rotation is env-only.
+1. Gmail account: **`panteondedasmasystem@gmail.com` DONE 2026-09-04** — `config('mail.from.address')` so rotation is env-only.
 2. Supervisor vs Cloud Worker: **same `queue:work`, different babysitter** — Supervisor = Linux daemon you install on VPS; Cloud Worker = managed Supervisor in Cloud UI.
 3. Hybrid: **combined** — queue retry + failover log + hard error only on dispatch failure.
 
@@ -293,8 +293,37 @@ Monitor: `php artisan queue:failed`, `tail -f storage/logs/laravel.log`, Supervi
 ## 13. Next Actions (after approval)
 
 1. Save this file to `docs/todo/gmail-smtp-hybrid-plan.md` (done).
-2. Lift plan mode → apply Phase B code edits.
-3. Run `vendor/bin/pint --dirty --format agent` per project rule.
-4. Deploy Phase C/D per target host.
-5. Execute verification checklist.
+2. Lift plan mode → apply Phase B code edits — **DONE 2026-09-04** (`vendor/bin/pint` fixed 2 files, `php artisan test` 51 passed).
+3. Deploy Phase C/D per target host.
+4. Execute verification checklist — **Phase A-C verified: `queue:work --once` 3s/5s DONE, 0 failed, real mail to panteondedasmasystem@gmail.com**.
+
+## 14. Status 2026-09-04 — Phase A-C COMPLETE for Tunneling Demo (2026-09-05)
+
+- **Implemented:** Gmail `failover`, `timeout 10`, `ShouldQueue` on both mailables, `try/catch` in controllers, `gmapqcidzckoqvod` verified.
+- **Tunneling checklist for tomorrow:**
+  ```bash
+  # 1. Set tunnel URL (uncomment & edit)
+  APP_URL=https://<your-trycloudflare-url>
+  # ASSET_URL same if needed
+  php artisan config:clear
+
+  # 2. Run worker alongside serve (2 terminals or composer dev)
+  # Terminal A:
+  php artisan serve --host=0.0.0.0 --port=8000
+  # Terminal B (required for mail):
+  php artisan queue:work --sleep=3 --tries=3 --verbose
+  # Or single:
+  composer run dev # already runs queue:listen at composer.json:61 + serve + pail + vite
+
+  # 3. Start Cloudflare tunnel
+  cloudflared tunnel --url http://localhost:8000
+  # or: npx cloudflared tunnel --url http://localhost:8000
+
+  # 4. Verify
+  php artisan queue:failed # should be 0
+  # Test flows via tunneled URL:
+  # - /forgot-password -> check panteondedasmasystem@gmail.com inbox + Spam
+  # - /admin/clerk-invitations -> invite test email -> check inbox
+  ```
+- **Note:** `.env` with real password must NOT be committed. Keep `SESSION_SECURE_COOKIE=true` at `.env:39` when `APP_URL` is https.
 

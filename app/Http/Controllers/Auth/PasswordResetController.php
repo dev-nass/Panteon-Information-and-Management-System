@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -15,6 +16,7 @@ use Inertia\Inertia;
 class PasswordResetController extends Controller
 {
     protected int $maxAttempts = 5;
+
     protected int $codeLifetimeMinutes = 15;
 
     public function create()
@@ -47,7 +49,13 @@ class PasswordResetController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($request->email)->send(new PasswordResetMail($code));
+        try {
+            Mail::to($request->email)->send(new PasswordResetMail($code));
+        } catch (\Throwable $e) {
+            Log::error('Mail queue dispatch failed', ['email' => $request->email, 'exception' => $e->getMessage()]);
+
+            return back()->withErrors(['email' => 'Could not queue email, please try again.']);
+        }
 
         $request->session()->put('password_reset_email', $request->email);
 
@@ -59,7 +67,7 @@ class PasswordResetController extends Controller
     {
         $email = $request->session()->get('password_reset_email');
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('password.request');
         }
 
@@ -77,7 +85,7 @@ class PasswordResetController extends Controller
 
         $email = $request->session()->get('password_reset_email');
 
-        if (!$email) {
+        if (! $email) {
             return redirect()->route('password.request');
         }
 
@@ -87,7 +95,7 @@ class PasswordResetController extends Controller
             ->orderByDesc('id')
             ->first();
 
-        if (!$record) {
+        if (! $record) {
             throw ValidationException::withMessages([
                 'code' => 'No active reset code found. Please request a new one.',
             ]);
@@ -105,7 +113,7 @@ class PasswordResetController extends Controller
             ]);
         }
 
-        if (!Hash::check($request->code, $record->token)) {
+        if (! Hash::check($request->code, $record->token)) {
             DB::table('password_reset_tokens')
                 ->where('id', $record->id)
                 ->increment('attempts');
@@ -128,7 +136,7 @@ class PasswordResetController extends Controller
         $email = $request->session()->get('password_reset_email');
         $verified = $request->session()->get('password_reset_verified');
 
-        if (!$email || !$verified) {
+        if (! $email || ! $verified) {
             return redirect()->route('password.request');
         }
 
@@ -148,7 +156,7 @@ class PasswordResetController extends Controller
         $verified = $request->session()->get('password_reset_verified');
         $tokenId = $request->session()->get('password_reset_token_id');
 
-        if (!$email || !$verified || !$tokenId) {
+        if (! $email || ! $verified || ! $tokenId) {
             return redirect()->route('password.request');
         }
 
@@ -159,7 +167,7 @@ class PasswordResetController extends Controller
             ->whereNull('used_at')
             ->first();
 
-        if (!$record || now()->greaterThan($record->expires_at)) {
+        if (! $record || now()->greaterThan($record->expires_at)) {
             $request->session()->forget([
                 'password_reset_email',
                 'password_reset_verified',
