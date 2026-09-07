@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { Link } from "@inertiajs/vue3";
 
 const links = [
     { id: "home", label: "Home" },
@@ -118,11 +117,11 @@ onBeforeUnmount(() => {
                     class="overflow-hidden overflow-y-auto max-h-[75vh] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100/50 dark:[&::-webkit-scrollbar-track]:bg-neutral-700/50 [&::-webkit-scrollbar-thumb]:bg-gray-300/50 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500/50"
                 >
                     <div
-                        class="py-2 md:py-0 flex flex-col md:grid md:grid-cols-3 md:items-center"
+                        class="py-2 md:py-0 flex flex-col md:flex md:flex-row md:items-center md:justify-between gap-2"
                     >
                         <!-- Link groups -->
                         <div
-                            class="flex flex-col md:flex-row md:items-center md:justify-center whitespace-nowrap gap-0.5 md:gap-4 md:col-span-1 md:col-start-2"
+                            class="flex flex-col md:flex-row md:items-center md:justify-center whitespace-nowrap gap-0.5 md:gap-4 flex-1"
                         >
                             <template v-for="link in links" :key="link.id">
                                 <a
@@ -142,31 +141,12 @@ onBeforeUnmount(() => {
 
                         <!-- Button Group -->
                         <div
-                            class="flex items-center justify-center md:justify-end gap-x-1.5 md:col-span-1 md:col-start-3 md:ps-2.5 md:ms-1.5 before:block before:absolute before:top-1/2 before:-start-px before:w-px before:h-4 before:bg-gray-300/50 dark:before:bg-neutral-600/50 before:-translate-y-1/2"
+                            class="flex items-center justify-between md:justify-end shrink-0 md:ps-2.5 w-full md:w-auto gap-2 p-2 md:p-0 rounded-lg md:rounded-none hover:bg-white/30 dark:hover:bg-white/10 md:hover:bg-transparent dark:md:hover:bg-transparent transition-colors"
                         >
-                            <Link
-                                :href="route('login')"
-                                class="p-2 w-full flex items-center text-sm font-medium text-gray-700 dark:text-neutral-200 hover:text-gray-900 dark:hover:text-white hover:bg-white/30 dark:hover:bg-white/10 rounded-lg transition-colors focus:outline-hidden md:w-21"
+                            <span
+                                class="md:hidden text-sm font-medium text-gray-700 dark:text-neutral-200"
+                                >Toggle Theme</span
                             >
-                                <svg
-                                    class="shrink-0 size-4 me-3 md:me-2"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path
-                                        d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
-                                    />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg>
-                                Log in
-                            </Link>
                             <!-- Dark Mode / Light Mode -->
                             <div>
                                 <button
