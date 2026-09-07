@@ -2,11 +2,12 @@
 import { useVisitorMap } from "@/composables/useVisitorMap";
 import { useSearch } from "@/composables/map/search/useSearch";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { Link } from "@inertiajs/vue3";
 
 import Search from "@/Components/Map/Search.vue";
 import BurialRecordModal from "@/Components/Map/BurialRecordModal.vue";
+import VisitorDeceasedDetailModal from "@/Components/Map/VisitorDeceasedDetailModal.vue";
 import PhaseModal from "@/Components/Map/PhaseModal.vue";
 import ClusterModal from "@/Components/Map/ClusterModal.vue";
 import LotModal from "@/Components/Map/LotModal.vue";
@@ -31,6 +32,50 @@ const clusterModalFeature = ref(null);
 const lotModalFeature = ref(null);
 const clusterIdForModal = ref(null);
 const featureForModal = ref(null);
+
+// Visitor search tailored state — auto-opens detail modal without list/Back flow
+const visitorSearchFeature = ref(null);
+const visitorSelectedBurialId = ref(null);
+const isVisitorDetailLoading = ref(false);
+
+const handleVisitorSelectSuggestion = async (suggestion) => {
+    visitorSelectedBurialId.value = suggestion.burial_id;
+    isVisitorDetailLoading.value = true;
+    // keep input in sync and dismiss dropdown
+    search.value = suggestion.deceased_name;
+    suggestions.value = [];
+    // dismiss suggestions dropdown (input stays focused after mousedown.prevent)
+    if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+
+    const feature = await fetchClusterByBurialId(suggestion.burial_id);
+
+    if (feature) {
+        visitorSearchFeature.value = feature;
+        await nextTick();
+        // slight delay so HSOverlay has mounted
+        setTimeout(() => HSOverlay.open("#hs-visitor-deceased-modal"), 80);
+    }
+
+    isVisitorDetailLoading.value = false;
+};
+
+const handleVisitorClearSearch = () => {
+    visitorSearchFeature.value = null;
+    visitorSelectedBurialId.value = null;
+    isVisitorDetailLoading.value = false;
+    try {
+        HSOverlay.close("#hs-visitor-deceased-modal");
+    } catch (_) {}
+    clearSearch();
+};
+
+const handleVisitorViewPath = async (burialId) => {
+    if (!burialId) return;
+    // Re-trigger path drawing; modal stays open
+    await fetchClusterByBurialId(burialId);
+};
 
 // Junction modal state
 const junctionModalData = ref({
@@ -81,12 +126,37 @@ window.openBurialRecordModal = function (clusterIdOrFeature) {
     HSOverlay.open("#hs-scroll-inside-body-modal");
 };
 
+/**
+ * Tailored visitor modal: opened automatically after a search.
+ * If the highlighted cluster polygon is clicked, reopen the same tailored view
+ * instead of the generic BurialRecordModal list flow.
+ */
+window.openVisitorDeceasedDetailModal = function (feature) {
+    if (feature) {
+        visitorSearchFeature.value = feature;
+        // infer burialId if not yet set (e.g. direct polygon click)
+        if (
+            !visitorSelectedBurialId.value &&
+            feature?.lots?.[0]?.burial_records?.[0]?.burial?.id
+        ) {
+            visitorSelectedBurialId.value =
+                feature.lots[0].burial_records[0].burial.id;
+        }
+    }
+    HSOverlay.open("#hs-visitor-deceased-modal");
+};
+
 onMounted(() => {
     initializeMap(mapContainer.value);
 });
 
 onBeforeUnmount(() => {
     cleanupMap();
+    try {
+        delete window.openVisitorDeceasedDetailModal;
+    } catch (_) {
+        window.openVisitorDeceasedDetailModal = undefined;
+    }
 });
 </script>
 
@@ -96,6 +166,12 @@ onBeforeUnmount(() => {
             :cluster-id="clusterIdForModal"
             :feature="featureForModal"
             @view-path="(burialId) => fetchClusterByBurialId(burialId)"
+        />
+        <VisitorDeceasedDetailModal
+            :feature="visitorSearchFeature"
+            :burial-id="visitorSelectedBurialId"
+            :is-loading="isVisitorDetailLoading"
+            @view-path="handleVisitorViewPath"
         />
         <PhaseModal :feature="phaseModalFeature" />
         <ClusterModal :feature="clusterModalFeature" />
@@ -147,11 +223,8 @@ onBeforeUnmount(() => {
                         :rateLimitError="rateLimitError"
                         placeholder="Search deceased name..."
                         @input="fetchSuggestions"
-                        @select-suggestion="
-                            (suggestion) =>
-                                fetchClusterByBurialId(suggestion.burial_id)
-                        "
-                        @clear-search="clearSearch"
+                        @select-suggestion="handleVisitorSelectSuggestion"
+                        @clear-search="handleVisitorClearSearch"
                     />
                 </div>
 

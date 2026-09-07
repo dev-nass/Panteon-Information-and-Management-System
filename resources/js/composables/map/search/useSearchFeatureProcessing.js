@@ -86,12 +86,18 @@ export function useSearchFeatureProcessing() {
 
     /**
      * Description: Attach popup to the searched result cluster polygon
+     * For visitor map the global openVisitorDeceasedDetailModal takes precedence
+     * so the search result opens the tailored visitor modal directly.
      * @param feature
      * @param layer
      */
     const attachBurialRecordClusterPopup = (feature, layer) => {
         // console.log(feature);
         layer.on("click", function () {
+            if (typeof window.openVisitorDeceasedDetailModal === "function") {
+                window.openVisitorDeceasedDetailModal(feature);
+                return;
+            }
             window.openBurialRecordModal(feature, layer._leaflet_id);
         });
     };

@@ -98,6 +98,7 @@ export function useSearch() {
 
     /**
      * Description: Used within the Clerk/Map/Index and Clerk/BurialRecord/Show
+     * @returns clusterData | null so callers (visitor map) can auto-open a tailored modal
      */
     const fetchClusterByBurialId = async (burialId) => {
         if (!isOnSearchMode.value) isOnSearchMode.value = true;
@@ -113,10 +114,12 @@ export function useSearch() {
             const data = await response.json();
             if (data.data && data.data.length > 0) {
                 showSearchResult(data.data[0], "burial_record");
+                return data.data[0];
             }
         } catch (err) {
             console.error(err);
         }
+        return null;
     };
 
     /**
