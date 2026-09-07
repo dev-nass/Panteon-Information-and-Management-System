@@ -1,5 +1,4 @@
 <script setup>
-import { ref, watch } from "vue";
 import Modal from "@/Components/Modal.vue";
 
 const props = defineProps({
@@ -12,11 +11,11 @@ const modalId = "junction-modal";
 
 const getJunctionImage = (id) => {
     if (id === 1) {
-        return "/images/entrance.jpg"; // Entrance image
+        return "/images/entrance.jpg";
     } else if (id === 3 || id === 89) {
-        return "/images/roundabout.jpg"; // Same image for 3 and 89
+        return "/images/roundabout.jpg";
     } else if (id === 217) {
-        return "/images/columbarium.jpg"; // Same image for 3 and 89
+        return "/images/columbarium.jpg";
     }
     return null;
 };
@@ -25,22 +24,22 @@ const getJunctionTitle = (id) => {
     if (id === 1) {
         return "Main Entrance";
     } else if (id === 3 || id === 89) {
-        return `Junction ${props.junctionNumber}`;
+        return "Rotonda / Roundabout";
     } else if (id === 217) {
         return "The Columbarium";
     }
     return "Junction";
 };
 
-const getJunctionDescription = (id) => {
-    if (id === 1) {
-        return "This is the main entrance to the cemetery. Start your journey here.";
-    } else if (id === 3 || id === 89) {
-        return "Follow the path to reach your destination from this junction point.";
+const getJunctionSubheader = (id) => {
+    if (id === 3 || id === 89) {
+        return "You are close to your destination — keep following the path ahead.";
+    } else if (id === 1) {
+        return "You are at the main entrance. Follow the highlighted path to your destination.";
     } else if (id === 217) {
-        return "A resting place for cremated remains, this columbarium houses the niches where urns are kept.";
+        return "You are near the columbarium.";
     }
-    return "";
+    return "Follow the path to reach your destination.";
 };
 </script>
 
@@ -48,61 +47,27 @@ const getJunctionDescription = (id) => {
     <Modal :id="modalId" size="lg">
         <template #main>
             <div class="w-full">
+                <!-- Only image + title/subheader — simplified -->
                 <img
+                    v-if="getJunctionImage(junctionId)"
                     :src="getJunctionImage(junctionId)"
                     :alt="getJunctionTitle(junctionId)"
-                    class="w-full h-64 object-cover rounded-lg mb-4"
+                    class="w-full h-64 object-cover rounded-xl"
                     @error="
                         $event.target.src =
                             'https://via.placeholder.com/600x400?text=Junction+Image'
                     "
                 />
 
-                <h3
-                    class="text-2xl font-bold text-gray-800 dark:text-neutral-200 mb-2"
-                >
-                    {{ getJunctionTitle(junctionId) }}
-                </h3>
-
-                <p class="text-gray-600 dark:text-neutral-400 mb-4">
-                    {{ getJunctionDescription(junctionId) }}
-                </p>
-
-                <div
-                    class="bg-gray-100 dark:bg-neutral-800 rounded-lg p-4 text-left"
-                >
-                    <div class="grid grid-cols-2 gap-3 text-sm">
-                        <div>
-                            <span
-                                class="font-semibold text-gray-700 dark:text-neutral-300"
-                                >Junction ID:</span
-                            >
-                            <span
-                                class="ml-2 text-gray-600 dark:text-neutral-400"
-                                >{{ junctionId }}</span
-                            >
-                        </div>
-                        <div>
-                            <span
-                                class="font-semibold text-gray-700 dark:text-neutral-300"
-                                >Number:</span
-                            >
-                            <span
-                                class="ml-2 text-gray-600 dark:text-neutral-400"
-                                >{{ junctionNumber }}</span
-                            >
-                        </div>
-                        <div class="col-span-2">
-                            <span
-                                class="font-semibold text-gray-700 dark:text-neutral-300"
-                                >Type:</span
-                            >
-                            <span
-                                class="ml-2 text-gray-600 dark:text-neutral-400"
-                                >{{ junctionType }}</span
-                            >
-                        </div>
-                    </div>
+                <div class="pt-5 text-center">
+                    <h3
+                        class="text-xl font-bold text-gray-800 dark:text-neutral-200"
+                    >
+                        {{ getJunctionTitle(junctionId) }}
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-neutral-400 mt-2 max-w-md mx-auto">
+                        {{ getJunctionSubheader(junctionId) }}
+                    </p>
                 </div>
             </div>
         </template>

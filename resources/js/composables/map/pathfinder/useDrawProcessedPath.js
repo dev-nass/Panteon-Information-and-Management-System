@@ -76,9 +76,17 @@ export function useDrawProcessedPath() {
             routeDetails.find((detail) => detail.junctionId === 217),
         ].filter(Boolean);
 
+        const getSimplifiedTitle = (detail) => {
+            if (detail.junctionId === 1) return "Main Entrance";
+            if (detail.junctionId === 3 || detail.junctionId === 89)
+                return "Rotonda / Roundabout";
+            if (detail.junctionId === 217) return "The Columbarium";
+            return "Junction";
+        };
+
         markersToShow.forEach((detail) => {
             const marker = L.marker([detail.latitude, detail.longitude])
-                .bindPopup(`Junction ${detail.junctionNumber} (${detail.type})`)
+                .bindPopup(getSimplifiedTitle(detail))
                 .addTo(map.value);
 
             marker.on("click", () => {
@@ -108,9 +116,7 @@ export function useDrawProcessedPath() {
         ).addTo(map.value);
 
         const marker = L.marker([targetLat, targetLng])
-            .bindPopup(
-                `Target Lot<br>Nearest Junction: ${nearestJunction.junction_number}`,
-            )
+            .bindPopup(`Target Lot`)
             .addTo(map.value);
 
         junctionMarkers.value.push(marker);
