@@ -5,20 +5,21 @@
 - Setup the `.env`
 - Run `php artisan key:generate`
 - Run `php artisan migrate:fresh --seed`
+- Run `npm run dev`and `php artisan serve` and `php artisan queue:work`
 
 ---
 
 ### Packages and Tech stack used
 
 - Languages
-  - Vue JS
-  - Tailwind CSS
-  - Laravel
-  - Inertia JS
+    - Vue JS
+    - Tailwind CSS
+    - Laravel
+    - Inertia JS
 - Packages
-  - Leaflet & Leaflet Draw
+    - Leaflet & Leaflet Draw
 - Tools
-  - QGIS
+    - QGIS
 
 ### ERD
 
