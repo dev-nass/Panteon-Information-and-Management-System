@@ -56,10 +56,10 @@ const clearSearch = () => {
 </script>
 
 <template>
-    <div class="relative w-full max-w-md">
+    <div class="relative w-full min-w-0 max-w-md">
         <!-- Input Container -->
         <div
-            class="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
+            class="flex items-center gap-2 w-full min-w-0 px-3 py-2.5 rounded-lg bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500 transition"
         >
             <!-- Search Icon -->
             <svg
@@ -72,7 +72,7 @@ const clearSearch = () => {
                 stroke-width="2"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="text-gray-400 dark:text-gray-500"
+                class="shrink-0 text-gray-400 dark:text-gray-500"
             >
                 <path d="m21 21-4.34-4.34" />
                 <circle cx="11" cy="11" r="8" />
@@ -87,7 +87,7 @@ const clearSearch = () => {
                 @input="onInput"
                 @focus="onFocus"
                 @blur="onBlur"
-                class="flex-1 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
+                class="flex-1 min-w-0 bg-transparent text-black dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
             />
 
             <!-- 🔥 Search Mode Button -->

@@ -191,11 +191,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="absolute top-4 left-4 right-4 z-888">
-            <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 flex-1 max-w-2xl">
+            <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-1 min-w-0 max-w-2xl">
                     <Link
                         :href="route('visitor.index')"
-                        class="flex items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
+                        class="flex shrink-0 items-center justify-center p-3 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-neutral-800 transition"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -222,37 +222,39 @@ onBeforeUnmount(() => {
                         :isOnSearch="isOnSearchMode"
                         :rateLimitError="rateLimitError"
                         placeholder="Search deceased name..."
+                        class="flex-1 min-w-0"
                         @input="fetchSuggestions"
                         @select-suggestion="handleVisitorSelectSuggestion"
                         @clear-search="handleVisitorClearSearch"
                     />
-                </div>
 
-                <Button
-                    aria-haspopup="dialog"
-                    aria-expanded="false"
-                    aria-controls="hs-visitor-filter"
-                    data-hs-overlay="#hs-visitor-filter"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        class="lucide lucide-funnel-plus-icon lucide-funnel-plus text-green-500 dark:text-green-600"
+                    <Button
+                        class="shrink-0"
+                        aria-haspopup="dialog"
+                        aria-expanded="false"
+                        aria-controls="hs-visitor-filter"
+                        data-hs-overlay="#hs-visitor-filter"
                     >
-                        <path
-                            d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"
-                        />
-                        <path d="M16 6h6" />
-                        <path d="M19 3v6" />
-                    </svg>
-                </Button>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-funnel-plus-icon lucide-funnel-plus text-green-500 dark:text-green-600"
+                        >
+                            <path
+                                d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"
+                            />
+                            <path d="M16 6h6" />
+                            <path d="M19 3v6" />
+                        </svg>
+                    </Button>
+                </div>
 
                 <Teleport to="body">
                     <Modal id="hs-visitor-filter">
