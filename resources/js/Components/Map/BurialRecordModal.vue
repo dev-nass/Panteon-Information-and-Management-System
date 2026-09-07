@@ -21,6 +21,16 @@ const currentPage = ref(1);
 
 const emit = defineEmits(["viewPath"]);
 
+const handleViewPath = (burialId) => {
+    // Close immediately as requested, then emit to draw path
+    try {
+        const overlay = typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+        overlay?.close("#hs-scroll-inside-body-modal");
+    } catch (_) {}
+    // Fallback via data-hs-overlay attribute also handles close
+    emit("viewPath", burialId);
+};
+
 // Use feature prop if provided (search mode), otherwise fetch by clusterId
 const activeFeature = computed(() => props.feature || fetchedFeature.value);
 
@@ -397,12 +407,8 @@ const paginatedBurials = computed(() => {
 
                                     <!-- Secondary -->
                                     <button
-                                        @click="
-                                            emit(
-                                                'viewPath',
-                                                selectedBurial.burial?.id,
-                                            )
-                                        "
+                                        @click="handleViewPath(selectedBurial.burial?.id)"
+                                        data-hs-overlay="#hs-scroll-inside-body-modal"
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
                                     >
                                         View Path

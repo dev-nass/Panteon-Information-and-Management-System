@@ -1,5 +1,28 @@
 <script setup lang="ts">
-import Button from "../Form/Button.vue";
+import { computed } from "vue";
+import { useForm, usePage } from "@inertiajs/vue3";
+
+const form = useForm({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    message: "",
+});
+
+const page = usePage();
+
+const flashSuccess = computed(() => (page.props.flash as { success?: string })?.success);
+const flashError = computed(() => (page.props.flash as { error?: string })?.error);
+
+const submit = () => {
+    form.post(route("contact.store"), {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+        },
+    });
+};
 </script>
 
 <template>
@@ -39,80 +62,183 @@ import Button from "../Form/Button.vue";
                         Fill in the form
                     </h2>
 
-                    <form>
-                        <div class="grid gap-8">
+                    <!-- Flash success -->
+                    <div
+                        v-if="flashSuccess"
+                        class="mb-6 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3"
+                        role="alert"
+                    >
+                        <p class="text-sm font-medium text-green-800 dark:text-green-300">
+                            {{ flashSuccess }}
+                        </p>
+                    </div>
+
+                    <!-- Flash error -->
+                    <div
+                        v-if="flashError"
+                        class="mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3"
+                        role="alert"
+                    >
+                        <p class="text-sm font-medium text-red-800 dark:text-red-300">
+                            {{ flashError }}
+                        </p>
+                    </div>
+
+                    <!-- Rate limit / general message error -->
+                    <div
+                        v-if="form.errors.message && typeof form.errors.message === 'string' && form.errors.message.includes('Too many')"
+                        class="mb-6 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 px-4 py-3"
+                        role="alert"
+                    >
+                        <p class="text-sm font-medium text-amber-800 dark:text-amber-300">
+                            {{ form.errors.message }}
+                        </p>
+                    </div>
+
+                    <form @submit.prevent="submit" novalidate>
+                        <div class="grid gap-6">
                             <!-- Grid -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label
-                                        for="hs-firstname-contacts-1"
+                                        for="contact-first-name"
                                         class="sr-only"
                                         >First Name</label
                                     >
                                     <input
+                                        id="contact-first-name"
+                                        v-model="form.first_name"
                                         type="text"
-                                        name="hs-firstname-contacts-1"
-                                        id="hs-firstname-contacts-1"
-                                        class="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-green-600 dark:focus:border-green-500 focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                        placeholder="First Name"
+                                        autocomplete="given-name"
+                                        :aria-invalid="!!form.errors.first_name"
+                                        :class="[
+                                            'py-2.5 sm:py-3 px-4 block w-full border bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none',
+                                            form.errors.first_name
+                                                ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500'
+                                                : 'border-gray-200 dark:border-neutral-700 focus:border-green-600 dark:focus:border-green-500 focus:ring-green-600 dark:focus:ring-green-500',
+                                        ]"
+                                        placeholder="First Name *"
                                     />
+                                    <p
+                                        v-if="form.errors.first_name"
+                                        class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                    >
+                                        {{ form.errors.first_name }}
+                                    </p>
                                 </div>
 
                                 <div>
                                     <label
-                                        for="hs-lastname-contacts-1"
+                                        for="contact-last-name"
                                         class="sr-only"
                                         >Last Name</label
                                     >
                                     <input
+                                        id="contact-last-name"
+                                        v-model="form.last_name"
                                         type="text"
-                                        name="hs-lastname-contacts-1"
-                                        id="hs-lastname-contacts-1"
-                                        class="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-green-600 dark:focus:border-green-500 focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                        placeholder="Last Name"
+                                        autocomplete="family-name"
+                                        :aria-invalid="!!form.errors.last_name"
+                                        :class="[
+                                            'py-2.5 sm:py-3 px-4 block w-full border bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none',
+                                            form.errors.last_name
+                                                ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500'
+                                                : 'border-gray-200 dark:border-neutral-700 focus:border-green-600 dark:focus:border-green-500 focus:ring-green-600 dark:focus:ring-green-500',
+                                        ]"
+                                        placeholder="Last Name *"
                                     />
+                                    <p
+                                        v-if="form.errors.last_name"
+                                        class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                    >
+                                        {{ form.errors.last_name }}
+                                    </p>
                                 </div>
                             </div>
                             <!-- End Grid -->
 
                             <div>
-                                <label for="hs-email-contacts-1" class="sr-only"
+                                <label for="contact-email" class="sr-only"
                                     >Email</label
                                 >
                                 <input
+                                    id="contact-email"
+                                    v-model="form.email"
                                     type="email"
-                                    name="hs-email-contacts-1"
-                                    id="hs-email-contacts-1"
                                     autocomplete="email"
-                                    class="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-green-600 dark:focus:border-green-500 focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                    placeholder="Email"
+                                    :aria-invalid="!!form.errors.email"
+                                    :class="[
+                                        'py-2.5 sm:py-3 px-4 block w-full border bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none',
+                                        form.errors.email
+                                            ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500'
+                                            : 'border-gray-200 dark:border-neutral-700 focus:border-green-600 dark:focus:border-green-500 focus:ring-green-600 dark:focus:ring-green-500',
+                                    ]"
+                                    placeholder="Email *"
                                 />
+                                <p
+                                    v-if="form.errors.email"
+                                    class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                >
+                                    {{ form.errors.email }}
+                                </p>
                             </div>
 
                             <div>
-                                <label for="hs-phone-number-1" class="sr-only"
+                                <label for="contact-phone" class="sr-only"
                                     >Phone Number</label
                                 >
                                 <input
+                                    id="contact-phone"
+                                    v-model="form.phone_number"
                                     type="text"
-                                    name="hs-phone-number-1"
-                                    id="hs-phone-number-1"
-                                    class="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-green-600 dark:focus:border-green-500 focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                    placeholder="Phone Number"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    :aria-invalid="!!form.errors.phone_number"
+                                    :class="[
+                                        'py-2.5 sm:py-3 px-4 block w-full border bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none',
+                                        form.errors.phone_number
+                                            ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500'
+                                            : 'border-gray-200 dark:border-neutral-700 focus:border-green-600 dark:focus:border-green-500 focus:ring-green-600 dark:focus:ring-green-500',
+                                    ]"
+                                    placeholder="Phone Number (optional, e.g. 09171234567)"
                                 />
+                                <p
+                                    v-if="form.errors.phone_number"
+                                    class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                >
+                                    {{ form.errors.phone_number }}
+                                </p>
+                                <p
+                                    v-else
+                                    class="mt-1 text-xs text-gray-500 dark:text-neutral-400"
+                                >
+                                    Must start with 09 and be 11 digits if provided.
+                                </p>
                             </div>
 
                             <div>
-                                <label for="hs-about-contacts-1" class="sr-only"
+                                <label for="contact-message" class="sr-only"
                                     >Details</label
                                 >
                                 <textarea
-                                    id="hs-about-contacts-1"
-                                    name="hs-about-contacts-1"
+                                    id="contact-message"
+                                    v-model="form.message"
                                     rows="4"
-                                    class="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:border-green-600 dark:focus:border-green-500 focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500 disabled:opacity-50 disabled:pointer-events-none"
-                                    placeholder="Details"
+                                    :aria-invalid="!!form.errors.message && !form.errors.message.includes('Too many')"
+                                    :class="[
+                                        'py-2.5 sm:py-3 px-4 block w-full border bg-white dark:bg-neutral-800 rounded-lg sm:text-sm text-gray-800 dark:text-neutral-200 placeholder:text-gray-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none',
+                                        form.errors.message && !form.errors.message.includes('Too many')
+                                            ? 'border-red-300 dark:border-red-700 focus:border-red-500 focus:ring-red-500'
+                                            : 'border-gray-200 dark:border-neutral-700 focus:border-green-600 dark:focus:border-green-500 focus:ring-green-600 dark:focus:ring-green-500',
+                                    ]"
+                                    placeholder="Details *"
                                 ></textarea>
+                                <p
+                                    v-if="form.errors.message && !form.errors.message.includes('Too many')"
+                                    class="mt-1 text-sm text-red-600 dark:text-red-400"
+                                >
+                                    {{ form.errors.message }}
+                                </p>
                             </div>
                         </div>
                         <!-- End Grid -->
@@ -120,9 +246,31 @@ import Button from "../Form/Button.vue";
                         <div class="mt-5 grid">
                             <button
                                 type="submit"
-                                class="inline-flex items-center justify-center px-5 py-2.5 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-green-500 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-green-600 hover:border-white/40 hover:shadow-xl focus:shadow-xs focus:no-underline shadow-lg"
+                                :disabled="form.processing"
+                                class="inline-flex items-center justify-center px-5 py-2.5 font-semibold text-center text-white no-underline align-middle transition-all duration-300 ease-in-out bg-green-500 backdrop-blur-md border border-white/20 rounded-full cursor-pointer select-none hover:bg-green-600 hover:border-white/40 hover:shadow-xl focus:shadow-xs focus:no-underline shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-500"
                             >
-                                Button Text
+                                <svg
+                                    v-if="form.processing"
+                                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        class="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        stroke-width="4"
+                                    ></circle>
+                                    <path
+                                        class="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                {{ form.processing ? "Sending..." : "Send Message" }}
                             </button>
                         </div>
 

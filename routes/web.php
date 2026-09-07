@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\VisitorInteractiveMapController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -8,11 +9,15 @@ Route::get('/', function () {
     return Inertia::render('WelcomeView');
 })->name('visitor.index');
 
+Route::post('/contact', [ContactController::class, 'store'])
+    ->middleware('throttle:contact')
+    ->name('contact.store');
+
 Route::controller(VisitorInteractiveMapController::class)->group(function () {
     Route::get('/map', 'index')->name('visitor.map.index');
 });
 
-require __DIR__ . '/auth.php';
-require __DIR__ . '/clerk.php';
-require __DIR__ . '/admin.php';
-require __DIR__ . '/settings.php';
+require __DIR__.'/auth.php';
+require __DIR__.'/clerk.php';
+require __DIR__.'/admin.php';
+require __DIR__.'/settings.php';

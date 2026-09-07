@@ -14,6 +14,14 @@ const props = defineProps({
 
 const emit = defineEmits(["viewPath"]);
 
+const handleViewPath = (burialId) => {
+    try {
+        const overlay = typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+        overlay?.close("#hs-visitor-deceased-modal");
+    } catch (_) {}
+    emit("viewPath", burialId);
+};
+
 /**
  * Find the matched burial record inside the cluster feature.
  * When searched via burial_id the cluster's lots are filtered to the single lot,
@@ -215,12 +223,8 @@ const formattedBurialDate = computed(() => {
                                     </Link>
 
                                     <button
-                                        @click="
-                                            emit(
-                                                'viewPath',
-                                                activeBurial.burial?.id,
-                                            )
-                                        "
+                                        @click="handleViewPath(activeBurial.burial?.id)"
+                                        data-hs-overlay="#hs-visitor-deceased-modal"
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
                                     >
                                         View Path

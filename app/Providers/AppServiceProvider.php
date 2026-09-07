@@ -51,5 +51,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('mapSearch', function (Request $request) {
             return Limit::perMinute(30)->by($request->ip());
         });
+
+        RateLimiter::for('contact', function (Request $request) {
+            return Limit::perMinute(3)->by($request->ip())
+                ->response(function () {
+                    return back()->withErrors([
+                        'message' => 'Too many messages sent. Please wait a minute before trying again.',
+                    ]);
+                });
+        });
     }
 }
