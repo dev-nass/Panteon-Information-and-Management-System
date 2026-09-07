@@ -15,12 +15,10 @@ import Button from "../Form/Button.vue";
             >
                 <h1
                     class="bona-nova-heading text-center md:text-left text-4xl md:text-6xl lg:text-8xl text-white"
-                    data-aos="fade-up-right"
                 ></h1>
                 <div class="text-center md:text-left">
                     <p
                         class="text-white text-base md:text-lg leading-relaxed"
-                        data-aos="fade-down-right"
                     >
                         A historic ground dedicated to honoring lives,
                         preserving cultural heritage, and providing

@@ -5,9 +5,6 @@ import "preline";
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
 
-import AOS from "aos";
-import "aos/dist/aos.css"; // AOS (scroll animation library)
-
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -39,14 +36,6 @@ createInertiaApp({
             .use(ZiggyVue)
             .use(ToastPlugin)
             .mount(el);
-
-        // Initialize AOS
-        AOS.init({
-            duration: 1000, // global animation duration in ms
-            once: true, // whether animation should happen only once - while scrolling down
-            offset: 150, // trigger only when element is close to viewport
-            anchorPlacement: "top-bottom", // element top hits bottom of viewport
-        });
     },
 });
 
@@ -58,7 +47,6 @@ router.on("finish", () => {
         window.HSStaticMethods.autoInit();
     }
 
-    AOS.refresh();
     NProgress.done();
 });
 

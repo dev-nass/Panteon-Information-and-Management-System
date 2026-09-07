@@ -10,10 +10,6 @@ List of all the packages used and their installation
 
 - <https://preline.co/docs/frameworks-laravel.html>
 
-### Aos (Scroll Animation)
-
-- <https://michalsnik.github.io/aos/>
-
 ### Leaflet
 
 ### Ziggy

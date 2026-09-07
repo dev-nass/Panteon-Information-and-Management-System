@@ -247,7 +247,7 @@ const startImport = () => {
 
 <template>
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
-        <div class="flex flex-col items-center" data-aos="zoom-out">
+        <div class="flex flex-col items-center">
             <div
                 class="w-full sm:max-w-[650px] flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden"
             >

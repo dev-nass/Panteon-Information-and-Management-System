@@ -37,7 +37,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                 class="grid grid-cols-12 col-span-12 sm:grid-cols-12 lg:col-span-6 gap-6"
             >
                 <!-- Cols 1 / 5 -->
-                <div class="col-span-12 lg:col-span-12" data-aos="fade-right">
+                <div class="col-span-12 lg:col-span-12">
                     <!-- Card -->
                     <button
                         type="button"
@@ -115,10 +115,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
 
                 <div class="grid grid-cols-12 gap-6 col-span-12">
                     <!-- Cols 2 / 5 -->
-                    <div
-                        class="col-span-12 md:col-span-6 h-full"
-                        data-aos="fade-up"
-                    >
+                    <div class="col-span-12 md:col-span-6 h-full">
                         <!-- Card -->
                         <article
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
@@ -141,10 +138,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                     </div>
 
                     <!-- Cols 3 / 5 -->
-                    <div
-                        class="col-span-12 md:col-span-6 h-full"
-                        data-aos="fade-up"
-                    >
+                    <div class="col-span-12 md:col-span-6 h-full">
                         <!-- Card -->
                         <article
                             class="group relative block rounded-xl overflow-hidden focus:outline-none h-full"
@@ -171,7 +165,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                 class="grid grid-cols-1 sm:grid-cols-12 gap-6 col-span-12 lg:col-span-6 md:grid-cols-6"
             >
                 <!-- Cols 4 / 5 -->
-                <div class="sm:col-span-12 md:col-span-6" data-aos="fade-left">
+                <div class="sm:col-span-12 md:col-span-6">
                     <!-- Card -->
                     <button
                         type="button"
@@ -250,7 +244,7 @@ const scrollNext3 = () => emblaApi3.value?.scrollNext();
                 <!-- End Col -->
 
                 <!-- Cols 5 / 5 -->
-                <div class="sm:col-span-12 md:col-span-6" data-aos="fade-up">
+                <div class="sm:col-span-12 md:col-span-6">
                     <!-- Card -->
                     <button
                         class="border-3 border-transparent group relative block w-full rounded-xl overflow-hidden focus:outline-none h-64 md:h-[30rem] lg:h-full transition duration-300 hover:border-green-500"

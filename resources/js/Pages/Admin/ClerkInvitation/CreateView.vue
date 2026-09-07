@@ -46,7 +46,7 @@ const submitInvitation = () => {
 
 <template>
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
-        <div class="flex flex-col items-center" data-aos="zoom-out">
+        <div class="flex flex-col items-center">
             <div class="-m-1.5 overflow-x-auto">
                 <div class="p-1.5 w-full inline-block align-middle">
                     <div
