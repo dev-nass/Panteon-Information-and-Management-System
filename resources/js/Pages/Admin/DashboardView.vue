@@ -637,7 +637,9 @@ defineOptions({
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- LEFT COLUMN -->
                 <div class="lg:col-span-2 space-y-3">
-                    <h3 class="font-semibold">
+                    <h3
+                        class="font-semibold text-gray-700 dark:text-neutral-200"
+                    >
                         {{
                             activeFilter === "today"
                                 ? "Today Activity"
@@ -657,7 +659,11 @@ defineOptions({
 
                 <!-- RIGHT COLUMN -->
                 <div class="space-y-3">
-                    <h3 class="font-semibold">Statistics Overview</h3>
+                    <h3
+                        class="font-semibold text-gray-700 dark:text-neutral-200"
+                    >
+                        Statistics Overview
+                    </h3>
                     <DoughnutChart
                         :chartData="attendanceData"
                         :chartOptions="attendanceOptions"
@@ -669,7 +675,11 @@ defineOptions({
             <div class="space-y-6">
                 <!-- AGE DISTRIBUTION -->
                 <div class="space-y-3">
-                    <h3 class="font-semibold">Age Distribution</h3>
+                    <h3
+                        class="font-semibold text-gray-700 dark:text-neutral-200"
+                    >
+                        Age Distribution
+                    </h3>
                     <BarChart
                         v-if="
                             ageDistributionData &&
@@ -690,7 +700,11 @@ defineOptions({
 
                 <!-- GEOGRAPHIC DISTRIBUTION -->
                 <div class="space-y-3">
-                    <h3 class="font-semibold">Residence by Barangay</h3>
+                    <h3
+                        class="font-semibold text-gray-700 dark:text-neutral-200"
+                    >
+                        Residence by Barangay
+                    </h3>
                     <HorizontalBarChart
                         v-if="
                             geographicDistributionData &&
@@ -712,7 +726,9 @@ defineOptions({
 
         <!-- PHASES TAB CONTENT -->
         <div v-if="activeTab === 'phases'" class="space-y-3">
-            <h3 class="font-semibold">Phase Occupancy</h3>
+            <h3 class="font-semibold text-gray-700 dark:text-neutral-200">
+                Phase Occupancy
+            </h3>
             <HorizontalBarChart
                 v-if="phaseOccupancyData"
                 :chartData="phaseOccupancyData"
@@ -763,7 +779,9 @@ defineOptions({
                 </div>
             </div>
 
-            <h3 class="font-semibold">Cluster Occupancy</h3>
+            <h3 class="font-semibold text-gray-700 dark:text-neutral-200">
+                Cluster Occupancy
+            </h3>
 
             <HorizontalBarChart
                 v-if="
