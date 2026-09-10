@@ -386,7 +386,9 @@ defineOptions({
             <!-- RIGHT COLUMN -->
             <div class="space-y-6">
                 <!-- RECENT ACTIVITIES -->
-                <div class="dashboard-card">
+                <div
+                    class="dashboard-card bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-sm p-5"
+                >
                     <h3
                         class="font-bold text-gray-800 dark:text-neutral-100 mb-4 flex items-center"
                     >
@@ -438,7 +440,9 @@ defineOptions({
                 </div>
 
                 <!-- YOUR RECENT RECORDS -->
-                <div class="dashboard-card">
+                <div
+                    class="dashboard-card bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-sm p-5"
+                >
                     <h3
                         class="font-bold text-gray-800 dark:text-neutral-100 mb-4 flex items-center"
                     >
@@ -504,7 +508,9 @@ defineOptions({
                 </div>
 
                 <!-- PHASE STATS -->
-                <div class="dashboard-card">
+                <div
+                    class="dashboard-card bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-sm p-5"
+                >
                     <h3
                         class="font-bold text-gray-800 dark:text-neutral-100 mb-2 flex items-center"
                     >
@@ -544,7 +550,7 @@ defineOptions({
                                 </span>
                             </div>
                             <div
-                                class="w-full bg-gray-100 dark:bg-neutral-700 rounded-full h-2"
+                                class="w-full bg-gray-200 dark:bg-neutral-700 rounded-full h-2"
                             >
                                 <div
                                     class="h-2 rounded-full bg-green-500"
