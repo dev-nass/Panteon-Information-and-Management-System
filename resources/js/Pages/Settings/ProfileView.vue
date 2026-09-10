@@ -189,73 +189,24 @@ const saveChanges = () => {
 
                     <!-- Avatar section -->
                     <div class="flex items-center gap-4 mb-8">
-                        <!-- SVG Avatar -->
+                        <!-- SVG Avatar - same as Shared/BurialRecords/ShowView.vue:376 -->
                         <div
-                            class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-700 border border-gray-200 dark:border-neutral-600 flex-shrink-0"
+                            class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 flex-shrink-0"
                         >
                             <svg
-                                viewBox="0 0 80 80"
                                 xmlns="http://www.w3.org/2000/svg"
-                                class="w-full h-full"
+                                width="32"
+                                height="32"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-user-round-icon lucide-user-round"
                             >
-                                <defs>
-                                    <linearGradient
-                                        id="avatarGrad"
-                                        x1="0"
-                                        y1="0"
-                                        x2="1"
-                                        y2="1"
-                                    >
-                                        <stop
-                                            offset="0%"
-                                            stop-color="#d1d5db"
-                                        />
-                                        <stop
-                                            offset="100%"
-                                            stop-color="#9ca3af"
-                                        />
-                                    </linearGradient>
-                                </defs>
-                                <rect
-                                    width="80"
-                                    height="80"
-                                    fill="url(#avatarGrad)"
-                                />
-                                <ellipse
-                                    cx="40"
-                                    cy="72"
-                                    rx="24"
-                                    ry="14"
-                                    fill="#6b7280"
-                                    opacity="0.5"
-                                />
-                                <circle cx="40" cy="32" r="17" fill="#f3f4f6" />
-                                <ellipse
-                                    cx="40"
-                                    cy="19"
-                                    rx="17"
-                                    ry="10"
-                                    fill="#374151"
-                                />
-                                <circle
-                                    cx="34"
-                                    cy="32"
-                                    r="2.2"
-                                    fill="#374151"
-                                />
-                                <circle
-                                    cx="46"
-                                    cy="32"
-                                    r="2.2"
-                                    fill="#374151"
-                                />
-                                <path
-                                    d="M35 39 Q40 44 45 39"
-                                    stroke="#374151"
-                                    stroke-width="1.5"
-                                    fill="none"
-                                    stroke-linecap="round"
-                                />
+                                <circle cx="12" cy="8" r="5" />
+                                <path d="M20 21a8 8 0 0 0-16 0" />
                             </svg>
                         </div>
 
