@@ -205,7 +205,7 @@ defineOptions({
                                 <Button
                                     v-if="userRole === 'clerk'"
                                     type="button"
-                                    class="text-white"
+                                    class="text-gray-700 dark:text-white"
                                     data-hs-overlay="#burial-type-modal"
                                 >
                                     Create

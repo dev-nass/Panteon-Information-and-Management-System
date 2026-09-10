@@ -197,9 +197,11 @@ defineOptions({
             <!-- LEFT COLUMN -->
             <div class="lg:col-span-2 space-y-6">
                 <!-- TODAY'S FIELD SCHEDULE -->
-                <div class="dashboard-card bg-gray-50 dark:bg-neutral-800">
+                <div
+                    class="dashboard-card bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-sm overflow-hidden"
+                >
                     <div
-                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
+                        class="px-6 py-4 bg-white dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
                     >
                         <h3
                             class="font-bold text-gray-800 dark:text-neutral-100 flex items-center"
@@ -286,9 +288,11 @@ defineOptions({
                 </div>
 
                 <!-- UPCOMING SCHEDULES (NEXT 7 DAYS) -->
-                <div class="dashboard-card bg-gray-50 dark:bg-neutral-800">
+                <div
+                    class="dashboard-card bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-sm overflow-hidden"
+                >
                     <div
-                        class="px-6 py-4 bg-gray-50 dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
+                        class="px-6 py-4 bg-white dark:bg-neutral-900/50 border-b border-gray-200 dark:border-neutral-700 flex flex-wrap justify-between items-center"
                     >
                         <h3
                             class="font-bold text-gray-800 dark:text-neutral-100 flex items-center"
