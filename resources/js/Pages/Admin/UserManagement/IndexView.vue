@@ -51,18 +51,29 @@ const applyFilter = (filterValue) => {
 };
 
 const exportUsers = () => {
-    router.get(
-        route("admin.user_management.export"),
-        {
-            search: props.filters.search,
-            filter: props.filters.filter,
-            sort_field: props.filters.sort_field,
-            sort_direction: props.filters.sort_direction,
-        },
-        {
-            preserveState: true,
-        },
-    );
+    const params = {
+        search: props.filters.search,
+        filter: props.filters.filter,
+        sort_field: props.filters.sort_field,
+        sort_direction: props.filters.sort_direction,
+    };
+
+    Object.keys(params).forEach((key) => {
+        if (
+            params[key] === null ||
+            params[key] === undefined ||
+            params[key] === ''
+        ) {
+            delete params[key];
+        }
+    });
+
+    const queryString = new URLSearchParams(params).toString();
+    const url =
+        route('admin.user_management.export') +
+        (queryString ? `?${queryString}` : '');
+
+    window.open(url, '_blank');
 };
 
 const sort = (field) => {

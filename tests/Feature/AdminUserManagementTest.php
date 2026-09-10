@@ -29,7 +29,6 @@ beforeEach(function () {
             $table->foreignId('phase_id')->constrained()->cascadeOnDelete();
             $table->string('cluster_name');
             $table->string('cluster_type');
-            $table->string('status')->default('available');
             $table->bigInteger('total_capacity')->nullable();
             $table->timestamps();
         });
