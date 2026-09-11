@@ -28,15 +28,53 @@ if (L.LineUtil && typeof L.LineUtil.isFlat === "function") {
     }
 }
 
-// Fallback: suppress the specific deprecation warning if any code still reaches the old wrapper
-// (vite pre-bundled deps may hold old closure). This is safe and does not hide other warnings.
+// Fallback: suppress specific deprecation + upstream Google Reporting-Endpoints spam
+// (vite pre-bundled deps may hold old closure, and Google tiles send invalid Report-To JSON
+// that Firefox 130+ logs per tile as "Reporting Header: invalid JSON... lyrs=s&x=..." )
 const originalWarn = console.warn;
-console.warn = (...args) => {
+const originalError = console.error;
+const shouldSuppress = (args) => {
     const first = args[0];
-    if (typeof first === "string" && first.includes("Deprecated use of _flat")) {
-        return;
-    }
+    if (typeof first !== "string") return false;
+    return (
+        first.includes("Deprecated use of _flat") ||
+        first.includes("Reporting Header") ||
+        first.includes("invalid JSON value received") ||
+        first.includes("lyrs=s&x=") ||
+        first.includes("OpaqueResponseBlocking") ||
+        first.includes("NS_ERROR_DOM_NETWORK_ERR") ||
+        first.includes("mt1.google.com/vt") ||
+        first.includes("mt2.google.com/vt") ||
+        first.includes("mt3.google.com/vt") ||
+        first.includes("mt0.google.com/vt")
+    );
+};
+console.warn = (...args) => {
+    if (shouldSuppress(args)) return;
     originalWarn.apply(console, args);
 };
+console.error = (...args) => {
+    if (shouldSuppress(args)) return;
+    originalError.apply(console, args);
+};
+
+// Also suppress ReportingObserver reports from Google tiles (Firefox/Brave)
+if (typeof ReportingObserver !== "undefined") {
+    const OriginalReportingObserver = ReportingObserver;
+    // eslint-disable-next-line no-global-assign
+    window.ReportingObserver = function (callback, options) {
+        const wrapped = (reports, observer) => {
+            const filtered = reports.filter(
+                (r) =>
+                    !(
+                        r.body?.message?.includes("Reporting Header") ||
+                        r.body?.message?.includes("lyrs=s")
+                    ),
+            );
+            if (filtered.length) callback(filtered, observer);
+        };
+        return new OriginalReportingObserver(wrapped, options);
+    };
+}
 
 export default L;

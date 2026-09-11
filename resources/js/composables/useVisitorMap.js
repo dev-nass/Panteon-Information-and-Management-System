@@ -24,7 +24,15 @@ export function useVisitorMap() {
     const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     const initializeMap = (mapContainerElem) => {
-        map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
+        map.value = L.map(mapContainerElem, {
+            maxZoom: 22,
+            minZoom: 5,
+            maxBounds: L.latLngBounds(
+                L.latLng(14.295, 120.965),
+                L.latLng(14.315, 120.985),
+            ),
+            maxBoundsViscosity: 0.8,
+        }).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
         L.control.zoom({ position: "bottomleft" }).addTo(map.value);
 
@@ -32,8 +40,14 @@ export function useVisitorMap() {
             googleLayer.value = L.tileLayer(
                 "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
                 {
-                    maxZoom: 30,
+                    maxZoom: 22,
+                    maxNativeZoom: 20,
+                    minZoom: 5,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
+                    errorTileUrl:
+                        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                    keepBuffer: 2,
+                    updateWhenIdle: true,
                 },
             );
             googleLayer.value.addTo(map.value);

@@ -14,12 +14,24 @@ export function useCreatePlotPhase() {
     const coordinates = ref(null);
 
     const initializeMap = (mapContainerElem) => {
-        map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
-
-        L.tileLayer("http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+        map.value = L.map(mapContainerElem, {
             maxZoom: 22,
+            minZoom: 5,
+            maxBounds: L.latLngBounds(
+                L.latLng(14.295, 120.965),
+                L.latLng(14.315, 120.985),
+            ),
+            maxBoundsViscosity: 0.8,
+        }).setView([LAT, LONG], ZOOM_LVL);
+
+        L.tileLayer("https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+            maxZoom: 22,
+            maxNativeZoom: 20,
+            minZoom: 5,
             subdomains: ["mt0", "mt1", "mt2", "mt3"],
             attribution: "&copy; Google Maps",
+            errorTileUrl:
+                "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
         }).addTo(map.value);
 
         drawnItems.value = new L.FeatureGroup();

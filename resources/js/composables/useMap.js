@@ -33,7 +33,15 @@ export function useMap() {
      * @param {*} mapContainerElem the instance of the map assigned to an HTML element
      */
     const initializeMap = async (mapContainerElem) => {
-        map.value = L.map(mapContainerElem).setView([LAT, LONG], ZOOM_LVL);
+        map.value = L.map(mapContainerElem, {
+            maxZoom: 22,
+            minZoom: 5,
+            maxBounds: L.latLngBounds(
+                L.latLng(14.295, 120.965),
+                L.latLng(14.315, 120.985),
+            ),
+            maxBoundsViscosity: 0.8,
+        }).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
         L.control
             .zoom({
@@ -73,9 +81,15 @@ export function useMap() {
             googleLayer.value = L.tileLayer(
                 "https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
                 {
-                    maxZoom: 30,
+                    maxZoom: 22,
+                    maxNativeZoom: 20,
+                    minZoom: 5,
                     subdomains: ["mt0", "mt1", "mt2", "mt3"],
-                    className: "dark-tiles", // 👈 add this
+                    className: "dark-tiles",
+                    errorTileUrl:
+                        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                    keepBuffer: 2,
+                    updateWhenIdle: true,
                 },
             );
 
