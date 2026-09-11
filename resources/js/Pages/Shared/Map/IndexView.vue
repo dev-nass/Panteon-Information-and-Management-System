@@ -59,47 +59,58 @@ const clusterModalFeature = ref(null);
 const lotModalFeature = ref(null);
 const modalFeature = ref(null);
 
-const handleViewPhaseOnTable = (phaseId) => {
-    router.visit(route("clerk.lot_management.index"), {
-        onSuccess: () => {
-            setTimeout(() => {
-                if (window.handleViewPhaseOnTable) {
-                    window.handleViewPhaseOnTable(phaseId);
-                }
-            }, 100);
-        },
-    });
-};
-
-const handleViewClusterOnTable = (clusterId) => {
-    router.visit(route("clerk.lot_management.index"), {
-        onSuccess: () => {
-            setTimeout(() => {
-                if (window.handleViewClusterOnTable) {
-                    window.handleViewClusterOnTable(clusterId);
-                }
-            }, 100);
-        },
-    });
-};
-
-const handleViewLotOnTable = (lotId) => {
-    router.visit(route("clerk.lot_management.index"), {
-        onSuccess: () => {
-            setTimeout(() => {
-                if (window.handleViewLotOnTable) {
-                    window.handleViewLotOnTable(lotId);
-                }
-            }, 100);
-        },
-    });
-};
-
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const userRole = computed(() =>
     page.props.auth?.user?.role?.toLowerCase()?.trim(),
 );
+
+const lotManagementRoutes = {
+    admin: "admin.lot_management.index",
+    clerk: "clerk.lot_management.index",
+};
+
+const resolveLotManagementRoute = () =>
+    lotManagementRoutes[userRole.value] ?? lotManagementRoutes.clerk;
+
+const handleViewPhaseOnTable = (phaseId) => {
+    router.visit(route(resolveLotManagementRoute()), {
+        data: { phase_id: phaseId },
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewPhaseOnTable) {
+                    window.handleViewPhaseOnTable(phaseId);
+                }
+            }, 150);
+        },
+    });
+};
+
+const handleViewClusterOnTable = (clusterId) => {
+    router.visit(route(resolveLotManagementRoute()), {
+        data: { cluster_id: clusterId },
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewClusterOnTable) {
+                    window.handleViewClusterOnTable(clusterId);
+                }
+            }, 150);
+        },
+    });
+};
+
+const handleViewLotOnTable = (lotId) => {
+    router.visit(route(resolveLotManagementRoute()), {
+        data: { lot_id: lotId },
+        onSuccess: () => {
+            setTimeout(() => {
+                if (window.handleViewLotOnTable) {
+                    window.handleViewLotOnTable(lotId);
+                }
+            }, 150);
+        },
+    });
+};
 
 const roleRoutes = {
     admin: {

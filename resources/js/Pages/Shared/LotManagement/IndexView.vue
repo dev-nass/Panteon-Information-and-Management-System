@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onBeforeUnmount } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
@@ -95,8 +95,134 @@ window.fetchPhase = fetchPhase;
 window.fetchCluster = fetchCluster;
 window.fetchLot = fetchLot;
 
+// View on Table handlers (called from Shared/Map/IndexView via window)
+const handleViewPhaseOnTable = (phaseId) => {
+    const phase = props.phases.find((p) => p.id == phaseId);
+    if (phase) {
+        goToClusters(phase);
+    } else {
+        activeTab.value = "phase";
+    }
+};
+
+const handleViewClusterOnTable = async (clusterId) => {
+    try {
+        const res = await fetch(
+            route("api.lot.management.cluster", { cluster_id: clusterId }),
+            { credentials: "same-origin" },
+        );
+        const json = await res.json();
+        const phaseName = json.data?.[0]?.cluster?.properties?.phase;
+        if (phaseName) {
+            const phase = props.phases.find((p) => p.name === phaseName);
+            if (phase) {
+                selectedPhase.value = phase;
+                activeTab.value = "cluster";
+                search.value = "";
+                // Optionally highlight cluster via search after clusters load
+                try {
+                    const clusterRes = await fetch(
+                        route("api.lot.management.clusters", phase.id),
+                        { credentials: "same-origin" },
+                    );
+                    const clusters = await clusterRes.json();
+                    const target = clusters.find((c) => c.id == clusterId);
+                    if (target) {
+                        search.value = target.name;
+                    }
+                } catch {}
+                return;
+            }
+        }
+    } catch {}
+    activeTab.value = "cluster";
+    search.value = "";
+};
+
+const handleViewLotOnTable = async (lotId) => {
+    try {
+        const res = await fetch(
+            route("api.lot.management.lot", { lot_id: lotId }),
+            { credentials: "same-origin" },
+        );
+        const json = await res.json();
+        const phaseName = json.data?.[0]?.lot?.properties?.phase;
+        const clusterName = json.data?.[0]?.lot?.properties?.cluster;
+        const lotProps = json.data?.[0]?.lot?.properties;
+        if (phaseName) {
+            const phase = props.phases.find((p) => p.name === phaseName);
+            if (phase) {
+                selectedPhase.value = phase;
+                try {
+                    const clusterRes = await fetch(
+                        route("api.lot.management.clusters", phase.id),
+                        { credentials: "same-origin" },
+                    );
+                    const clusters = await clusterRes.json();
+                    const cluster = clusters.find(
+                        (c) => c.name === clusterName,
+                    );
+                    if (cluster) {
+                        selectedCluster.value = cluster;
+                        activeTab.value = "lot";
+                        if (lotProps?.column && lotProps?.row) {
+                            search.value = `${lotProps.column}${lotProps.row}`;
+                        } else {
+                            search.value = "";
+                        }
+                        return;
+                    }
+                } catch {}
+                activeTab.value = "cluster";
+                return;
+            }
+        }
+    } catch {}
+    activeTab.value = "lot";
+    search.value = "";
+};
+
+window.handleViewPhaseOnTable = handleViewPhaseOnTable;
+window.handleViewClusterOnTable = handleViewClusterOnTable;
+window.handleViewLotOnTable = handleViewLotOnTable;
+
+onMounted(() => {
+    // Handle direct navigation via query params from Map -> Table
+    const params = new URLSearchParams(window.location.search);
+    const phaseId = params.get("phase_id");
+    const clusterId = params.get("cluster_id");
+    const lotId = params.get("lot_id");
+    const legacyId = params.get("id");
+    if (phaseId) {
+        handleViewPhaseOnTable(phaseId);
+    } else if (clusterId) {
+        handleViewClusterOnTable(clusterId);
+    } else if (lotId) {
+        handleViewLotOnTable(lotId);
+    } else if (legacyId) {
+        // Try phase first
+        const phase = props.phases.find((p) => p.id == legacyId);
+        if (phase) {
+            handleViewPhaseOnTable(legacyId);
+        } else {
+            // fallback to cluster/lot handling
+            handleViewClusterOnTable(legacyId);
+        }
+    }
+});
+
 onBeforeUnmount(() => {
     clearSearch();
+    // Cleanup global handlers
+    if (window.handleViewPhaseOnTable === handleViewPhaseOnTable) {
+        delete window.handleViewPhaseOnTable;
+    }
+    if (window.handleViewClusterOnTable === handleViewClusterOnTable) {
+        delete window.handleViewClusterOnTable;
+    }
+    if (window.handleViewLotOnTable === handleViewLotOnTable) {
+        delete window.handleViewLotOnTable;
+    }
 });
 
 defineOptions({
