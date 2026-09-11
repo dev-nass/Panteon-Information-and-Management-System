@@ -1,7 +1,3 @@
-## With Plans
-
-- [ ] CSV export on user management
-
 ## Testing
 
 - [ ] Try to create lot manually, then import the records on the Admin side;
@@ -22,3 +18,9 @@
     - Consult Panteon for the actual template
     - if they rejected, use ai to forcefully copy the template
 - [ ] Org chart should be included on the user side UI
+
+- [ ] Archive Burial Records, no complete deletion
+      On confirmation modal include the reason archive action is being done "pull out", "transfer" etc...
+- [ ] User Management account "termination" instead of "delete"
+      Do we create new table for archiving of burial record and terminating of users (clerk)?
+- [ ] Remove the "age" on the deceased record, but its a computed state on the frontend
