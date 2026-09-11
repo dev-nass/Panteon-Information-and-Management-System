@@ -1,4 +1,5 @@
 import L from "leaflet";
+import "@/utils/leafletPatch";
 import "leaflet-draw";
 import { ref } from "vue";
 

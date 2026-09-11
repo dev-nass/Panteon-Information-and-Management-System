@@ -7,6 +7,7 @@ import { createInertiaApp, router } from "@inertiajs/vue3";
 
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "./utils/leafletPatch.js";
 
 import { ZiggyVue } from "ziggy-js"; // laravel routes
 
