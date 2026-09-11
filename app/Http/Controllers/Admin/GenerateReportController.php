@@ -86,6 +86,22 @@ class GenerateReportController extends Controller
 
         $startDate = $request->startDate;
         $endDate = $request->endDate;
+
+        // A+B: Guard large PDF ranges (>5000 records) and raise limits for heavy reports
+        if ($format === 'pdf' && in_array($reportType, ['burial', 'deceased'])) {
+            $count = $this->getReportCount($reportType, $startDate, $endDate);
+            if ($count > 5000) {
+                return back()->with('error', "PDF generation is limited to 5,000 records for performance ({$count} records found). Please use Excel format or narrow the date range.");
+            }
+            set_time_limit(120);
+            ini_set('memory_limit', '512M');
+            ini_set('max_execution_time', '120');
+        } elseif ($format === 'excel' && in_array($reportType, ['burial', 'deceased'])) {
+            // Excel handles large sets better but still needs headroom
+            set_time_limit(120);
+            ini_set('memory_limit', '512M');
+        }
+
         $data = $this->getReportData($reportType, $startDate, $endDate);
 
         if ($format === 'pdf') {
@@ -95,18 +111,34 @@ class GenerateReportController extends Controller
         return $this->generateExcel($reportType, $data, $startDate, $endDate);
     }
 
+    private function getReportCount($reportType, $startDate, $endDate): int
+    {
+        return match ($reportType) {
+            'burial' => BurialRecord::whereHas('deceasedRecord', fn ($q) => $q->whereBetween('date_of_depository', [$startDate, $endDate]))->count(),
+            'deceased' => DeceasedRecord::whereBetween('date_of_depository', [$startDate, $endDate])->count(),
+            default => 0,
+        };
+    }
+
     private function getReportData($reportType, $startDate, $endDate)
     {
         switch ($reportType) {
             case 'burial':
-                return BurialRecord::with(['deceasedRecord', 'lot.cluster.phase', 'user'])
+                return BurialRecord::select('id', 'lot_id', 'deceased_record_id', 'user_id')
+                    ->with([
+                        'deceasedRecord:id,first_name,last_name,address,place_of_death,company_address,date_of_depository',
+                        'lot:id,cluster_id,column,row',
+                        'lot.cluster:id,phase_id,cluster_name',
+                        'lot.cluster.phase:id,phase_name',
+                    ])
                     ->whereHas('deceasedRecord', function ($query) use ($startDate, $endDate) {
                         $query->whereBetween('date_of_depository', [$startDate, $endDate]);
                     })
                     ->get();
 
             case 'deceased':
-                return DeceasedRecord::with(['applicant'])
+                return DeceasedRecord::select('id', 'first_name', 'middle_name', 'last_name', 'date_of_depository', 'address', 'place_of_death', 'company_address', 'applicant_id')
+                    ->with(['applicant:id,first_name,last_name'])
                     ->whereBetween('date_of_depository', [$startDate, $endDate])
                     ->get();
         }
@@ -175,6 +207,7 @@ class GenerateReportController extends Controller
 
     private function generateAnnualSummaryPDF($data, $year)
     {
+        set_time_limit(60);
         $pdf = Pdf::loadView('reports.annual', [
             'data' => $data,
             'year' => $year,
@@ -240,6 +273,8 @@ class GenerateReportController extends Controller
 
     private function generatePDF($reportType, $data, $startDate, $endDate)
     {
+        set_time_limit(120);
+        ini_set('memory_limit', '512M');
         $pdf = Pdf::loadView('reports.'.$reportType, [
             'data' => $data,
             'startDate' => $startDate,
@@ -253,6 +288,7 @@ class GenerateReportController extends Controller
 
     private function generateMonthlySummaryPDF($data, $monthDate)
     {
+        set_time_limit(60);
         $pdf = Pdf::loadView('reports.summary', [
             'data' => $data,
             'monthDate' => $monthDate,
@@ -265,6 +301,7 @@ class GenerateReportController extends Controller
 
     private function generatePhasePDF($data)
     {
+        set_time_limit(60);
         $pdf = Pdf::loadView('reports.phase', [
             'data' => $data,
         ]);

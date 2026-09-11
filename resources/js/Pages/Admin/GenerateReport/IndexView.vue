@@ -40,6 +40,17 @@ const showNoDates = computed(() => {
     return reportType.value === "phase";
 });
 
+// Large range detection for PDF performance (A+B)
+const rangeDays = computed(() => {
+    if (!startDate.value || !endDate.value) return 0;
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+    const diff = (end - start) / (1000 * 60 * 60 * 24);
+    return Math.ceil(diff) + 1;
+});
+const isLargeRange = computed(() => rangeDays.value > 90);
+const isPdfLargeRange = computed(() => isLargeRange.value && format.value === 'pdf' && showDateRange.value);
+
 // Reset date fields when report type changes
 watch(reportType, () => {
     startDate.value = "";
@@ -109,6 +120,20 @@ const generateReport = () => {
     if (showYearPicker.value && !yearDate.value) {
         alert("Please select a year");
         return;
+    }
+
+    // B: Warn for large PDF ranges (>90 days / 5,000 records max) – Dompdf 30s limit, Excel recommended
+    if (isPdfLargeRange.value) {
+        const proceed = confirm(
+            `The selected range is ${rangeDays.value} days (max for PDF is 90 days / 5,000 records) and may contain thousands of records. PDF generation may time out (30s limit) and server will block PDF >5,000 records.\n\n` +
+                `It is strongly recommended to use Excel format for large ranges.\n\n` +
+                `Click OK to continue with PDF anyway, or Cancel to switch to Excel.`
+        );
+        if (!proceed) {
+            format.value = 'excel';
+            // Let user review warning then click Generate again
+            return;
+        }
     }
 
     isGenerating.value = true;
@@ -385,6 +410,39 @@ const generateReport = () => {
                                         </span>
                                     </label>
                                 </div>
+                                <p
+                                    v-if="format === 'pdf' && showDateRange"
+                                    class="text-xs text-gray-500 dark:text-gray-400 mt-1"
+                                >
+                                    Tip: Max for PDF is <span class="font-semibold">90 days / 5,000 records</span> — for larger ranges, Excel is faster and avoids timeouts (PDF will be blocked by server).
+                                </p>
+                            </div>
+
+                            <!-- Large range warning (B) -->
+                            <div
+                                v-if="isPdfLargeRange"
+                                class="col-span-full flex gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-200"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 8v4" />
+                                    <path d="M12 16h.01" />
+                                </svg>
+                                <div class="text-sm">
+                                    <p class="font-semibold">Large date range ({{ rangeDays }} days) — exceeds max 90 days / 5,000 records for PDF</p>
+                                    <p class="mt-1">PDF generation may exceed 30s and fail. Server enforces <span class="font-semibold">max 5,000 records for PDF</span> and will block the request. Please switch to <button type="button" @click="format='excel'" class="underline font-semibold">Excel</button> or narrow to ≤90 days.</p>
+                                </div>
+                            </div>
+                            <div
+                                v-else-if="isLargeRange && showDateRange"
+                                class="col-span-full flex gap-3 p-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-gray-300"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 16v-4" />
+                                    <path d="M12 8h.01" />
+                                </svg>
+                                <p class="text-sm">Range is {{ rangeDays }} days (max 90 days / 5,000 records for PDF). For best performance with large data, Excel is recommended.</p>
                             </div>
                         </div>
 
