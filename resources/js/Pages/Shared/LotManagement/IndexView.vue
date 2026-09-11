@@ -54,6 +54,7 @@ const closeAllModals = () => {
         "delete-cluster-modal",
         "delete-lot-modal",
         "delete-user-modal",
+        "delete-backup-modal",
     ];
     overlayIds.forEach((id) => {
         const el = document.getElementById(id);

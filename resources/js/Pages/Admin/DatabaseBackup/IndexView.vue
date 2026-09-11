@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 import { route } from "ziggy-js";
@@ -23,18 +23,6 @@ const toast = useToast();
 const isCreating = ref(false);
 const backupToDelete = ref(null);
 
-const closeOverlay = (el) => {
-    if (typeof HSOverlay !== "undefined" && window.$hsOverlayCollection) {
-        HSOverlay.close(el);
-        return;
-    }
-
-    el.classList.remove("open", "opened");
-    if (!el.classList.contains("hidden")) {
-        el.classList.add("hidden");
-    }
-};
-
 watch(
     () => page.props.flash,
     (flash) => {
@@ -50,6 +38,15 @@ watch(
     },
     { deep: true },
 );
+
+onMounted(() => {
+    nextTick(() => {
+        try {
+            if (window.HSOverlay && window.HSOverlay.autoInit) window.HSOverlay.autoInit();
+            else if (typeof HSOverlay !== "undefined" && HSOverlay.autoInit) HSOverlay.autoInit();
+        } catch {}
+    });
+});
 
 const createBackup = () => {
     isCreating.value = true;
@@ -72,6 +69,31 @@ const downloadBackup = (filename) => {
 
 const openDeleteModal = (backup) => {
     backupToDelete.value = backup;
+    nextTick(() => {
+        const el = document.getElementById("delete-backup-modal");
+        try {
+            if (el && window.HSOverlay) {
+                window.HSOverlay.open(el);
+            } else if (typeof HSOverlay !== "undefined") {
+                HSOverlay.open("#delete-backup-modal");
+            }
+        } catch {
+            if (typeof HSOverlay !== "undefined") HSOverlay.open("#delete-backup-modal");
+        }
+    });
+};
+
+const cancelDeleteBackup = () => {
+    try {
+        const el = document.getElementById("delete-backup-modal");
+        if (el && window.HSOverlay) window.HSOverlay.close(el);
+        else if (typeof HSOverlay !== "undefined") HSOverlay.close("#delete-backup-modal");
+        else if (el) {
+            el.classList.remove("open", "opened");
+            el.classList.add("hidden");
+        }
+    } catch {}
+    backupToDelete.value = null;
 };
 
 const confirmDeleteBackup = () => {
@@ -82,8 +104,16 @@ const confirmDeleteBackup = () => {
     router.delete(route("admin.backup.destroy", filename), {
         preserveScroll: true,
         onSuccess: () => {
+            try {
+                const el = document.getElementById("delete-backup-modal");
+                if (el && window.HSOverlay) window.HSOverlay.close(el);
+                else if (typeof HSOverlay !== "undefined") HSOverlay.close("#delete-backup-modal");
+            } catch {}
             backupToDelete.value = null;
-            closeOverlay(document.getElementById("delete-backup-modal"));
+            toast.success(`Backup "${filename}" deleted successfully!`, { duration: 3000 });
+        },
+        onError: () => {
+            toast.error("Failed to delete backup.");
         },
     });
 };
@@ -274,7 +304,6 @@ const formatDate = (timestamp) => {
 
                                         <button
                                             type="button"
-                                            :data-hs-overlay="'#delete-backup-modal'"
                                             @click="openDeleteModal(backup)"
                                             class="inline-flex items-center gap-x-1.5 px-2 py-1.5 text-sm rounded-lg border transition duration-200 bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/30"
                                         >
@@ -324,60 +353,96 @@ const formatDate = (timestamp) => {
         </div>
     </div>
 
-    <!-- Delete Backup Confirmation Modal -->
-    <Modal id="delete-backup-modal" size="sm">
-        <template #header>
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+    <Teleport to="body">
+        <div
+            id="delete-backup-modal"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            role="dialog"
+            tabindex="-1"
+            aria-labelledby="delete-backup-modal-label"
+        >
+            <div
+                class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
             >
-                <path d="M3 6h18" />
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-            </svg>
-        </template>
-
-        <template #main>
-            <h3
-                id="delete-backup-modal-label"
-                class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
-            >
-                Delete Backup
-            </h3>
-
-            <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
-                Are you sure you want to delete
-                <span
-                    class="font-medium text-gray-800 dark:text-neutral-100 break-all"
+                <div
+                    class="relative w-full max-h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/50"
                 >
-                    "{{ backupToDelete?.filename }}"
-                </span>
-                ? This action cannot be undone.
-            </p>
-        </template>
+                    <div class="absolute top-3 end-3">
+                        <button
+                            type="button"
+                            class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
+                            @click="cancelDeleteBackup"
+                        >
+                            <svg
+                                class="size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                        </button>
+                    </div>
 
-        <template #footer>
-            <button
-                type="button"
-                class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
-                data-hs-overlay="#delete-backup-modal"
-            >
-                Cancel
-            </button>
-            <button
-                type="button"
-                class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition"
-                @click="confirmDeleteBackup"
-            >
-                Delete
-            </button>
-        </template>
-    </Modal>
+                    <div class="p-10 flex flex-col items-center gap-y-4 text-center">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-red-500/10 text-red-600 dark:text-red-400"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="60"
+                                height="60"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                        </div>
+
+                        <h3
+                            id="delete-backup-modal-label"
+                            class="-mt-2 text-2xl font-bold text-red-600 dark:text-red-400"
+                        >
+                            Delete Backup
+                        </h3>
+
+                        <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                            Are you sure you want to delete
+                            <span class="font-semibold text-gray-900 dark:text-white break-all">
+                                BACKUP {{ backupToDelete?.filename }}
+                            </span>
+                            ? This action cannot be undone.
+                        </p>
+                    </div>
+
+                    <div class="flex border-t border-white/20 dark:border-white/10">
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-500/10 transition"
+                            @click="cancelDeleteBackup"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition"
+                            @click="confirmDeleteBackup"
+                        >
+                            Delete Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>
