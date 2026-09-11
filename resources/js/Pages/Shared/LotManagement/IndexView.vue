@@ -35,6 +35,7 @@ const { fetchPhase, fetchCluster, fetchLot, clearSearch } = useSearch();
 
 const closeAllModals = () => {
     // Close any HSOverlay modals left open from previous pages (Map: phase/cluster/lot, burial-record, filter, cookies; CreateView: plotting modals etc)
+    // Single source: rely on HSOverlay.close() — global patch in app.js handles focus blur before hidden, avoiding aria-hidden warning.
     const overlayIds = [
         "hs-phase-modal",
         "hs-cluster-modal",
@@ -66,21 +67,14 @@ const closeAllModals = () => {
                     window.HSOverlay.close(el);
                 }
             } catch {}
-            el.classList.remove("open", "opened");
-            el.classList.add("hidden");
-            el.setAttribute("aria-hidden", "true");
         }
     });
 
-    // Generic fallback: close any element with .hs-overlay that appears open
+    // Generic fallback: close any overlay that still appears open
     try {
-        document.querySelectorAll(".hs-overlay").forEach((el) => {
-            const isOpen =
-                el.classList.contains("open") ||
-                el.classList.contains("opened") ||
-                el.classList.contains("hs-overlay-open") ||
-                !el.classList.contains("hidden");
-            if (isOpen) {
+        document
+            .querySelectorAll(".hs-overlay.open, .hs-overlay.opened")
+            .forEach((el) => {
                 try {
                     if (typeof HSOverlay !== "undefined" && HSOverlay.close) {
                         HSOverlay.close(el);
@@ -88,10 +82,7 @@ const closeAllModals = () => {
                         window.HSOverlay.close(el);
                     }
                 } catch {}
-                el.classList.remove("open", "opened");
-                el.classList.add("hidden");
-            }
-        });
+            });
     } catch {}
 
     // Close via Preline collection if available

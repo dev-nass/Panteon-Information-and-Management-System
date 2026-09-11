@@ -1,4 +1,3 @@
-```vue
 <script setup>
 import { computed } from "vue";
 
@@ -97,19 +96,6 @@ const sizeClasses = {
                     </div>
 
                     <slot name="main" />
-
-                    <!-- SAMPLE  -->
-                    <!-- <h3 -->
-                    <!--     :id="`${props.id}-label`" -->
-                    <!--     class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
-                    <!-- > -->
-                    <!--     Unsaved Changes -->
-                    <!-- </h3> -->
-                    <!---->
-                    <!-- <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
-                    <!--     Are you sure you want to discard your changes? This -->
-                    <!--     action cannot be undone. -->
-                    <!-- </p> -->
                 </div>
 
                 <!-- Buttons -->
@@ -120,24 +106,8 @@ const sizeClasses = {
                     ]"
                 >
                     <slot name="footer" />
-                    <!-- Sample button used as reference -->
-                    <!-- <button -->
-                    <!--     type="button" -->
-                    <!--     class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
-                    <!--     :data-hs-overlay="overlaySelector" -->
-                    <!-- > -->
-                    <!--     Cancel -->
-                    <!-- </button> -->
-                    <!-- <button -->
-                    <!--     type="button" -->
-                    <!--     class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition" -->
-                    <!--     @click="confirmDiscard" -->
-                    <!-- > -->
-                    <!--     Discard Changes -->
-                    <!-- </button> -->
                 </div>
             </div>
         </div>
     </div>
 </template>
-```
