@@ -13,14 +13,30 @@
 
 ### Issues
 
-- [ ] Backup now is not working
-- [ ] Certificate of Service
-    - Consult Panteon for the actual template
-    - if they rejected, use ai to forcefully copy the template
 - [ ] Org chart should be included on the user side UI
-
 - [ ] Archive Burial Records, no complete deletion
       On confirmation modal include the reason archive action is being done "pull out", "transfer" etc...
 - [ ] User Management account "termination" instead of "delete"
       Do we create new table for archiving of burial record and terminating of users (clerk)?
 - [ ] Remove the "age" on the deceased record, but its a computed state on the frontend
+
+### Docs Revisions
+
+- Low fidelity
+    - Generate Report (w new changes)
+    - Invite Clerk
+    - Activity Log
+    - Database backup
+    - Lot Man
+    - Burial Record
+    - Certificate of Service Generator Form
+    - Certificate of Service Upload
+
+    - Account Management
+    - Change Password
+    - Forgot password
+
+- Proposed Flowchart
+- ERD
+
+- Read the scope and limitation -> Formulate questions for sir Ketch to clarify -> Then revise the scope and limitation "Single source of truth" on the paper remove that
