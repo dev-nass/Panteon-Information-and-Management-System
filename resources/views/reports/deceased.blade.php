@@ -27,7 +27,7 @@
             <td>{{ $deceased->middle_name }}</td>
             <td>{{ $deceased->last_name }}</td>
             <td>{{ \Carbon\Carbon::parse($deceased->date_of_depository)->format('F d, Y') }}</td>
-            <td>{{ $deceased->address }}</td>
+            <td>{{ $deceased->address ?? $deceased->place_of_death ?? $deceased->company_address ?? 'N/A' }}</td>
             <td>{{ $deceased->applicant ? $deceased->applicant->first_name . ' ' . $deceased->applicant->last_name : 'N/A' }}</td>
         </tr>
         @endforeach

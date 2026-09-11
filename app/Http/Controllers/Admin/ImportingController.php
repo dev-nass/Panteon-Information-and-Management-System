@@ -380,12 +380,29 @@ class ImportingController extends Controller
         $deceasedName = $this->normalizer->parseFullName(trim($row[2] ?? ''));
         $applicantName = $this->normalizer->parseFullName(trim($row[3] ?? ''));
 
+        // Robust address handling: try primary column 7, then fallback to 3,8,9 if empty (handles variant templates)
+        $rawAddress = $row[7] ?? null;
+        if (empty(trim((string) $rawAddress)) && !empty(trim((string) ($row[3] ?? ''))) && trim((string) ($row[3] ?? '')) !== trim((string) ($row[2] ?? ''))) {
+            // Some templates put barangay at 3 if applicant column is shifted
+            $maybe = trim((string) ($row[8] ?? $row[9] ?? ''));
+            if (!empty($maybe)) $rawAddress = $maybe;
+        }
+        if (empty(trim((string) $rawAddress))) {
+            // Try next columns as fallback (covers 8-col vs 9-col variants)
+            foreach ([8, 9, 10, 3] as $idx) {
+                if (!empty(trim((string) ($row[$idx] ?? '')))) {
+                    $rawAddress = $row[$idx];
+                    break;
+                }
+            }
+        }
+
         return [
             'deceased' => [
                 'first_name' => $deceasedName['first_name'],
                 'middle_name' => $deceasedName['middle_name'],
                 'last_name' => $deceasedName['last_name'],
-                'address' => $this->normalizer->normalizeAddress($row[7] ?? null),
+                'address' => $this->normalizer->normalizeAddress($rawAddress),
                 'date_of_birth' => null,
                 'date_of_death' => null,
                 'date_of_depository' => $this->normalizer->parseDate($row[1] ?? null),
@@ -421,12 +438,27 @@ class ImportingController extends Controller
         $precinctNum = trim($row[1] ?? '');
         $age = trim($row[14] ?? '');
 
+        // Robust address: primary 3, fallback to 7,8 if empty (covers template variations)
+        $rawAddress = $row[3] ?? null;
+        if (empty(trim((string) $rawAddress))) {
+            foreach ([7, 8, 10] as $idx) {
+                if (!empty(trim((string) ($row[$idx] ?? '')))) {
+                    // Avoid picking date columns - check if it looks like an address (not a date)
+                    $val = trim((string) $row[$idx]);
+                    if (!preg_match('/^\d{4}-\d{2}-\d{2}/', $val) && !is_numeric($val)) {
+                        $rawAddress = $val;
+                        break;
+                    }
+                }
+            }
+        }
+
         return [
             'deceased' => [
                 'first_name' => $deceasedName['first_name'],
                 'middle_name' => $deceasedName['middle_name'],
                 'last_name' => $deceasedName['last_name'],
-                'address' => $this->normalizer->normalizeAddress($row[3] ?? null),
+                'address' => $this->normalizer->normalizeAddress($rawAddress),
                 'date_of_birth' => $this->normalizer->parseDate($row[4] ?? null),
                 'date_of_death' => $this->normalizer->parseDate($row[5] ?? null),
                 'date_of_depository' => $this->normalizer->parseDate($row[7] ?? null),
@@ -459,12 +491,25 @@ class ImportingController extends Controller
         $deceasedName = $this->normalizer->parseFullName(trim($row[2] ?? ''));
         $applicantName = $this->normalizer->parseFullName(trim($row[6] ?? ''));
 
+        // Try to capture address if present (some muslim templates include it at 3,7,8)
+        $rawAddress = null;
+        foreach ([3, 7, 8, 9] as $idx) {
+            if (!empty(trim((string) ($row[$idx] ?? '')))) {
+                $val = trim((string) $row[$idx]);
+                // Avoid name/deceased duplicate and lot fields
+                if ($val !== trim((string) ($row[2] ?? '')) && $val !== trim((string) ($row[6] ?? ''))) {
+                    $rawAddress = $val;
+                    break;
+                }
+            }
+        }
+
         return [
             'deceased' => [
                 'first_name' => $deceasedName['first_name'],
                 'middle_name' => $deceasedName['middle_name'],
                 'last_name' => $deceasedName['last_name'],
-                'address' => null,
+                'address' => $this->normalizer->normalizeAddress($rawAddress),
                 'date_of_birth' => null,
                 'date_of_death' => null,
                 'date_of_depository' => null,

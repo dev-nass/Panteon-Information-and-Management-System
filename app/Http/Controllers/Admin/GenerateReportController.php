@@ -306,7 +306,7 @@ class GenerateReportController extends Controller
                     'Phase' => $burial->lot && $burial->lot->cluster && $burial->lot->cluster->phase ? $burial->lot->cluster->phase->phase_name : 'N/A',
                     'Cluster' => $burial->lot && $burial->lot->cluster ? $burial->lot->cluster->cluster_name : 'N/A',
                     'Lot' => $burial->lot ? $burial->lot->column.$burial->lot->row : 'N/A',
-                    'Address' => $burial->deceasedRecord->address,
+                    'Address' => $burial->deceasedRecord->address ?? $burial->deceasedRecord->place_of_death ?? $burial->deceasedRecord->company_address ?? 'N/A',
                 ]);
             }
         } elseif ($reportType === 'deceased') {
@@ -327,7 +327,7 @@ class GenerateReportController extends Controller
                     'Seq. No' => $index + 1,
                     'Full Name' => $fullName,
                     'Date of Burial' => $deceased->date_of_depository,
-                    'Address' => $deceased->address,
+                    'Address' => $deceased->address ?? $deceased->place_of_death ?? $deceased->company_address ?? 'N/A',
                     'Applicant' => $deceased->applicant ? $deceased->applicant->first_name.' '.$deceased->applicant->last_name : 'N/A',
                 ]);
             }

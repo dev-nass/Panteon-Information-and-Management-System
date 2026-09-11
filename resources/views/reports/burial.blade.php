@@ -28,7 +28,7 @@
             <td>{{ $burial->lot && $burial->lot->cluster && $burial->lot->cluster->phase ? $burial->lot->cluster->phase->phase_name : 'N/A' }}</td>
             <td>{{ $burial->lot && $burial->lot->cluster ? $burial->lot->cluster->cluster_name : 'N/A' }}</td>
             <td>{{ $burial->lot ? $burial->lot->column . $burial->lot->row : 'N/A' }}</td>
-            <td>{{ $burial->deceasedRecord->address }}</td>
+            <td>{{ $burial->deceasedRecord->address ?? $burial->deceasedRecord->place_of_death ?? $burial->deceasedRecord->company_address ?? 'N/A' }}</td>
         </tr>
         @endforeach
     </tbody>
