@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from "vue";
+import { ref, nextTick, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useToast } from "vue-toast-notification";
 import TableHeader from "@/Components/Table/TableHeader.vue";
@@ -72,14 +72,44 @@ const handlePhaseCoordinatesSet = (coords) => {
     );
 };
 
-const deletePhase = (phaseId) => {
-    if (
-        confirm(
-            "Are you sure you want to delete this phase? This will also delete all clusters and lots within it.",
-        )
-    ) {
-        router.delete(route("admin.lot_management.delete.phase", phaseId));
-    }
+const phaseToDelete = ref(null);
+
+const openDeletePhaseModal = (phase) => {
+    phaseToDelete.value = phase;
+    nextTick(() => {
+        const el = document.getElementById("delete-phase-modal");
+        try {
+            if (el && window.HSOverlay) {
+                window.HSOverlay.open(el);
+            } else if (typeof HSOverlay !== "undefined") {
+                HSOverlay.open("#delete-phase-modal");
+            }
+        } catch {
+            if (typeof HSOverlay !== "undefined") HSOverlay.open("#delete-phase-modal");
+        }
+    });
+};
+
+const confirmDeletePhase = () => {
+    if (!phaseToDelete.value) return;
+    const phaseName = phaseToDelete.value.name;
+    router.delete(route("admin.lot_management.delete.phase", phaseToDelete.value.id), {
+        onSuccess: () => {
+            HSOverlay.close("#delete-phase-modal");
+            phaseToDelete.value = null;
+            toast.success(`Phase "${phaseName}" deleted successfully!`, {
+                duration: 3000,
+            });
+        },
+        onError: () => {
+            toast.error("Failed to delete phase.");
+        },
+    });
+};
+
+const cancelDeletePhase = () => {
+    HSOverlay.close("#delete-phase-modal");
+    phaseToDelete.value = null;
 };
 
 const redirectToMap = (id) => {
@@ -92,6 +122,16 @@ const redirectToMap = (id) => {
         },
     });
 };
+
+onMounted(() => {
+    // Ensure HSOverlay registers Teleport'd delete modal (when PhaseTable mounts at page load it should, but also for consistency)
+    nextTick(() => {
+        try {
+            if (window.HSOverlay && window.HSOverlay.autoInit) window.HSOverlay.autoInit();
+            else if (typeof HSOverlay !== "undefined" && HSOverlay.autoInit) HSOverlay.autoInit();
+        } catch {}
+    });
+});
 </script>
 
 <template>
@@ -174,7 +214,7 @@ const redirectToMap = (id) => {
                                 Edit
                             </button>
                             <button
-                                @click.stop="deletePhase(phase.id)"
+                                @click.stop="openDeletePhaseModal(phase)"
                                 class="px-3 py-1 text-sm rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30 transition-all duration-200"
                             >
                                 <svg
@@ -212,4 +252,98 @@ const redirectToMap = (id) => {
         @coordinates-set="handlePhaseCoordinatesSet"
         @close="showPhaseModal = false"
     />
+
+    <Teleport to="body">
+        <div
+            id="delete-phase-modal"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            role="dialog"
+            tabindex="-1"
+            aria-labelledby="delete-phase-modal-label"
+        >
+            <div
+                class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
+            >
+                <div
+                    class="relative w-full max-h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/50"
+                >
+                    <div class="absolute top-3 end-3">
+                        <button
+                            type="button"
+                            class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
+                            @click="cancelDeletePhase"
+                        >
+                            <svg
+                                class="size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-10 flex flex-col items-center gap-y-4 text-center">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-red-500/10 text-red-600 dark:text-red-400"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="60"
+                                height="60"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M3 6h18" />
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                            </svg>
+                        </div>
+
+                        <h3
+                            id="delete-phase-modal-label"
+                            class="-mt-2 text-2xl font-bold text-red-600 dark:text-red-400"
+                        >
+                            Delete Phase
+                        </h3>
+
+                        <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
+                            Are you sure you want to delete
+                            <span class="font-semibold text-gray-900 dark:text-white">
+                                PHASE {{ phaseToDelete?.name }}
+                            </span>
+                            ? This will also delete all clusters and lots within
+                            it. This action cannot be undone.
+                        </p>
+                    </div>
+
+                    <div class="flex border-t border-white/20 dark:border-white/10">
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-500/10 transition"
+                            @click="cancelDeletePhase"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition"
+                            @click="confirmDeletePhase"
+                        >
+                            Delete Phase
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Teleport>
 </template>

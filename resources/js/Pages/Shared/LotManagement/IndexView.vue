@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount, onMounted, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 
 import Input from "@/Components/Form/Input.vue";
@@ -33,6 +33,95 @@ const props = defineProps({
 
 const { fetchPhase, fetchCluster, fetchLot, clearSearch } = useSearch();
 
+const closeAllModals = () => {
+    // Close any HSOverlay modals left open from previous pages (Map: phase/cluster/lot, burial-record, filter, cookies; CreateView: plotting modals etc)
+    const overlayIds = [
+        "hs-phase-modal",
+        "hs-cluster-modal",
+        "hs-lot-modal",
+        "hs-scroll-inside-body-modal",
+        "junction-modal",
+        "hs-filter",
+        "hs-cookies",
+        "burial-type-modal",
+        "phase-plotting-modal",
+        "cluster-plotting-modal",
+        "bulk-lot-plotting-modal",
+        "phase-edit-modal",
+        "cluster-edit-modal",
+        "lot-edit-modal",
+        "delete-phase-modal",
+        "delete-cluster-modal",
+        "delete-lot-modal",
+        "delete-user-modal",
+    ];
+    overlayIds.forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) {
+            try {
+                if (typeof HSOverlay !== "undefined" && HSOverlay.close) {
+                    HSOverlay.close(el);
+                } else if (window.HSOverlay && window.HSOverlay.close) {
+                    window.HSOverlay.close(el);
+                }
+            } catch {}
+            el.classList.remove("open", "opened");
+            el.classList.add("hidden");
+            el.setAttribute("aria-hidden", "true");
+        }
+    });
+
+    // Generic fallback: close any element with .hs-overlay that appears open
+    try {
+        document.querySelectorAll(".hs-overlay").forEach((el) => {
+            const isOpen =
+                el.classList.contains("open") ||
+                el.classList.contains("opened") ||
+                el.classList.contains("hs-overlay-open") ||
+                !el.classList.contains("hidden");
+            if (isOpen) {
+                try {
+                    if (typeof HSOverlay !== "undefined" && HSOverlay.close) {
+                        HSOverlay.close(el);
+                    } else if (window.HSOverlay && window.HSOverlay.close) {
+                        window.HSOverlay.close(el);
+                    }
+                } catch {}
+                el.classList.remove("open", "opened");
+                el.classList.add("hidden");
+            }
+        });
+    } catch {}
+
+    // Close via Preline collection if available
+    try {
+        const collection = window.$hsOverlayCollection || [];
+        collection.forEach((item) => {
+            try {
+                const target = item.element || item.el || item;
+                if (typeof HSOverlay !== "undefined" && HSOverlay.close) {
+                    HSOverlay.close(target);
+                } else if (window.HSOverlay && window.HSOverlay.close) {
+                    window.HSOverlay.close(target);
+                }
+            } catch {}
+        });
+    } catch {}
+
+    // Remove any leftover backdrops inserted by HSOverlay
+    document
+        .querySelectorAll(
+            ".hs-overlay-backdrop, [data-hs-overlay-backdrop], .hs-overlay-backdrop-div",
+        )
+        .forEach((el) => el.remove());
+
+    // Reset body scroll lock that HSOverlay applies
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+    document.body.classList.remove("overflow-hidden", "hs-overlay-open");
+    document.documentElement.classList.remove("overflow-hidden");
+};
+
 // =========================
 // Search
 // =========================
@@ -55,6 +144,7 @@ const currentPhaseName = computed(() => selectedPhase.value?.name || null);
 const currentClusterName = computed(() => selectedCluster.value?.name || null);
 
 const goToClusters = (phase) => {
+    closeAllModals();
     selectedPhase.value = phase;
     selectedCluster.value = null;
     activeTab.value = "cluster";
@@ -62,12 +152,14 @@ const goToClusters = (phase) => {
 };
 
 const goToLots = (cluster) => {
+    closeAllModals();
     selectedCluster.value = cluster;
     activeTab.value = "lot";
     search.value = "";
 };
 
 const goBack = () => {
+    closeAllModals();
     search.value = "";
     if (activeTab.value === "lot") {
         activeTab.value = "cluster";
@@ -97,15 +189,24 @@ window.fetchLot = fetchLot;
 
 // View on Table handlers (called from Shared/Map/IndexView via window)
 const handleViewPhaseOnTable = (phaseId) => {
+    closeAllModals();
     const phase = props.phases.find((p) => p.id == phaseId);
     if (phase) {
-        goToClusters(phase);
+        // Consistent with cluster/lot handlers: stay on phase tab and filter via search
+        activeTab.value = "phase";
+        selectedPhase.value = null;
+        selectedCluster.value = null;
+        search.value = phase.name;
     } else {
         activeTab.value = "phase";
+        selectedPhase.value = null;
+        selectedCluster.value = null;
+        search.value = "";
     }
 };
 
 const handleViewClusterOnTable = async (clusterId) => {
+    closeAllModals();
     try {
         const res = await fetch(
             route("api.lot.management.cluster", { cluster_id: clusterId }),
@@ -140,6 +241,7 @@ const handleViewClusterOnTable = async (clusterId) => {
 };
 
 const handleViewLotOnTable = async (lotId) => {
+    closeAllModals();
     try {
         const res = await fetch(
             route("api.lot.management.lot", { lot_id: lotId }),
@@ -187,6 +289,27 @@ window.handleViewClusterOnTable = handleViewClusterOnTable;
 window.handleViewLotOnTable = handleViewLotOnTable;
 
 onMounted(() => {
+    // Ensure any modal from any prior page (Map modals, CreateView plotting modals, etc.) is fully closed
+    closeAllModals();
+
+    // Also close on Inertia navigation (when component is reused without remount)
+    const handleInertiaNavigate = () => closeAllModals();
+    if (router.on) {
+        try {
+            router.on("navigate", handleInertiaNavigate);
+            router.on("start", handleInertiaNavigate);
+        } catch {}
+    }
+
+    // Watch for URL changes (Inertia preserves component)
+    watch(
+        () => page.url,
+        () => closeAllModals(),
+    );
+
+    // Close on tab change as well (ensures edit modals from previous tab don't linger)
+    watch(activeTab, () => closeAllModals());
+
     // Handle direct navigation via query params from Map -> Table
     const params = new URLSearchParams(window.location.search);
     const phaseId = params.get("phase_id");
@@ -223,6 +346,7 @@ onBeforeUnmount(() => {
     if (window.handleViewLotOnTable === handleViewLotOnTable) {
         delete window.handleViewLotOnTable;
     }
+    closeAllModals();
 });
 
 defineOptions({
