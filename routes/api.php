@@ -28,7 +28,7 @@ Route::get('/barangays', function () {
     );
 })->name('api.barangays');
 
-Route::group(['middleware' => ['auth']], function () {
+Route::group(['middleware' => ['web', 'auth']], function () {
 
     // Description: Fetch respective data; Used on LotManagement "View on Map"
     Route::controller(LotManagementSearchController::class)->group(function () {

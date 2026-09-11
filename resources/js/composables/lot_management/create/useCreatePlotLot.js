@@ -81,7 +81,7 @@ export function useCreatePlotLot() {
                     geojson = JSON.parse(geojson);
                 }
 
-                console.log("Cluster coordinates:", geojson);
+                // console.log("Cluster coordinates:", geojson);
 
                 // Create GeoJSON feature
                 const feature = {
@@ -100,7 +100,7 @@ export function useCreatePlotLot() {
                     },
                 }).addTo(map.value);
 
-                console.log("Cluster layer added:", clusterLayer);
+                // console.log("Cluster layer added:", clusterLayer);
 
                 // Fit map to cluster bounds
                 const bounds = clusterLayer.getBounds();

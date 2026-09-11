@@ -122,7 +122,7 @@ export function useMap() {
      * @enum {string} type - "all", "apartment", 'underground'
      */
     const toggleMapFeatures = (type = "all") => {
-        console.log("Toggling feature type of: ", type);
+        // console.log("Toggling feature type of: ", type);
         if (type === "all") {
             // Toggle all types
             const allVisible = Array.from(

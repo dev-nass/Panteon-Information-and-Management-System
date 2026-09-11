@@ -37,7 +37,7 @@ export function useSearchFeatureProcessing() {
     const markBurialRecordClusterPolygon = (clusterData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
-                `Unable to mark cluster polygon, invalid polygon coordinates`
+                `Unable to mark cluster polygon, invalid polygon coordinates`,
             );
             return;
         }
@@ -113,7 +113,7 @@ export function useSearchFeatureProcessing() {
 
         if (lot.geometry.type !== "Point") {
             console.error(
-                `Expected Point geometry but got ${lot.geometry.type}`
+                `Expected Point geometry but got ${lot.geometry.type}`,
             );
             return;
         }
@@ -141,7 +141,7 @@ export function useSearchFeatureProcessing() {
     const markPhasePolygon = (phaseData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
-                `Unable to mark phase polygon, invalid polygon coordinates`
+                `Unable to mark phase polygon, invalid polygon coordinates`,
             );
             return;
         }
@@ -186,7 +186,7 @@ export function useSearchFeatureProcessing() {
      * @param layer
      */
     const attachPhasePopup = (feature, layer) => {
-        console.log(feature);
+        // console.log(feature);
         layer.on("click", function () {
             window.openPhaseModal(feature, layer._leaflet_id);
         });
@@ -200,7 +200,7 @@ export function useSearchFeatureProcessing() {
     const markClusterPolygon = (clusterData, polygonCoordinate) => {
         if (!polygonCoordinate || !polygonCoordinate.length) {
             console.error(
-                `Unable to mark cluster polygon, invalid polygon coordinates`
+                `Unable to mark cluster polygon, invalid polygon coordinates`,
             );
             return;
         }
@@ -256,7 +256,7 @@ export function useSearchFeatureProcessing() {
      * @param lot expects a lot with Point geometry
      */
     const markLotPoint = (lot) => {
-        console.log("Mark Lot Point", lot);
+        // console.log("Mark Lot Point", lot);
         if (!lot.geometry || !lot.geometry.coordinates) {
             console.error(`Unable to mark lot point, invalid coordinates`);
             return;

@@ -9,10 +9,21 @@ import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProces
 import { useDbGeoJson } from "@/composables/map/useDbGeoJson";
 
 export function useSearch() {
-    const { search, suggestions, loading, isOnSearchMode, rateLimitError, searchResultLayer } =
-        useMapSearchStates();
-    const { map, phaseLayerGroup, phaseVisibility, clusterLayers, uniqueTypes } =
-        useMapStates();
+    const {
+        search,
+        suggestions,
+        loading,
+        isOnSearchMode,
+        rateLimitError,
+        searchResultLayer,
+    } = useMapSearchStates();
+    const {
+        map,
+        phaseLayerGroup,
+        phaseVisibility,
+        clusterLayers,
+        uniqueTypes,
+    } = useMapStates();
 
     const {
         normalizeCoordinates,
@@ -27,7 +38,11 @@ export function useSearch() {
     const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     const hideMapLayers = () => {
-        if (phaseVisibility.value && phaseLayerGroup.value && map.value?.hasLayer(phaseLayerGroup.value)) {
+        if (
+            phaseVisibility.value &&
+            phaseLayerGroup.value &&
+            map.value?.hasLayer(phaseLayerGroup.value)
+        ) {
             phaseVisibility.value = false;
             map.value.removeLayer(phaseLayerGroup.value);
         }
@@ -249,7 +264,7 @@ export function useSearch() {
                 console.error("No lot data available");
                 return;
             }
-            console.log("use search ", lot);
+            // console.log("use search ", lot);
             markLotPoint(lot);
         }
     };

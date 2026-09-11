@@ -9,7 +9,6 @@ const loading = ref(false);
 const error = ref(null);
 
 export function pathFinder() {
-
     /**
      * Fetch navigation data from API
      * and feed those data to junctions and pathways states
@@ -82,7 +81,7 @@ export function pathFinder() {
             });
         });
 
-        console.log("Graph", graph);
+        // console.log("Graph", graph);
 
         return graph;
     };
@@ -169,7 +168,7 @@ export function pathFinder() {
     const findShortestPath = (startJunctionId, endJunctionId) => {
         if (!graph.value) {
             console.error(
-                "Graph not initialized. Call fetchNavigationData first."
+                "Graph not initialized. Call fetchNavigationData first.",
             );
             return {
                 success: false,
@@ -326,7 +325,7 @@ export function pathFinder() {
                 latitude,
                 longitude,
                 jLatitude,
-                jLongitude
+                jLongitude,
             );
 
             if (distance < minDistance) {
@@ -366,7 +365,7 @@ export function pathFinder() {
         // gets the end junction that will be targeted to navigate to the lot
         const nearestJunction = findNearestJunction(
             plot.latitude,
-            plot.longitude
+            plot.longitude,
         );
 
         if (!nearestJunction) {

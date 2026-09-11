@@ -64,7 +64,7 @@ const hasChanges = ref(false);
 // deep copy original data
 const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
 const localData = ref(JSON.parse(JSON.stringify(originalData.value)));
-console.log(localData.value);
+// console.log(localData.value);
 
 const selectedPhaseId = ref(props.current_selection?.phase_id || null);
 const selectedClusterId = ref(props.current_selection?.cluster_id || null);
