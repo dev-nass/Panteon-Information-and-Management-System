@@ -10,6 +10,7 @@ use App\Models\ImportedExcelLog;
 use App\Models\Lot;
 use App\Services\RecordNormalizationService;
 use App\Traits\LogsActivity;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -150,20 +151,42 @@ class ImportingController extends Controller
                     }
 
                     if (! $lot) {
-                        $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber}) Unssagined";
+                        $lotLabel = $aptNumber !== '' ? $aptNumber : '—';
+                        $phaseLabel = $phaseName !== '' ? $phaseName : '—';
+                        $clusterLabel = $clusterName !== '' ? $clusterName : '—';
+                        $errors[] = "Row {$rowNumber}: Lot '{$lotLabel}' (Phase {$phaseLabel}, Cluster {$clusterLabel}) was not found or is already occupied — burial saved without a lot. Please assign a lot later.";
                     }
 
-                    // Create applicant if data exists
+                    // Create applicant if data exists - handle single-word names gracefully
                     $applicantId = null;
-                    if (! empty($applicantData['first_name']) || ! empty($applicantData['last_name'])) {
-                        $applicant = Applicant::create([
-                            'first_name' => $applicantData['first_name'],
-                            'middle_name' => $applicantData['middle_name'],
-                            'last_name' => $applicantData['last_name'],
-                            'contact_number' => $applicantData['contact_number'] ?? '',
-                            'relationship' => $applicantData['relationship'],
-                        ]);
-                        $applicantId = $applicant->id;
+                    $hasApplicant = ! empty($applicantData['first_name']) || ! empty($applicantData['last_name']);
+                    if ($hasApplicant) {
+                        // Validate applicant has both first and last name to satisfy DB constraints
+                        if (empty($applicantData['first_name']) || empty($applicantData['last_name'])) {
+                            $rawApplicant = match ($importType) {
+                                'normal' => trim($row[3] ?? ''),
+                                'muslim' => trim($row[6] ?? ''),
+                                'columbarium' => trim($row[9] ?? ''),
+                                default => trim($applicantData['first_name'] ?? '').' '.trim($applicantData['last_name'] ?? ''),
+                            };
+                            $rawApplicant = $rawApplicant !== '' ? $rawApplicant : trim(($applicantData['first_name'] ?? '').' '.($applicantData['last_name'] ?? ''));
+                            $errors[] = "Row {$rowNumber}: Applicant name '{$rawApplicant}' is incomplete — both first and last names are required. Use 'First Last' format (e.g., 'Juan Dela Cruz'). Applicant not linked, but the deceased record will still be imported.";
+                            \Log::warning("Import applicant incomplete on row {$rowNumber}", ['raw' => $rawApplicant, 'parsed' => $applicantData]);
+                        } else {
+                            try {
+                                $applicant = Applicant::create([
+                                    'first_name' => $applicantData['first_name'],
+                                    'middle_name' => $applicantData['middle_name'],
+                                    'last_name' => $applicantData['last_name'],
+                                    'contact_number' => $applicantData['contact_number'] ?? '',
+                                    'relationship' => $applicantData['relationship'],
+                                ]);
+                                $applicantId = $applicant->id;
+                            } catch (QueryException $qe) {
+                                \Log::warning("Import applicant DB error on row {$rowNumber}", ['error' => $qe->getMessage(), 'data' => $applicantData]);
+                                $errors[] = "Row {$rowNumber}: Applicant could not be saved — please check the name and contact details. The deceased record will still be imported without an applicant.";
+                            }
+                        }
                     }
 
                     $birthDate = $deceasedData['date_of_birth'];
@@ -198,7 +221,7 @@ class ImportingController extends Controller
 
                     $imported++;
                 } catch (\Exception $e) {
-                    $errors[] = "Row {$rowNumber}: {$e->getMessage()}";
+                    $errors[] = $this->friendlyRowError($e, $rowNumber, $row);
                     \Log::error("Import error on row {$rowNumber}", [
                         'error' => $e->getMessage(),
                         'trace' => $e->getTraceAsString(),
@@ -263,6 +286,8 @@ class ImportingController extends Controller
             }
             \Log::error('Import failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
+            $friendly = $this->friendlyImportError($e);
+
             if (isset($importLog)) {
                 $this->logActivity(
                     'imported',
@@ -271,8 +296,79 @@ class ImportingController extends Controller
                 );
             }
 
-            return back()->with('error', 'Failed to process file')->with('importErrors', [$e->getMessage()]);
+            return back()->with('error', $friendly)->with('importErrors', [$friendly]);
         }
+    }
+
+    /**
+     * Convert a technical exception into a friendly, non-technical message for end users.
+     */
+    private function friendlyRowError(\Exception $e, int $rowNumber, array $row): string
+    {
+        $msg = $e->getMessage();
+
+        // Hide SQLSTATE / Integrity constraint details from users, log keeps full trace
+        if (str_contains($msg, "Column 'last_name'") && str_contains($msg, 'applicants')) {
+            $raw = trim($row[3] ?? $row[6] ?? $row[9] ?? '');
+            $raw = $raw !== '' ? $raw : 'applicant';
+
+            return "Row {$rowNumber}: Applicant name '{$raw}' is incomplete — missing last name. Please use 'First Last' format. The deceased record was saved without an applicant.";
+        }
+
+        if (str_contains($msg, "Column 'first_name'") && str_contains($msg, 'applicants')) {
+            return "Row {$rowNumber}: Applicant name is missing a first name. Please check the Applicant column.";
+        }
+
+        if (str_contains($msg, "Column 'contact_number'") && str_contains($msg, 'applicants')) {
+            return "Row {$rowNumber}: Applicant contact number is missing. Please provide a contact number or leave the applicant blank.";
+        }
+
+        if (str_contains($msg, 'SQLSTATE') || str_contains($msg, 'Integrity constraint') || str_contains($msg, 'SQL:')) {
+            if (preg_match("/Column '([^']+)' cannot be null/", $msg, $m)) {
+                $col = str_replace('_', ' ', $m[1]);
+
+                return "Row {$rowNumber}: Missing required field '{$col}'. Please check the row and fill in the {$col}.";
+            }
+
+            if (str_contains($msg, 'Duplicate entry')) {
+                return "Row {$rowNumber}: This record already exists and was skipped.";
+            }
+
+            return "Row {$rowNumber}: Could not save — please check the row data for missing or incorrect fields.";
+        }
+
+        // Strip any remaining SQL traces
+        $clean = preg_replace('/\s*\(Connection:.*$/s', '', $msg);
+        $clean = preg_replace('/SQL:.*$/s', '', $clean);
+        $clean = trim($clean);
+
+        if ($clean === '' || $clean === $msg && str_contains($clean, 'SQLSTATE')) {
+            return "Row {$rowNumber}: Could not save — please check the row data.";
+        }
+
+        // Ensure row prefix
+        if (! str_starts_with($clean, "Row {$rowNumber}")) {
+            return "Row {$rowNumber}: {$clean}";
+        }
+
+        return $clean;
+    }
+
+    /**
+     * Friendly message for whole-file failures (no row context).
+     */
+    private function friendlyImportError(\Exception $e): string
+    {
+        $msg = $e->getMessage();
+
+        if (str_contains($msg, 'SQLSTATE') || str_contains($msg, 'Integrity constraint')) {
+            return 'The file could not be processed due to invalid data. Please check the file format and that all required columns are filled.';
+        }
+
+        $clean = preg_replace('/\s*\(Connection:.*$/s', '', $msg);
+        $clean = trim($clean);
+
+        return $clean !== '' ? $clean : 'The file could not be processed. Please check the file format.';
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\DeceasedRecord;
 use App\Models\Lot;
 use App\Models\Phase;
 use App\Services\RecordNormalizationService;
+use Illuminate\Database\QueryException;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -209,10 +210,9 @@ class PanteonDataSeeder extends Seeder
     /**
      * Description: Import deceased records from Excel file and assign them to lots
      * Uses chunk processing for better performance
-     * Previous issue: 
+     * Previous issue:
      *  rows are over 100k on xlsx (fixed by deletion)
      *  column are ongoing until A to AA (fixed by the code)
-     * 
      */
     private function deceasedRecordsBurial(): void
     {
@@ -290,18 +290,27 @@ class PanteonDataSeeder extends Seeder
                         }
                     }
 
-                    // Create applicant if exists
+                    // Create applicant if exists - handle single-word names gracefully (avoid last_name null violation)
                     $applicantId = null;
                     $applicantName = trim($row[3] ?? '');
                     if (!empty($applicantName)) {
                         $applicantParts = $this->normalizer->parseFullName($applicantName);
-                        $applicant = Applicant::create([
-                            'first_name' => $applicantParts['first_name'] ?? '',
-                            'middle_name' => $applicantParts['middle_name'],
-                            'last_name' => $applicantParts['last_name'] ?? '',
-                            'contact_number' => '',
-                        ]);
-                        $applicantId = $applicant->id;
+                        // Skip incomplete applicant names (would violate DB NOT NULL) but still import deceased
+                        if (empty($applicantParts['first_name']) || empty($applicantParts['last_name'])) {
+                            $this->command->warn('Row ' . ($index + 2) . ": Applicant '{$applicantName}' is incomplete — both first and last names are required. Importing deceased without applicant.");
+                        } else {
+                            try {
+                                $applicant = Applicant::create([
+                                    'first_name' => $applicantParts['first_name'] ?? '',
+                                    'middle_name' => $applicantParts['middle_name'],
+                                    'last_name' => $applicantParts['last_name'] ?? '',
+                                    'contact_number' => '',
+                                ]);
+                                $applicantId = $applicant->id;
+                            } catch (QueryException $qe) {
+                                $this->command->warn('Row ' . ($index + 2) . ": Applicant '{$applicantName}' could not be saved — check name format. Importing without applicant.");
+                            }
+                        }
                     }
 
                     $address = $this->normalizer->normalizeAddress($row[7] ?? null);
@@ -339,7 +348,8 @@ class PanteonDataSeeder extends Seeder
 
                 } catch (\Exception $e) {
                     $skipped++;
-                    $this->command->warn('Row ' . ($index + 2) . ": {$e->getMessage()}");
+                    $friendly = $this->friendlyRowError($e, $index + 2);
+                    $this->command->warn($friendly);
                 }
             }
 
@@ -360,7 +370,45 @@ class PanteonDataSeeder extends Seeder
             $this->command->info("Total records skipped: {$skipped}");
 
         } catch (\Exception $e) {
-            $this->command->error("Failed to import deceased records: {$e->getMessage()}");
+            $friendly = $this->friendlyImportError($e);
+            $this->command->error($friendly);
         }
+    }
+
+    private function friendlyRowError(\Exception $e, int $rowNumber): string
+    {
+        $msg = $e->getMessage();
+
+        if (str_contains($msg, "Column 'last_name'") && str_contains($msg, 'applicants')) {
+            return "Row {$rowNumber}: Applicant name is incomplete — missing last name. Use 'First Last' format. Saved without applicant.";
+        }
+
+        if (str_contains($msg, 'SQLSTATE') || str_contains($msg, 'Integrity constraint') || str_contains($msg, 'SQL:')) {
+            if (preg_match("/Column '([^']+)' cannot be null/", $msg, $m)) {
+                $col = str_replace('_', ' ', $m[1]);
+
+                return "Row {$rowNumber}: Missing required field '{$col}'. Check the row data.";
+            }
+
+            return "Row {$rowNumber}: Could not save — check the row for missing or incorrect fields.";
+        }
+
+        $clean = preg_replace('/\s*\(Connection:.*$/s', '', $msg);
+        $clean = trim($clean);
+
+        return $clean !== '' ? "Row {$rowNumber}: {$clean}" : "Row {$rowNumber}: Could not save — check the row data.";
+    }
+
+    private function friendlyImportError(\Exception $e): string
+    {
+        $msg = $e->getMessage();
+
+        if (str_contains($msg, 'SQLSTATE') || str_contains($msg, 'Integrity constraint')) {
+            return 'Failed to import: invalid data. Check that required columns are filled and try again.';
+        }
+
+        $clean = preg_replace('/\s*\(Connection:.*$/s', '', $msg);
+
+        return trim($clean) !== '' ? trim($clean) : 'Failed to import deceased records.';
     }
 }
