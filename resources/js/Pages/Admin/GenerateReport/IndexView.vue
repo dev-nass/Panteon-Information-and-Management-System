@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, nextTick, onMounted } from "vue";
 import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import Dashboard from "@/Layouts/Dashboard.vue";
@@ -100,42 +100,39 @@ const resetForm = () => {
     format.value = "pdf";
 };
 
-const generateReport = () => {
-    // Validation based on report type
-    if (!reportType.value) {
-        alert("Please select a report type");
-        return;
-    }
-
-    if (showDateRange.value && (!startDate.value || !endDate.value)) {
-        alert("Please fill in start and end dates");
-        return;
-    }
-
-    if (showMonthPicker.value && !monthDate.value) {
-        alert("Please select a month");
-        return;
-    }
-
-    if (showYearPicker.value && !yearDate.value) {
-        alert("Please select a year");
-        return;
-    }
-
-    // B: Warn for large PDF ranges (>90 days / 5,000 records max) – Dompdf 30s limit, Excel recommended
-    if (isPdfLargeRange.value) {
-        const proceed = confirm(
-            `The selected range is ${rangeDays.value} days (max for PDF is 90 days / 5,000 records) and may contain thousands of records. PDF generation may time out (30s limit) and server will block PDF >5,000 records.\n\n` +
-                `It is strongly recommended to use Excel format for large ranges.\n\n` +
-                `Click OK to continue with PDF anyway, or Cancel to switch to Excel.`
-        );
-        if (!proceed) {
-            format.value = 'excel';
-            // Let user review warning then click Generate again
-            return;
+const openLargeRangeModal = () => {
+    nextTick(() => {
+        const el = document.getElementById("pdf-large-range-modal");
+        try {
+            if (el && window.HSOverlay) {
+                window.HSOverlay.open(el);
+            } else if (typeof HSOverlay !== "undefined") {
+                HSOverlay.open("#pdf-large-range-modal");
+            }
+        } catch {
+            if (typeof HSOverlay !== "undefined") HSOverlay.open("#pdf-large-range-modal");
         }
-    }
+    });
+};
 
+const closeLargeRangeModal = () => {
+    try {
+        const el = document.getElementById("pdf-large-range-modal");
+        if (el && window.HSOverlay) window.HSOverlay.close(el);
+        else if (typeof HSOverlay !== "undefined") HSOverlay.close("#pdf-large-range-modal");
+        else if (el) {
+            el.classList.remove("open", "opened");
+            el.classList.add("hidden");
+        }
+    } catch {}
+};
+
+const switchToExcelAndClose = () => {
+    format.value = "excel";
+    closeLargeRangeModal();
+};
+
+const proceedGenerate = () => {
     isGenerating.value = true;
 
     // Build query parameters based on report type
@@ -161,16 +158,54 @@ const generateReport = () => {
         isGenerating.value = false;
     }, 1000);
 };
+
+onMounted(() => {
+    nextTick(() => {
+        try {
+            if (window.HSOverlay && window.HSOverlay.autoInit) window.HSOverlay.autoInit();
+            else if (typeof HSOverlay !== "undefined" && HSOverlay.autoInit) HSOverlay.autoInit();
+        } catch {}
+    });
+});
+
+const generateReport = () => {
+    // Validation based on report type
+    if (!reportType.value) {
+        alert("Please select a report type");
+        return;
+    }
+
+    if (showDateRange.value && (!startDate.value || !endDate.value)) {
+        alert("Please fill in start and end dates");
+        return;
+    }
+
+    if (showMonthPicker.value && !monthDate.value) {
+        alert("Please select a month");
+        return;
+    }
+
+    if (showYearPicker.value && !yearDate.value) {
+        alert("Please select a year");
+        return;
+    }
+
+    // B: Warn for large PDF ranges (>90 days / 5,000 records max) – Dompdf 30s limit, Excel recommended
+    if (isPdfLargeRange.value) {
+        openLargeRangeModal();
+        return;
+    }
+
+    proceedGenerate();
+};
 </script>
 
 <template>
     <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-6 mx-auto">
         <div class="flex flex-col items-center">
-            <div class="-m-1.5 overflow-x-auto">
-                <div class="p-1.5 w-full inline-block align-middle">
-                    <div
-                        class="flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-white/10 rounded-xl shadow-lg overflow-hidden"
-                    >
+            <div
+                class="w-full sm:max-w-[700px] flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-white/10 rounded-xl shadow-lg overflow-hidden"
+            >
                         <!-- Header -->
                         <div class="flex gap-x-4 items-center">
                             <div
@@ -212,7 +247,7 @@ const generateReport = () => {
                         </div>
 
                         <!-- Form -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full min-w-0">
                             <!-- Report Type -->
                             <div class="flex flex-col col-span-full gap-1">
                                 <label
@@ -421,28 +456,28 @@ const generateReport = () => {
                             <!-- Large range warning (B) -->
                             <div
                                 v-if="isPdfLargeRange"
-                                class="col-span-full flex gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-200"
+                                class="col-span-full flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-200 w-full min-w-0"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
                                     <circle cx="12" cy="12" r="10" />
                                     <path d="M12 8v4" />
                                     <path d="M12 16h.01" />
                                 </svg>
-                                <div class="text-sm">
-                                    <p class="font-semibold">Large date range ({{ rangeDays }} days) — exceeds max 90 days / 5,000 records for PDF</p>
-                                    <p class="mt-1">PDF generation may exceed 30s and fail. Server enforces <span class="font-semibold">max 5,000 records for PDF</span> and will block the request. Please switch to <button type="button" @click="format='excel'" class="underline font-semibold">Excel</button> or narrow to ≤90 days.</p>
+                                <div class="text-sm flex-1 min-w-0 break-words">
+                                    <p class="font-semibold break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Large date range ({{ rangeDays }} days) — exceeds max 90 days / 5,000 records for PDF</p>
+                                    <p class="mt-1 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">PDF generation is not available for this range. Server enforces <span class="font-semibold">max 5,000 records for PDF</span> and will block the request. Please switch to <button type="button" @click="format='excel'" class="underline font-semibold">Excel</button> or narrow to ≤90 days.</p>
                                 </div>
                             </div>
                             <div
                                 v-else-if="isLargeRange && showDateRange"
-                                class="col-span-full flex gap-3 p-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-gray-300"
+                                class="col-span-full flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 w-full min-w-0"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
                                     <circle cx="12" cy="12" r="10" />
                                     <path d="M12 16v-4" />
                                     <path d="M12 8h.01" />
                                 </svg>
-                                <p class="text-sm">Range is {{ rangeDays }} days (max 90 days / 5,000 records for PDF). For best performance with large data, Excel is recommended.</p>
+                                <p class="text-sm flex-1 min-w-0 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Range is {{ rangeDays }} days (max 90 days / 5,000 records for PDF). For best performance with large data, Excel is recommended.</p>
                             </div>
                         </div>
 
@@ -460,9 +495,107 @@ const generateReport = () => {
                                 <span v-else>Generate Report</span>
                             </Button>
                         </div>
+            </div>
+        </div>
+    </div>
+
+    <Teleport to="body">
+        <div
+            id="pdf-large-range-modal"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            role="dialog"
+            tabindex="-1"
+            aria-labelledby="pdf-large-range-modal-label"
+        >
+            <div
+                class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
+            >
+                <div
+                    class="relative w-full max-h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/50"
+                >
+                    <div class="absolute top-3 end-3">
+                        <button
+                            type="button"
+                            class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
+                            @click="closeLargeRangeModal"
+                        >
+                            <svg
+                                class="size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="p-10 flex flex-col items-center gap-y-4 text-center">
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="60"
+                                height="60"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M12 8v4" />
+                                <path d="M12 16h.01" />
+                            </svg>
+                        </div>
+
+                        <h3
+                            id="pdf-large-range-modal-label"
+                            class="-mt-2 text-2xl font-bold text-amber-600 dark:text-amber-400"
+                        >
+                            Large Date Range
+                        </h3>
+
+                        <div class="text-gray-600 dark:text-neutral-300 max-w-sm space-y-2">
+                            <p>
+                                The selected range is
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ rangeDays }} days</span>
+                                (max for PDF is <span class="font-semibold">90 days / 5,000 records</span>).
+                            </p>
+                            <p>
+                                PDF generation may exceed 30 seconds and fail. Server enforces
+                                <span class="font-semibold">max 5,000 records for PDF</span> and will block the request.
+                            </p>
+                            <p class="font-medium text-amber-700 dark:text-amber-300">
+                                It is strongly recommended to use Excel for large ranges.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex border-t border-white/20 dark:border-white/10">
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-500/10 transition"
+                            @click="closeLargeRangeModal"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
+                            @click="switchToExcelAndClose"
+                        >
+                            Switch to Excel
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </Teleport>
 </template>

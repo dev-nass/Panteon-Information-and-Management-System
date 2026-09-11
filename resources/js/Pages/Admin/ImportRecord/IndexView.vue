@@ -252,7 +252,7 @@ const startImport = () => {
                 class="w-full sm:max-w-[650px] flex flex-col gap-y-6 bg-white/60 dark:bg-neutral-900/60 backdrop-blur-xl px-6 py-6 border border-white/20 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden"
             >
                 <!-- Header -->
-                <div class="flex flex-wrap gap-x-4">
+                <div class="flex items-center gap-x-4">
                     <div
                         class="flex items-center justify-center size-12 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
                     >
