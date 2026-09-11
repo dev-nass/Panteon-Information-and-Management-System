@@ -25,7 +25,7 @@ Two phantom formatting issues in `public/data/pppanteon-cleaned-data.xlsx`:
 | `PanteonDataSeeder.php:227` old | `IOFactory::load()->toArray()` -> `6GB` array even after row fix |
 | `PanteonDataSeeder.php:268` old | `Lot::whereHas(...)->whereDoesntHave()->first()` per row = `21k` queries (N+1) |
 | `DeceasedRecord.php:43` | `saving::computeAge()` fires per `create()` - correct, not the memory cause |
-| `app/Http/Controllers/Admin/ImportingController.php:54` | Same `toArray()` bug (left untouched per request) |
+| `app/Http/Controllers/Admin/ImportingController.php:54` | Same `toArray()` bug (fixed now) |
 
 Measurement (read-only `php -r`):
 ```
@@ -89,12 +89,12 @@ gc_collect_cycles();
 
 | File | Change |
 |---|---|
-| `database/seeders/PanteonDataSeeder.php` | Bounded read + lot cache + gc |
+| `database/seeders/PanteonDataSeeder.php` | Bounded read + lot cache + gc (`224-233`, `245-286`, `346-351`) |
+| `app/Http/Controllers/Admin/ImportingController.php` | Same fix applied: `setReadDataOnly` + `rangeToArray` (`54-62`), lot cache (`81-85`, `134-150`), gc (`212-219`, `257-263`) |
 | `public/data/pppanteon-cleaned-data.xlsx` | User cleaned rows (commit pending: `A1:Q1048563` -> `A1:Q21314`) - columns still painted to `WVR` |
 
-### Files NOT Modified (per request)
+### Files NOT Modified
 
-* `app/Http/Controllers/Admin/ImportingController.php` - same `toArray()` bug remains, intentionally left for separate task
 * `public/data/panteon-cleaned-data.xlsx` - already healthy
 * `app/Models/DeceasedRecord.php` - `computeAge` unchanged
 
@@ -123,6 +123,21 @@ Excel is like a small `21k x 8` table painted on a huge `21k x 16k` sheet. Old c
 
 ## 6. Next Steps / Out of Scope
 
-* **Import fix:** Apply same `rangeToArray` + lot cache to `ImportingController.php:54` when approved.
 * **Fully clean file:** Strip `<cols>` beyond `Q` (`colDims 577 -> ~5`) so `getHighestColumn()=Q` even without code fix. Script or re-export `A:Q` only.
-* **Optional speed:** Bulk `DeceasedRecord::insert()` with manual `age` precompute if `21k` per-row `create()` still too slow (tradeoff: skips `saving` events).
+* **Optional speed:** Bulk `DeceasedRecord::insert()` with manual `age` precompute if `21k` per-row `create()` still too slow (tradeoff: skips `saving` events - `DeceasedRecord.php:43`).
+
+## 7. Importing Fix Details (Applied 2026-09-11)
+
+Same root cause (`toArray()` -> `WVR` 16k cols). Applied to `ImportingController.php:54`:
+
+```php
+$reader = IOFactory::createReaderForFile($file->getRealPath());
+$reader->setReadDataOnly(true);
+$spreadsheet = $reader->load($file->getRealPath());
+$worksheet = $spreadsheet->getActiveSheet();
+$highestDataRow = $worksheet->getHighestDataRow();
+$highestDataColumn = $worksheet->getHighestDataColumn();
+$rows = $worksheet->rangeToArray("A1:{$highestDataColumn}{$highestDataRow}", null, true, false, false);
+```
+
+Lot cache extended to import types `normal`/`muslim`/`columbarium` with `strtoupper` for row letter and `usedLotIds` seeded from `Lot::whereHas('burialRecords')->pluck('id')` to respect already occupied lots transactionally.

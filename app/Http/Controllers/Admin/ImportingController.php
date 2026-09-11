@@ -51,9 +51,15 @@ class ImportingController extends Controller
 
             $file = $request->file('file');
             $fileName = $file->getClientOriginalName();
-            $spreadsheet = IOFactory::load($file->getRealPath());
+            $reader = IOFactory::createReaderForFile($file->getRealPath());
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($file->getRealPath());
             $worksheet = $spreadsheet->getActiveSheet();
-            $rows = $worksheet->toArray();
+
+            // Use data bounds only (avoid 16k phantom columns/1M rows from formatting)
+            $highestDataRow = $worksheet->getHighestDataRow();
+            $highestDataColumn = $worksheet->getHighestDataColumn();
+            $rows = $worksheet->rangeToArray("A1:{$highestDataColumn}{$highestDataRow}", null, true, false, false);
 
             // Remove header row
             array_shift($rows);
@@ -72,6 +78,12 @@ class ImportingController extends Controller
                 'status' => 'processing',
             ]);
 
+            // Preload lots to avoid N+1 query per row (was 21k queries for large imports)
+            $lotsMap = Lot::with('cluster.phase')->get()->keyBy(function (Lot $lot) {
+                return $lot->cluster->phase->phase_name.'|'.$lot->cluster->cluster_name.'|'.$lot->row.'|'.$lot->column;
+            });
+            $usedLotIds = Lot::whereHas('burialRecords')->pluck('id')->flip()->toArray();
+            // Merge already occupied + in-batch used
             foreach ($rows as $index => $row) {
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
 
@@ -119,26 +131,23 @@ class ImportingController extends Controller
                         continue;
                     }
 
-                    // Find lot based on PHASE, CLUSTER, and APT. NUMBER BEFORE creating records
+                    // Find lot via preloaded map (avoids N+1 per row)
                     $phaseName = $lotData['phase_name'];
                     $clusterName = $lotData['cluster_name'];
                     $aptNumber = $lotData['apt_number']; // e.g. 12A or 2B
 
-                    // Extract column number and row letter from APT. NUMBER
                     $column = preg_replace('/\D/', '', $aptNumber);
-                    $rowLetter = preg_replace('/\d/', '', $aptNumber);
+                    $rowLetter = strtoupper(preg_replace('/\d/', '', $aptNumber));
 
-                    // Find the lot based on the provided phase, cluster, column, and row
-                    $lot = Lot::where('column', $column)
-                        ->where('row', $rowLetter)
-                        ->whereHas('cluster', function ($query) use ($clusterName, $phaseName) {
-                            $query->where('cluster_name', $clusterName)
-                                ->whereHas('phase', function ($phaseQuery) use ($phaseName) {
-                                    $phaseQuery->where('phase_name', $phaseName);
-                                });
-                        })
-                        ->whereDoesntHave('burialRecords')
-                        ->first();
+                    $lot = null;
+                    if (! empty($column) && ! empty($rowLetter)) {
+                        $key = $phaseName.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
+                        $candidate = $lotsMap[$key] ?? null;
+                        if ($candidate && ! isset($usedLotIds[$candidate->id])) {
+                            $lot = $candidate;
+                            $usedLotIds[$lot->id] = true;
+                        }
+                    }
 
                     if (! $lot) {
                         $errors[] = "Row {$rowNumber}: Lot not found or already occupied (Phase: {$phaseName}, Cluster: {$clusterName}, Apt: {$aptNumber}) Unssagined";
@@ -200,6 +209,15 @@ class ImportingController extends Controller
 
             DB::commit();
 
+            // Free spreadsheet memory (avoid 6GB hold for 16k phantom cols)
+            if (isset($spreadsheet)) {
+                $spreadsheet->disconnectWorksheets();
+                unset($spreadsheet, $worksheet, $rows, $lotsMap, $usedLotIds);
+                if (function_exists('gc_collect_cycles')) {
+                    gc_collect_cycles();
+                }
+            }
+
             if ($imported === 0) {
                 $importLog->update([
                     'status' => 'failed',
@@ -236,6 +254,13 @@ class ImportingController extends Controller
             return back()->with('success', $message)->with('importErrors', $errors);
         } catch (\Exception $e) {
             DB::rollBack();
+            if (isset($spreadsheet)) {
+                $spreadsheet->disconnectWorksheets();
+                unset($spreadsheet, $worksheet, $rows, $lotsMap, $usedLotIds);
+                if (function_exists('gc_collect_cycles')) {
+                    gc_collect_cycles();
+                }
+            }
             \Log::error('Import failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
             if (isset($importLog)) {
