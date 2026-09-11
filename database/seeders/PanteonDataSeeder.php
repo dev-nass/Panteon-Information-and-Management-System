@@ -16,7 +16,8 @@ class PanteonDataSeeder extends Seeder
 {
     public function __construct(
         protected RecordNormalizationService $normalizer
-    ) {}
+    ) {
+    }
 
     /**
      * Run the database seeds.
@@ -33,7 +34,7 @@ class PanteonDataSeeder extends Seeder
     {
         $geoJsonPath = public_path('data/phases-w-col.geojson');
 
-        if (! $geoJsonPath) {
+        if (!$geoJsonPath) {
             $this->command->error("GeoJSON file for phase not found at path $geoJsonPath");
 
             return;
@@ -41,7 +42,7 @@ class PanteonDataSeeder extends Seeder
 
         $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
 
-        if (! $geoJsonData['features']) {
+        if (!$geoJsonData['features']) {
             $this->command->error("Invalid GeoJSON format: 'features' key not found.");
 
             return;
@@ -58,7 +59,7 @@ class PanteonDataSeeder extends Seeder
             ]);
         }
 
-        $this->command->info('Total phases imported: '.count($geoJsonData['features']));
+        $this->command->info('Total phases imported: ' . count($geoJsonData['features']));
     }
 
     // modified by ai
@@ -85,7 +86,7 @@ class PanteonDataSeeder extends Seeder
         foreach ($clusterFiles as $file) {
             $geoJsonPath = public_path($file);
 
-            if (! file_exists($geoJsonPath)) {
+            if (!file_exists($geoJsonPath)) {
                 $this->command->warn("File not found: {$file}");
 
                 continue;
@@ -93,7 +94,7 @@ class PanteonDataSeeder extends Seeder
 
             $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
 
-            if (! isset($geoJsonData['features'])) {
+            if (!isset($geoJsonData['features'])) {
                 $this->command->warn("Invalid GeoJSON format in {$file}");
 
                 continue;
@@ -101,8 +102,8 @@ class PanteonDataSeeder extends Seeder
 
             foreach ($geoJsonData['features'] as $index => $feature) {
                 if (
-                    ! isset($feature['geometry'])
-                    || ! isset($feature['geometry']['coordinates'])
+                    !isset($feature['geometry'])
+                    || !isset($feature['geometry']['coordinates'])
                     || empty($feature['geometry']['coordinates'])
                 ) {
                     $this->command->warn("Skipping cluster in {$file}: empty geometry");
@@ -136,13 +137,13 @@ class PanteonDataSeeder extends Seeder
     {
         $lotsDirectory = public_path('data/lots');
 
-        if (! is_dir($lotsDirectory)) {
+        if (!is_dir($lotsDirectory)) {
             $this->command->error("Lots directory not found at {$lotsDirectory}");
 
             return;
         }
 
-        $lotFiles = glob($lotsDirectory.'/*.geojson');
+        $lotFiles = glob($lotsDirectory . '/*.geojson');
 
         if (empty($lotFiles)) {
             $this->command->error('No GeoJSON files found in lots directory');
@@ -161,16 +162,16 @@ class PanteonDataSeeder extends Seeder
         foreach ($lotFiles as $file) {
             $geoJsonData = json_decode(file_get_contents($file), true);
 
-            if (! isset($geoJsonData['features'])) {
-                $this->command->warn('Invalid GeoJSON format in '.basename($file));
+            if (!isset($geoJsonData['features'])) {
+                $this->command->warn('Invalid GeoJSON format in ' . basename($file));
 
                 continue;
             }
 
             foreach ($geoJsonData['features'] as $feature) {
                 if (
-                    ! isset($feature['geometry'])
-                    || ! isset($feature['geometry']['coordinates'])
+                    !isset($feature['geometry'])
+                    || !isset($feature['geometry']['coordinates'])
                     || empty($feature['geometry']['coordinates'])
                 ) {
                     continue;
@@ -202,12 +203,16 @@ class PanteonDataSeeder extends Seeder
         }
 
         $this->command->info("Total lots imported: {$counter}");
-        $this->command->info('Updated capacity for '.count($clusterCapacities).' clusters');
+        $this->command->info('Updated capacity for ' . count($clusterCapacities) . ' clusters');
     }
 
     /**
      * Description: Import deceased records from Excel file and assign them to lots
      * Uses chunk processing for better performance
+     * Previous issue: 
+     *  rows are over 100k on xlsx (fixed by deletion)
+     *  column are ongoing until A to AA (fixed by the code)
+     * 
      */
     private function deceasedRecordsBurial(): void
     {
@@ -215,16 +220,22 @@ class PanteonDataSeeder extends Seeder
 
         $excelPath = public_path('data/pppanteon-cleaned-data.xlsx');
 
-        if (! file_exists($excelPath)) {
+        if (!file_exists($excelPath)) {
             $this->command->error("Excel file not found at {$excelPath}");
 
             return;
         }
 
         try {
-            $spreadsheet = IOFactory::load($excelPath);
+            $reader = IOFactory::createReaderForFile($excelPath);
+            $reader->setReadDataOnly(true);
+            $spreadsheet = $reader->load($excelPath);
             $worksheet = $spreadsheet->getActiveSheet();
-            $rows = $worksheet->toArray();
+
+            // Use data bounds only (avoid 16k phantom columns from formatting)
+            $highestDataRow = $worksheet->getHighestDataRow();
+            $highestDataColumn = $worksheet->getHighestDataColumn();
+            $rows = $worksheet->rangeToArray("A1:{$highestDataColumn}{$highestDataRow}", null, true, false, false);
 
             // Remove header row
             array_shift($rows);
@@ -234,7 +245,13 @@ class PanteonDataSeeder extends Seeder
             $chunkSize = 100;
             $chunk = [];
 
-            $this->command->info('Total rows to process: '.count($rows));
+            $this->command->info('Total rows to process: ' . count($rows));
+
+            // Preload lots to avoid N+1 query per row (was 21k queries)
+            $lotsMap = Lot::with('cluster.phase')->get()->keyBy(function (Lot $lot) {
+                return $lot->cluster->phase->phase_name . '|' . $lot->cluster->cluster_name . '|' . $lot->row . '|' . $lot->column;
+            });
+            $usedLotIds = [];
 
             foreach ($rows as $index => $row) {
                 // Skip empty rows
@@ -264,23 +281,19 @@ class PanteonDataSeeder extends Seeder
                     $rowLetter = strtoupper(preg_replace('/\d/', '', $aptNumber));
 
                     $lot = null;
-                    if (! empty($column) && ! empty($rowLetter)) {
-                        $lot = Lot::where('column', $column)
-                            ->where('row', $rowLetter)
-                            ->whereHas('cluster', function ($query) use ($clusterName, $phaseName) {
-                                $query->where('cluster_name', $clusterName)
-                                    ->whereHas('phase', function ($phaseQuery) use ($phaseName) {
-                                        $phaseQuery->where('phase_name', $phaseName);
-                                    });
-                            })
-                            ->whereDoesntHave('burialRecords')
-                            ->first();
+                    if (!empty($column) && !empty($rowLetter)) {
+                        $key = $phaseName . '|' . $clusterName . '|' . $rowLetter . '|' . $column;
+                        $candidate = $lotsMap[$key] ?? null;
+                        if ($candidate && !isset($usedLotIds[$candidate->id])) {
+                            $lot = $candidate;
+                            $usedLotIds[$lot->id] = true;
+                        }
                     }
 
                     // Create applicant if exists
                     $applicantId = null;
                     $applicantName = trim($row[3] ?? '');
-                    if (! empty($applicantName)) {
+                    if (!empty($applicantName)) {
                         $applicantParts = $this->normalizer->parseFullName($applicantName);
                         $applicant = Applicant::create([
                             'first_name' => $applicantParts['first_name'] ?? '',
@@ -326,13 +339,20 @@ class PanteonDataSeeder extends Seeder
 
                 } catch (\Exception $e) {
                     $skipped++;
-                    $this->command->warn('Row '.($index + 2).": {$e->getMessage()}");
+                    $this->command->warn('Row ' . ($index + 2) . ": {$e->getMessage()}");
                 }
             }
 
             // Insert remaining records
-            if (! empty($chunk)) {
+            if (!empty($chunk)) {
                 DB::table('burial_records')->insert($chunk);
+            }
+
+            // Free spreadsheet memory
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet, $worksheet, $rows, $lotsMap, $usedLotIds, $chunk);
+            if (function_exists('gc_collect_cycles')) {
+                gc_collect_cycles();
             }
 
             $this->command->info('Import completed!');
