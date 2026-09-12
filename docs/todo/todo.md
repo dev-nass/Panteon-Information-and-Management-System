@@ -13,12 +13,13 @@
 
 ### Issues
 
-- [ ] Org chart should be included on the user side UI
+- [x] Org chart should be included on the user side UI
 - [ ] Archive Burial Records, no complete deletion
       On confirmation modal include the reason archive action is being done "pull out", "transfer" etc...
 - [ ] User Management account "termination" instead of "delete"
       Do we create new table for archiving of burial record and terminating of users (clerk)?
 - [ ] Remove the "age" on the deceased record, but its a computed state on the frontend
+- [ ] Do we still add image on Modal of Visitor searched burial record modal?
 
 ### Docs Revisions
 
