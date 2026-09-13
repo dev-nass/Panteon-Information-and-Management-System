@@ -24,9 +24,11 @@ class DashboardService
     public function getTotalStats(array $filters = []): array
     {
         $totalLots = Lot::count();
-        $occupiedLots = Lot::has('burialRecords')->count();
+        $occupiedLots = Lot::whereHas('burialRecords', function ($q) {
+            $q->whereNull('archived_at');
+        })->count();
 
-        $burialQuery = BurialRecord::query();
+        $burialQuery = BurialRecord::query()->whereNull('burial_records.archived_at');
         $this->applyDeceasedJoinAndFilters($burialQuery, $filters);
 
         return [
@@ -64,6 +66,7 @@ class DashboardService
                     DB::raw('HOUR(deceased_records.date_of_depository) as period'),
                     DB::raw('count(*) as count')
                 )
+                ->whereNull('burial_records.archived_at')
                 ->whereDate('deceased_records.date_of_depository', $now->toDateString())
                 ->groupBy('period')
                 ->orderBy('period');
@@ -81,6 +84,7 @@ class DashboardService
                     DB::raw('DATE(deceased_records.date_of_depository) as period'),
                     DB::raw('count(*) as count')
                 )
+                ->whereNull('burial_records.archived_at')
                 ->whereBetween('deceased_records.date_of_depository', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
                 ->groupBy('period')
                 ->orderBy('period');
@@ -103,6 +107,7 @@ class DashboardService
                     DB::raw('MONTH(deceased_records.date_of_depository) as period'),
                     DB::raw('count(*) as count')
                 )
+                ->whereNull('burial_records.archived_at')
                 ->whereYear('deceased_records.date_of_depository', $year)
                 ->groupBy('period')
                 ->orderBy('period');
@@ -119,6 +124,7 @@ class DashboardService
                     DB::raw('DAY(deceased_records.date_of_depository) as period'),
                     DB::raw('count(*) as count')
                 )
+                ->whereNull('burial_records.archived_at')
                 ->whereYear('deceased_records.date_of_depository', $now->year)
                 ->whereMonth('deceased_records.date_of_depository', $now->month)
                 ->groupBy('period')
@@ -158,7 +164,7 @@ class DashboardService
         }
         $selects[] = "SUM(CASE WHEN {$ageExpr} IS NULL THEN 1 ELSE 0 END) as `Unknown`";
 
-        $query = BurialRecord::query();
+        $query = BurialRecord::query()->whereNull('burial_records.archived_at');
         $this->applyDeceasedJoinAndFilters($query, $filters);
 
         $row = $query->selectRaw(implode(', ', $selects))->first();

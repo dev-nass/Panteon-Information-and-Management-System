@@ -23,6 +23,7 @@ class BurialRecordResource extends JsonResource
                 if ($this->lot && $this->lot->relationLoaded('cluster')) {
                     return new ClusterResource($this->lot->cluster);
                 }
+
                 return null;
             }),
 
@@ -36,6 +37,19 @@ class BurialRecordResource extends JsonResource
 
             'imported_by' => $this->whenLoaded('user', function () {
                 return new UserResource($this->user);
+            }),
+
+            'is_archived' => (bool) $this->archived_at,
+
+            'archived' => $this->when($this->archived_at, function () {
+                return [
+                    'at' => $this->archived_at?->toISOString(),
+                    'reason' => $this->archived_reason,
+                    'notes' => $this->archived_notes,
+                    'by' => $this->whenLoaded('archivedBy', function () {
+                        return $this->archivedBy ? new UserResource($this->archivedBy) : null;
+                    }),
+                ];
             }),
         ];
     }

@@ -57,7 +57,7 @@ it('lists existing backups', function () {
         ->get(route('admin.backup.index'))
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Admin/Backup/IndexView')
+            ->component('Admin/DatabaseBackup/IndexView')
             ->has('backups', 1)
             ->where('backups.0.filename', '2026-08-14-01-30-00.zip')
             ->where('backups.0.size', 14));

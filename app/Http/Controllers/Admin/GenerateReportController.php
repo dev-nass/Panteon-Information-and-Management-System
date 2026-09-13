@@ -114,7 +114,7 @@ class GenerateReportController extends Controller
     private function getReportCount($reportType, $startDate, $endDate): int
     {
         return match ($reportType) {
-            'burial' => BurialRecord::whereHas('deceasedRecord', fn ($q) => $q->whereBetween('date_of_depository', [$startDate, $endDate]))->count(),
+            'burial' => BurialRecord::active()->whereHas('deceasedRecord', fn ($q) => $q->whereBetween('date_of_depository', [$startDate, $endDate]))->count(),
             'deceased' => DeceasedRecord::whereBetween('date_of_depository', [$startDate, $endDate])->count(),
             default => 0,
         };
@@ -124,7 +124,7 @@ class GenerateReportController extends Controller
     {
         switch ($reportType) {
             case 'burial':
-                return BurialRecord::select('id', 'lot_id', 'deceased_record_id', 'user_id')
+                return BurialRecord::active()->select('id', 'lot_id', 'deceased_record_id', 'user_id')
                     ->with([
                         'deceasedRecord:id,first_name,last_name,address,place_of_death,company_address,date_of_depository',
                         'lot:id,cluster_id,column,row',
@@ -151,7 +151,7 @@ class GenerateReportController extends Controller
 
         return [
             'month' => date('F Y', strtotime($monthDate)),
-            'total_burials' => BurialRecord::whereHas('deceasedRecord', function ($query) use ($startOfMonth, $endOfMonth) {
+            'total_burials' => BurialRecord::active()->whereHas('deceasedRecord', function ($query) use ($startOfMonth, $endOfMonth) {
                 $query->whereBetween('date_of_depository', [$startOfMonth, $endOfMonth]);
             })->count(),
             'total_deceased' => DeceasedRecord::whereBetween('date_of_depository', [$startOfMonth, $endOfMonth])->count(),
@@ -168,7 +168,7 @@ class GenerateReportController extends Controller
         $startOfYear = $year.'-01-01';
         $endOfYear = $year.'-12-31';
 
-        $totalBurials = BurialRecord::whereHas('deceasedRecord', function ($query) use ($startOfYear, $endOfYear) {
+        $totalBurials = BurialRecord::active()->whereHas('deceasedRecord', function ($query) use ($startOfYear, $endOfYear) {
             $query->whereBetween('date_of_depository', [$startOfYear, $endOfYear]);
         })->count();
 
@@ -246,7 +246,9 @@ class GenerateReportController extends Controller
 
     private function getPhaseAvailabilityData()
     {
-        return Phase::with(['clusters.lots.burialRecords'])
+        return Phase::with(['clusters.lots.burialRecords' => function ($q) {
+            $q->whereNull('archived_at');
+        }])
             ->get()
             ->map(function ($phase) {
                 $totalClusters = $phase->clusters->count();

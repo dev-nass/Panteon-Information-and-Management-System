@@ -34,6 +34,8 @@ Route::prefix('clerk')
             Route::post('/burial-records', 'store')->name('burial_records.store');
             Route::get('/burial-records/{burial_record}', 'show')->name('burial_records.show');
             Route::post('/burial-records/{burial_record}', 'update')->name('burial_records.update');
+            Route::post('/burial-records/{burial_record}/archive', 'archive')->name('burial_records.archive');
+            Route::post('/burial-records/{burial_record}/restore', 'restore')->name('burial_records.restore');
             Route::delete('/burial-records/{burial_record}', 'destroy')->name('burial_records.destroy');
         });
 

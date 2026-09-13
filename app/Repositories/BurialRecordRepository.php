@@ -20,10 +20,15 @@ class BurialRecordRepository extends Repository
         ?string $disposal,
         ?int $userId = null
     ) {
-        return $this->query()->with(['deceasedRecord', 'lot', 'user'])
+        return $this->query()->with(['deceasedRecord', 'lot', 'user', 'archivedBy'])
 
             ->leftJoin('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
             ->select('burial_records.*')
+            ->when($filter === 'archived', function ($q) {
+                $q->whereNotNull('burial_records.archived_at');
+            }, function ($q) {
+                $q->whereNull('burial_records.archived_at');
+            })
             ->when($userId, function ($q) use ($userId) {
                 $q->where('burial_records.user_id', $userId);
             })

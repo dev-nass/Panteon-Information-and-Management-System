@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Clerk;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BurialRecordIndexRequest;
+use App\Http\Requests\Clerk\BurialRecordArchiveRequest;
 use App\Http\Requests\Clerk\BurialRecordStoreRequest;
 use App\Http\Requests\Clerk\BurialRecordUpdateRequest;
 use App\Http\Resources\BurialRecordResource;
@@ -110,6 +111,36 @@ class BurialRecordController extends Controller
         );
 
         return back()->with('success', 'Burial record updated successfully.');
+    }
+
+    public function archive(BurialRecordArchiveRequest $request, BurialRecord $burial_record)
+    {
+        $this->service->archive($burial_record, $request->validated(), auth()->id());
+
+        $this->logActivity(
+            'archived',
+            $burial_record,
+            "Archived burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
+            null,
+            $request->validated(),
+        );
+
+        return to_route('clerk.burial_records.index')
+            ->with('success', 'Burial record archived successfully.');
+    }
+
+    public function restore(BurialRecord $burial_record)
+    {
+        $this->service->restore($burial_record);
+
+        $this->logActivity(
+            'restored',
+            $burial_record,
+            "Restored burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
+        );
+
+        return to_route('clerk.burial_records.index')
+            ->with('success', 'Burial record recovered successfully.');
     }
 
     public function destroy(BurialRecord $burial_record)

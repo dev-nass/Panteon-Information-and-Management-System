@@ -23,7 +23,7 @@ class BurialScheduleController extends Controller
 
         $search = trim((string) $request->query('search'));
 
-        $burials = BurialRecord::with([
+        $burials = BurialRecord::active()->with([
             'deceasedRecord:id,first_name,middle_name,last_name,time_of_depository',
             'lot:id,column,row',
         ])

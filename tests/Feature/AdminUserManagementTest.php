@@ -46,6 +46,15 @@ beforeEach(function () {
 
     $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_01_075233_create_burial_records_table.php']);
 
+    if (! Schema::hasColumn('burial_records', 'archived_at')) {
+        Schema::table('burial_records', function (Blueprint $table) {
+            $table->timestamp('archived_at')->nullable()->index();
+            $table->string('archived_reason')->nullable();
+            $table->foreignId('archived_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('archived_notes')->nullable();
+        });
+    }
+
     $this->admin = User::factory()->create([
         'first_name' => 'Test',
         'last_name' => 'Admin',

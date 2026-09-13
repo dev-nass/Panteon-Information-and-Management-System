@@ -19,7 +19,8 @@ class ClusterResource extends JsonResource
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('burial_records')
-                    ->whereColumn('burial_records.lot_id', 'lots.id');
+                    ->whereColumn('burial_records.lot_id', 'lots.id')
+                    ->whereNull('burial_records.archived_at');
             })
             ->count();
 

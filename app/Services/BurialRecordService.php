@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\BurialRecord;
 use App\Repositories\ApplicantRepository;
 use App\Repositories\BurialRecordRepository;
 use App\Repositories\DeceasedRecordRepository;
@@ -117,6 +118,50 @@ class BurialRecordService
 
     }
 
+    public function archive(BurialRecord $record, array $data, int $by): BurialRecord
+    {
+        abort_if($record->archived_at !== null, 422, 'Already archived.');
+
+        return DB::transaction(function () use ($record, $data, $by) {
+            $record->update([
+                'archived_at' => now(),
+                'archived_reason' => $data['archived_reason'],
+                'archived_by' => $by,
+                'archived_notes' => $data['archived_notes'] ?? null,
+            ]);
+
+            return $record;
+        });
+    }
+
+    public function restore(BurialRecord $record): BurialRecord
+    {
+        abort_if($record->archived_at === null, 422, 'Not archived.');
+
+        $shouldNullLot = false;
+
+        if ($record->lot_id && BurialRecord::active()->where('lot_id', $record->lot_id)->where('id', '!=', $record->id)->exists()) {
+            $shouldNullLot = true;
+        }
+
+        return DB::transaction(function () use ($record, $shouldNullLot) {
+            $data = [
+                'archived_at' => null,
+                'archived_reason' => null,
+                'archived_by' => null,
+                'archived_notes' => null,
+            ];
+
+            if ($shouldNullLot) {
+                $data['lot_id'] = null;
+            }
+
+            $record->update($data);
+
+            return $record;
+        });
+    }
+
     /**
      * Description: For the showing and editing of burial record
      * */
@@ -134,6 +179,7 @@ class BurialRecordService
 
             'lot.cluster.phase:id,phase_name',
             'user:id,first_name,middle_name,last_name,role',
+            'archivedBy:id,first_name,middle_name,last_name,role',
         ]);
 
         $lot = $burialRecord->lot;

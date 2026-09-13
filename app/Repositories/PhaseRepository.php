@@ -17,13 +17,13 @@ class PhaseRepository extends Repository
         return $this->query('id', 'phase_name')
             ->with([
                 'clusters' => function ($query) {
-                    $query->select('id', 'cluster_name', 'cluster_type');
+                    $query->select('id', 'phase_id', 'cluster_name', 'cluster_type');
                 },
                 'clusters.lots' => function ($query) {
-                    $query->select('id', 'column', 'row');
+                    $query->select('id', 'cluster_id', 'column', 'row');
                 },
                 'clusters.lots.burialRecords' => function ($query) {
-                    $query->select('id', 'lot_id');
+                    $query->select('id', 'lot_id', 'archived_at')->whereNull('archived_at');
                 },
             ]);
     }
@@ -43,8 +43,10 @@ class PhaseRepository extends Repository
                 'clusters.lots' => function ($query) use ($currentBurialRecordId) {
                     $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
                         ->where(function ($q) use ($currentBurialRecordId) {
-                            // lot has no burial record (available)
-                            $q->doesntHave('burialRecords')
+                            // lot has no active burial record (available)
+                            $q->whereDoesntHave('burialRecords', function ($q) {
+                                $q->whereNull('archived_at');
+                            })
                             // OR lot belongs to the current burial record
                                 ->orWhereHas('burialRecords', function ($q) use ($currentBurialRecordId) {
                                     $q->where('id', $currentBurialRecordId);

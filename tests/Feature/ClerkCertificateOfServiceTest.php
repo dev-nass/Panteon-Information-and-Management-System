@@ -4,6 +4,7 @@ use App\Models\ActivityLog;
 use App\Models\BurialRecord;
 use App\Models\CertificateTemplate;
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,6 +22,16 @@ beforeEach(function () {
     DB::statement('CREATE TABLE lots (id INTEGER PRIMARY KEY AUTOINCREMENT, cluster_id INTEGER NOT NULL)');
 
     $this->artisan('migrate', ['--path' => 'database/migrations/2026_03_01_075233_create_burial_records_table.php']);
+
+    if (! Schema::hasColumn('burial_records', 'archived_at')) {
+        Illuminate\Support\Facades\Schema::table('burial_records', function (Blueprint $table) {
+            $table->timestamp('archived_at')->nullable()->index();
+            $table->string('archived_reason')->nullable();
+            $table->foreignId('archived_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->text('archived_notes')->nullable();
+        });
+    }
+
     $this->artisan('migrate', ['--path' => 'database/migrations/2026_08_18_014948_create_certificate_templates_table.php']);
 
     Storage::fake('local');

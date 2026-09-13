@@ -18,7 +18,7 @@ class MapDataController extends Controller
     // Fetch all burial records (may be heavy with 21k+ rows)
     public function burialRecords()
     {
-        $burials = BurialRecord::with([
+        $burials = BurialRecord::active()->with([
             'lot' => function ($q) {
                 $q->select('id', 'type', 'phase_id', DB::raw('ST_AsGeoJSON(coordinates) as geometry'));
             },
@@ -52,7 +52,7 @@ class MapDataController extends Controller
      *               The ClusterResource then retrieve the
      *               cluster -> lot -> burial_record -> deceased record
      */
-    // TODO: How did the Ai manage to fix the n+1 issue here 
+    // TODO: How did the Ai manage to fix the n+1 issue here
     public function partialBurialRecords(Request $request)
     {
         $validated = $request->validate([
@@ -100,9 +100,10 @@ class MapDataController extends Controller
                     $query->whereExists(function ($subQuery) {
                         $subQuery->select(DB::raw(1))
                             ->from('burial_records')
-                            ->whereColumn('burial_records.lot_id', 'lots.id');
+                            ->whereColumn('burial_records.lot_id', 'lots.id')
+                            ->whereNull('burial_records.archived_at');
                     });
-                }
+                },
             ])
             ->limit($limit)
             ->get();
@@ -128,7 +129,8 @@ class MapDataController extends Controller
             ->whereExists(function ($query) {
                 $query->select(DB::raw(1))
                     ->from('burial_records')
-                    ->whereColumn('burial_records.lot_id', 'lots.id');
+                    ->whereColumn('burial_records.lot_id', 'lots.id')
+                    ->whereNull('burial_records.archived_at');
             })
             ->limit($limit)
             ->pluck('id');
@@ -142,20 +144,19 @@ class MapDataController extends Controller
                         ->whereIn('id', $lotIds);
                 },
                 'lots.burialRecords' => function ($query) {
-                    $query->select('id', 'deceased_record_id', 'lot_id', 'user_id');
+                    $query->select('id', 'deceased_record_id', 'lot_id', 'user_id')->whereNull('archived_at');
                 },
                 'lots.burialRecords.deceasedRecord:id,first_name,middle_name,last_name,date_of_birth,date_of_death,date_of_depository',
                 'lots.burialRecords.user:id,first_name,last_name',
             ])
             ->first();
 
-        if (!$cluster) {
+        if (! $cluster) {
             return response()->json(['message' => 'Cluster not found'], 404);
         }
 
         return new ClusterResource($cluster);
     }
-
 
     // TODO: Create a method for fetching the Phases
     // TODO: Create a method for fetching the Clusters

@@ -21,12 +21,12 @@ class DashboardController extends Controller
         $stats = $this->dashboardService->getTotalStats();
 
         // Number of burials scheduled for today
-        $todayBurialCount = BurialRecord::whereHas('deceasedRecord', function ($query) {
+        $todayBurialCount = BurialRecord::active()->whereHas('deceasedRecord', function ($query) {
             $query->whereDate('date_of_depository', Carbon::today());
         })->count();
 
         // Today's burial schedules (upcoming burials for today)
-        $todaySchedules = BurialRecord::with(['deceasedRecord.applicant', 'lot.cluster.phase'])
+        $todaySchedules = BurialRecord::active()->with(['deceasedRecord.applicant', 'lot.cluster.phase'])
             ->whereHas('deceasedRecord', function ($query) {
                 $query->whereDate('date_of_depository', Carbon::today());
             })
@@ -36,7 +36,7 @@ class DashboardController extends Controller
             ->map(fn ($record) => $this->scheduleSummary($record));
 
         // Upcoming burial schedules for the next 7 days (excluding today)
-        $pendingTasks = BurialRecord::with(['deceasedRecord.applicant', 'lot.cluster.phase'])
+        $pendingTasks = BurialRecord::active()->with(['deceasedRecord.applicant', 'lot.cluster.phase'])
             ->whereHas('deceasedRecord', function ($query) {
                 $query->whereBetween('date_of_depository', [Carbon::tomorrow(), Carbon::today()->addDays(7)]);
             })
@@ -47,7 +47,7 @@ class DashboardController extends Controller
             ->values();
 
         // Recent activities (last 5 burial records created)
-        $recentActivities = BurialRecord::with(['deceasedRecord', 'user'])
+        $recentActivities = BurialRecord::active()->with(['deceasedRecord', 'user'])
             ->latest()
             ->limit(5)
             ->get()
@@ -60,7 +60,7 @@ class DashboardController extends Controller
             });
 
         // Records encoded by the logged-in clerk (last 5)
-        $recentBurialRecords = BurialRecord::with(['deceasedRecord', 'lot.cluster'])
+        $recentBurialRecords = BurialRecord::active()->with(['deceasedRecord', 'lot.cluster'])
             ->where('user_id', $userId)
             ->latest()
             ->limit(5)
@@ -85,7 +85,9 @@ class DashboardController extends Controller
             $query->withCount([
                 'lots as total_lots',
                 'lots as occupied_lots' => function ($q) {
-                    $q->whereHas('burialRecords');
+                    $q->whereHas('burialRecords', function ($q) {
+                        $q->whereNull('archived_at');
+                    });
                 },
             ])->orderBy('cluster_name');
         }])

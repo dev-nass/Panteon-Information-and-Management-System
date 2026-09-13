@@ -14,7 +14,7 @@ class BurialScheduleApiController extends Controller
         $start = $request->query('start');
         $end = $request->query('end');
 
-        return BurialRecord::with([
+        return BurialRecord::active()->with([
             'deceasedRecord:id,first_name,middle_name,last_name,date_of_depository',
             'lot:id,column,row',
         ])

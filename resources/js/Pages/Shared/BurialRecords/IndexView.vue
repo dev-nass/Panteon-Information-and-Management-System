@@ -8,7 +8,7 @@ import Modal from "@/Components/Modal.vue";
 import Dashboard from "@/Layouts/Dashboard.vue";
 import TableHeader from "@/Components/Table/TableHeader.vue";
 import TableData from "@/Components/Table/TableData.vue";
-import { computed, onMounted } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 
 // NOTE:(out for now since we ended up separating the MAP and TABLE)
 // const emit = defineEmits(["toggleTable"]);
@@ -158,16 +158,29 @@ const sort = (field) => {
     );
 };
 
-window.addEventListener("load", () => {
-    setTimeout(() => {
-        document
-            .querySelectorAll(".hs-overlay:not(#burial-type-modal)")
-            .forEach((el) => HSOverlay.open(el));
+const cleanupOverlays = () => {
+    document.querySelectorAll(".hs-overlay").forEach((el) => {
+        if (typeof HSOverlay !== "undefined") {
+            try {
+                HSOverlay.close(el);
+            } catch (e) {}
+        }
+        el.classList.add("hidden");
+        el.classList.remove("open", "opened");
+        el.setAttribute("aria-hidden", "true");
     });
-});
+    document.querySelectorAll(".hs-overlay-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("overflow-hidden");
+    document.body.style.removeProperty("overflow");
+};
 
 onMounted(() => {
+    cleanupOverlays();
     router.reload({ only: ["burial_records"] });
+});
+
+onBeforeUnmount(() => {
+    cleanupOverlays();
 });
 
 defineOptions({
@@ -251,17 +264,19 @@ defineOptions({
                                         class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                     >
                                         {{
-                                            filters.filter === "buried"
-                                                ? "Buried"
-                                                : filters.filter === "pending"
-                                                  ? "Pending"
-                                                  : filters.filter ===
-                                                      "assigned"
-                                                    ? "Assigned"
+                                            filters.filter === "archived"
+                                                ? "Archived"
+                                                : filters.filter === "buried"
+                                                  ? "Buried"
+                                                  : filters.filter === "pending"
+                                                    ? "Pending"
                                                     : filters.filter ===
-                                                        "unassigned"
-                                                      ? "Unassigned"
-                                                      : "All"
+                                                        "assigned"
+                                                      ? "Assigned"
+                                                      : filters.filter ===
+                                                          "unassigned"
+                                                        ? "Unassigned"
+                                                        : "All"
                                         }}
                                     </span>
                                 </Button>
@@ -384,6 +399,30 @@ defineOptions({
                                             <span
                                                 class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
                                                 >Unassigned</span
+                                            >
+                                        </label>
+
+                                        <label
+                                            for="filter-archived"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="archived"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-archived"
+                                                :checked="
+                                                    filters.filter ===
+                                                    'archived'
+                                                "
+                                                @change="
+                                                    applyFilter('archived')
+                                                "
+                                            />
+                                            <span
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >Archived</span
                                             >
                                         </label>
                                     </div>
@@ -607,7 +646,10 @@ defineOptions({
                                 v-if="burial_records.data.length > 0"
                                 v-for="record in burial_records.data"
                                 :key="record.id"
-                                class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
+                                :class="[
+                                    'bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer',
+                                    record.is_archived ? 'opacity-60' : '',
+                                ]"
                                 @click="
                                     () =>
                                         $inertia.visit(
@@ -636,7 +678,25 @@ defineOptions({
 
                                 <TableData>
                                     <span
-                                        v-if="
+                                        v-if="record.is_archived"
+                                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500"
+                                    >
+                                        <svg
+                                            class="size-2.5"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            fill="currentColor"
+                                            viewBox="0 0 16 16"
+                                        >
+                                            <path
+                                                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"
+                                            />
+                                        </svg>
+                                        Archived
+                                    </span>
+                                    <span
+                                        v-else-if="
                                             record.lot?.lot?.properties?.lot_id
                                         "
                                         class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
@@ -680,7 +740,11 @@ defineOptions({
                                 <td colspan="6" class="px-6 py-8 text-center">
                                     <span
                                         class="text-sm text-gray-500 dark:text-neutral-400"
-                                        >No data found</span
+                                        >{{
+                                            filters.filter === "archived"
+                                                ? "No archived records found"
+                                                : "No data found"
+                                        }}</span
                                     >
                                 </td>
                             </tr>

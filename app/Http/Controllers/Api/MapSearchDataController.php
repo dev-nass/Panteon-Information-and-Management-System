@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\DB;
 class MapSearchDataController extends Controller
 {
     /**
-     * TODO: Create a two function for search, one for user side and the this existing is for clerk
-     * TODO: Remember to also fetch the pathways and junctions later on
+     * Description: Fetch the right burial record based on the search input
      */
     public function search(Request $request)
     {
@@ -28,6 +27,7 @@ class MapSearchDataController extends Controller
         if ($burialId) {
             $lotId = DB::table('burial_records')
                 ->where('id', $burialId)
+                ->whereNull('archived_at')
                 ->value('lot_id');
 
             if (! $lotId) {
@@ -54,6 +54,9 @@ class MapSearchDataController extends Controller
                     $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
                         ->where('id', $lotId);
                 },
+                'lots.burialRecords' => function ($query) {
+                    $query->whereNull('archived_at');
+                },
                 'lots.burialRecords.deceasedRecord',
                 'lots.burialRecords.user',
             ]);
@@ -63,6 +66,7 @@ class MapSearchDataController extends Controller
 
         // Otherwise, search by deceased name
         $lotIds = DB::table('burial_records')
+            ->whereNull('burial_records.archived_at')
             ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
@@ -90,6 +94,9 @@ class MapSearchDataController extends Controller
                     'lots' => function ($query) use ($lotIds) {
                         $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
                             ->whereIn('id', $lotIds);
+                    },
+                    'lots.burialRecords' => function ($query) {
+                        $query->whereNull('archived_at');
                     },
                     'lots.burialRecords.deceasedRecord',
                     'lots.burialRecords.user',

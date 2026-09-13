@@ -69,7 +69,8 @@ class DashboardController extends Controller
                         ->whereExists(function ($subQuery) {
                             $subQuery->selectRaw(1)
                                 ->from('burial_records')
-                                ->whereColumn('burial_records.lot_id', 'lots.id');
+                                ->whereColumn('burial_records.lot_id', 'lots.id')
+                                ->whereNull('burial_records.archived_at');
                         })
                         ->selectRaw('count(lots.id)');
                 },
@@ -98,7 +99,9 @@ class DashboardController extends Controller
         $query = Cluster::withCount([
             'lots as total_lots',
             'lots as occupied_lots' => function ($query) {
-                $query->whereHas('burialRecords');
+                $query->whereHas('burialRecords', function ($q) {
+                    $q->whereNull('archived_at');
+                });
             },
         ]);
 

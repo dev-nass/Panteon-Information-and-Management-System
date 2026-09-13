@@ -23,9 +23,9 @@ class BurialRecordIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string'],
-            'filter' => ['nullable', 'string'],
+            'filter' => ['nullable', 'string', 'in:all,buried,pending,assigned,unassigned,archived'],
             'disposal' => ['nullable', 'string'],
-            'sort_field' => ['nullable', 'string', 'in:'.implode(',', self::ALLOWED_SORTS)],
+            'sort_field' => ['nullable', 'string'],
             'sort_direction' => ['nullable', 'string', 'in:asc,desc'],
         ];
     }
