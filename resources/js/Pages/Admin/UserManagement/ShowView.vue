@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import { isEqual, debounce } from "lodash";
 import { useToast } from "vue-toast-notification";
@@ -61,6 +61,173 @@ watch(
     { deep: true },
 );
 
+const isTerminated = computed(() => !!props.user_data.is_terminated);
+const terminated = computed(() => props.user_data.terminated);
+const terminateForm = ref({ terminated_reason: "", terminated_notes: "" });
+const terminateClientErrors = ref({ terminated_reason: "", terminated_notes: "" });
+const terminateServerErrors = ref({ terminated_reason: "", terminated_notes: "" });
+
+watch(isTerminated, (val) => {
+    if (val) editing.value = false;
+});
+
+const mapReason = (reason) => {
+    const map = {
+        resigned: "Resigned",
+        retired: "Retired",
+        terminated: "Terminated",
+        end_of_contract: "End of Contract",
+        transferred: "Transferred",
+        other: "Other",
+    };
+    return map[reason] || reason;
+};
+
+const cleanupAllOverlays = () => {
+    document.querySelectorAll(".hs-overlay").forEach((el) => {
+        if (typeof HSOverlay !== "undefined") {
+            try {
+                HSOverlay.close(el);
+            } catch (e) {}
+        }
+        el.classList.add("hidden");
+        el.classList.remove("open", "opened");
+        el.setAttribute("aria-hidden", "true");
+    });
+    document.querySelectorAll(".hs-overlay-backdrop").forEach((el) => el.remove());
+    document.body.classList.remove("overflow-hidden");
+    document.body.style.removeProperty("overflow");
+    document.documentElement.classList.remove("overflow-hidden");
+};
+
+onMounted(() => {
+    cleanupAllOverlays();
+});
+
+onBeforeUnmount(() => {
+    cleanupAllOverlays();
+});
+
+const closeTerminateOverlay = (el) => {
+    if (typeof HSOverlay !== "undefined" && el) {
+        try {
+            HSOverlay.close(el);
+            return;
+        } catch (e) {}
+    }
+    if (!el) return;
+    el.classList.remove("open", "opened");
+    el.classList.add("hidden");
+    el.setAttribute("aria-hidden", "true");
+    document.querySelectorAll(".hs-overlay-backdrop").forEach((bd) => bd.remove());
+    document.body.classList.remove("overflow-hidden");
+};
+
+const openTerminateModal = () => {
+    terminateClientErrors.value = { terminated_reason: "", terminated_notes: "" };
+    terminateServerErrors.value = { terminated_reason: "", terminated_notes: "" };
+    const el = document.getElementById("terminate-modal");
+    if (typeof HSOverlay !== "undefined" && el) {
+        try {
+            HSOverlay.open(el);
+            return;
+        } catch (e) {}
+    }
+    if (el) {
+        el.classList.remove("hidden");
+        el.classList.add("open");
+        el.removeAttribute("aria-hidden");
+    }
+};
+
+const closeTerminateModal = () => {
+    const el = document.getElementById("terminate-modal");
+    closeTerminateOverlay(el);
+    terminateForm.value = { terminated_reason: "", terminated_notes: "" };
+    terminateClientErrors.value = { terminated_reason: "", terminated_notes: "" };
+    terminateServerErrors.value = { terminated_reason: "", terminated_notes: "" };
+};
+
+const terminateUser = () => {
+    terminateClientErrors.value = { terminated_reason: "", terminated_notes: "" };
+    let hasError = false;
+
+    if (!terminateForm.value.terminated_reason) {
+        terminateClientErrors.value.terminated_reason = "Please select a termination reason.";
+        $toast.error("Please select a termination reason.");
+        hasError = true;
+    }
+    if (terminateForm.value.terminated_reason === "other" && !terminateForm.value.terminated_notes?.trim()) {
+        terminateClientErrors.value.terminated_notes = "Please provide details for 'Other' reason.";
+        $toast.error("Please provide details for 'Other' reason.");
+        hasError = true;
+    }
+
+    if (hasError) return;
+
+    router.post(
+        route("admin.user_management.terminate", props.user_data.id),
+        {
+            terminated_reason: terminateForm.value.terminated_reason,
+            terminated_notes: terminateForm.value.terminated_notes,
+        },
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                $toast.success("User terminated successfully!");
+                const el = document.getElementById("terminate-modal");
+                closeTerminateOverlay(el);
+                terminateForm.value = { terminated_reason: "", terminated_notes: "" };
+            },
+            onError: (err) => {
+                terminateServerErrors.value = {
+                    terminated_reason: err.terminated_reason || "",
+                    terminated_notes: err.terminated_notes || "",
+                };
+                $toast.error(err.terminated_reason || err.terminated_notes || "Failed to terminate user.");
+            },
+        },
+    );
+};
+
+const openReinstateModal = () => {
+    const el = document.getElementById("reinstate-modal");
+    if (typeof HSOverlay !== "undefined" && el) {
+        try {
+            HSOverlay.open(el);
+            return;
+        } catch (e) {}
+    }
+    if (el) {
+        el.classList.remove("hidden");
+        el.classList.add("open");
+        el.removeAttribute("aria-hidden");
+    }
+};
+
+const closeReinstateModal = () => {
+    const el = document.getElementById("reinstate-modal");
+    closeTerminateOverlay(el);
+};
+
+const reinstateUser = () => {
+    router.post(
+        route("admin.user_management.reinstate", props.user_data.id),
+        {},
+        {
+            preserveScroll: true,
+            onSuccess: () => {
+                $toast.success("User reinstated successfully!");
+                const el = document.getElementById("reinstate-modal");
+                closeTerminateOverlay(el);
+            },
+            onError: (err) => {
+                $toast.error(err.email || err.terminated_reason || err.terminated_notes || "Failed to reinstate user.");
+            },
+        },
+    );
+};
+
 const discardChanges = () => {
     if (
         hasChanges.value &&
@@ -107,33 +274,24 @@ const saveChanges = () => {
     );
 };
 
-const openDeleteModal = () => {
-    HSOverlay.open("#delete-user-modal");
-};
-
-const confirmDelete = () => {
-    router.delete(route("admin.user_management.destroy", localData.value.id), {
-        onSuccess: () => {
-            HSOverlay.close("#delete-user-modal");
-            $toast.success("User deleted successfully!");
-            router.visit(route("admin.user_management.index"));
-        },
-        onError: () => {
-            $toast.error("Failed to delete user.");
-        },
-    });
-};
-
-const cancelDelete = () => {
-    HSOverlay.close("#delete-user-modal");
-};
-
 const formatDate = (date) => {
     if (!date) return "Not verified";
     return new Date(date).toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
+    });
+};
+
+const formatTerminatedDate = (date) => {
+    if (!date) return "";
+    return new Date(date).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
     });
 };
 
@@ -215,13 +373,15 @@ defineOptions({
 </script>
 
 <template>
+    <!-- Terminate Modal -->
     <Teleport to="body">
         <div
-            id="delete-user-modal"
+            id="terminate-modal"
             class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
             role="dialog"
             tabindex="-1"
-            aria-labelledby="delete-user-modal-label"
+            aria-labelledby="terminate-modal-label"
+            @click.self="closeTerminateModal"
         >
             <div
                 class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
@@ -233,7 +393,7 @@ defineOptions({
                         <button
                             type="button"
                             class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
-                            @click="cancelDelete"
+                            @click="closeTerminateModal"
                         >
                             <svg
                                 class="size-4"
@@ -257,8 +417,8 @@ defineOptions({
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                width="60"
-                                height="60"
+                                width="28"
+                                height="28"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -275,24 +435,311 @@ defineOptions({
                         </div>
 
                         <h3
-                            id="delete-user-modal-label"
+                            id="terminate-modal-label"
                             class="-mt-2 text-2xl font-bold text-red-600 dark:text-red-400"
                         >
-                            Delete User
+                            Terminate User
                         </h3>
 
-                        <p class="text-gray-600 dark:text-neutral-300 max-w-sm">
-                            Are you sure you want to delete
-                            <span
-                                class="font-semibold text-gray-900 dark:text-white"
+                        <p
+                            class="text-gray-600 dark:text-neutral-300 max-w-sm text-sm"
+                        >
+                            This will hide
+                            <span class="font-semibold text-gray-900 dark:text-white"
+                                >{{ localData.first_name }} {{ localData.last_name }}</span
+                            >
+                            from the main user list. The account will only appear under the
+                            <span class="font-semibold">Terminated</span> filter and can be reinstated later. Burial records created by this user will remain attributed.
+                        </p>
+                    </div>
+
+                    <div class="px-6 pb-6 flex flex-col gap-4">
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Reason <span class="text-red-500">*</span>
+                            </label>
+                            <select
+                                v-model="terminateForm.terminated_reason"
+                                @change="
+                                    terminateClientErrors.terminated_reason = '';
+                                    terminateClientErrors.terminated_notes = '';
+                                    terminateServerErrors.terminated_reason = '';
+                                    terminateServerErrors.terminated_notes = '';
+                                "
+                                :class="{
+                                    'border-red-500 focus:ring-red-500 focus:border-red-500':
+                                        terminateClientErrors.terminated_reason ||
+                                        terminateServerErrors.terminated_reason ||
+                                        errors.terminated_reason,
+                                }"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            >
+                                <option value="">Select reason</option>
+                                <option value="resigned">Resigned</option>
+                                <option value="retired">Retired</option>
+                                <option value="terminated">Terminated</option>
+                                <option value="end_of_contract">End of Contract</option>
+                                <option value="transferred">Transferred</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <p
+                                v-if="
+                                    terminateClientErrors.terminated_reason ||
+                                    terminateServerErrors.terminated_reason ||
+                                    errors.terminated_reason
+                                "
+                                class="mt-1 text-sm text-red-500"
                             >
                                 {{
-                                    `${localData.first_name} ${localData.last_name}`
+                                    terminateClientErrors.terminated_reason ||
+                                    terminateServerErrors.terminated_reason ||
+                                    errors.terminated_reason
                                 }}
-                            </span>
-                            ? This action cannot be undone, and attribution to
-                            any burial records created by this user will be
-                            cleared.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            >
+                                Notes
+                                <span
+                                    v-if="
+                                        terminateForm.terminated_reason === 'other'
+                                    "
+                                    class="text-red-500"
+                                    >*</span
+                                >
+                                <span
+                                    v-else
+                                    class="text-gray-400 font-normal"
+                                    >(optional)</span
+                                >
+                            </label>
+                            <textarea
+                                v-model="terminateForm.terminated_notes"
+                                @input="
+                                    terminateClientErrors.terminated_notes = '';
+                                    terminateServerErrors.terminated_notes = '';
+                                "
+                                rows="3"
+                                placeholder="Provide details (required if Other)..."
+                                :class="{
+                                    'border-red-500 focus:ring-red-500 focus:border-red-500':
+                                        terminateClientErrors.terminated_notes ||
+                                        terminateServerErrors.terminated_notes ||
+                                        errors.terminated_notes,
+                                }"
+                                class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                            ></textarea>
+                            <p
+                                v-if="
+                                    terminateClientErrors.terminated_notes ||
+                                    terminateServerErrors.terminated_notes ||
+                                    errors.terminated_notes
+                                "
+                                class="mt-1 text-sm text-red-500"
+                            >
+                                {{
+                                    terminateClientErrors.terminated_notes ||
+                                    terminateServerErrors.terminated_notes ||
+                                    errors.terminated_notes
+                                }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex border-t border-white/20 dark:border-white/10"
+                    >
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-gray-600 dark:text-neutral-300 hover:bg-gray-500/10 transition"
+                            @click="closeTerminateModal"
+                        >
+                            Cancel
+                        </button>
+
+                        <button
+                            type="button"
+                            class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition"
+                            @click="terminateUser"
+                        >
+                            Terminate
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Teleport>
+
+    <!-- Reinstate Modal -->
+    <Teleport to="body">
+        <div
+            id="reinstate-modal"
+            class="hs-overlay hidden size-full fixed top-0 start-0 z-2000 overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm"
+            role="dialog"
+            tabindex="-1"
+            aria-labelledby="reinstate-modal-label"
+            @click.self="closeReinstateModal"
+        >
+            <div
+                class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto"
+            >
+                <div
+                    class="relative w-full max-h-full flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-black/50"
+                >
+                    <div class="absolute top-3 end-3">
+                        <button
+                            type="button"
+                            class="size-8 inline-flex justify-center items-center rounded-full bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md border border-white/20 dark:border-white/10 text-gray-700 dark:text-neutral-200 hover:bg-white/60 dark:hover:bg-neutral-700/60 transition"
+                            @click="closeReinstateModal"
+                        >
+                            <svg
+                                class="size-4"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path d="M18 6 6 18" />
+                                <path d="m6 6 12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div
+                        class="p-10 flex flex-col items-center gap-y-4 text-center"
+                    >
+                        <div
+                            class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="28"
+                                height="28"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-rotate-ccw-icon lucide-rotate-ccw"
+                            >
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                <path d="M3 3v5h5" />
+                            </svg>
+                        </div>
+
+                        <h3
+                            id="reinstate-modal-label"
+                            class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400"
+                        >
+                            Reinstate Account
+                        </h3>
+
+                        <p
+                            class="text-gray-600 dark:text-neutral-300 max-w-sm text-sm"
+                        >
+                            This will make the account active again and allow login.
+                        </p>
+                    </div>
+
+                    <div class="px-6 pb-4 flex flex-col gap-3">
+                        <div
+                            class="w-full bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 text-left space-y-2"
+                        >
+                            <p
+                                class="text-sm text-gray-600 dark:text-neutral-300"
+                            >
+                                You are about to reinstate
+                                <span
+                                    class="font-semibold text-green-700 dark:text-green-300"
+                                    >{{ localData.first_name }} {{ localData.last_name }}</span
+                                >
+                                . The account will be moved from
+                                <span class="font-semibold">Terminated</span> back to the main list.
+                            </p>
+
+                            <div
+                                class="grid grid-cols-1 gap-1.5 pt-2 border-t border-green-200 dark:border-green-800"
+                            >
+                                <div class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >Full Name:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                                        >{{ localData.first_name }} {{ localData.last_name }}</span
+                                    >
+                                </div>
+                                <div class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >Email:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                                        >{{ localData.email }}</span
+                                    >
+                                </div>
+                                <div class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >Role:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white capitalize"
+                                        >{{ localData.role }}</span
+                                    >
+                                </div>
+                                <div v-if="terminated?.at" class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >Terminated At:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                                        >{{ formatTerminatedDate(terminated.at) }}</span
+                                    >
+                                </div>
+                                <div v-if="terminated?.reason" class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >Reason:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                                        >{{ mapReason(terminated.reason) }}</span
+                                    >
+                                </div>
+                                <div v-if="terminated?.by?.full_name" class="flex justify-between">
+                                    <span
+                                        class="text-sm font-medium text-gray-500 dark:text-neutral-400"
+                                        >By:</span
+                                    >
+                                    <span
+                                        class="text-sm font-semibold text-gray-900 dark:text-white"
+                                        >{{ terminated.by.full_name }}</span
+                                    >
+                                </div>
+                            </div>
+
+                            <p
+                                class="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2"
+                            >
+                                If email is already taken by an active user, reinstate will fail. Free email first or use different email.
+                            </p>
+                        </div>
+                        <p
+                            v-if="errors.email"
+                            class="text-sm text-red-500 text-center"
+                        >
+                            {{ errors.email }}
                         </p>
                     </div>
 
@@ -301,18 +748,10 @@ defineOptions({
                     >
                         <button
                             type="button"
-                            class="w-full py-3 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-500/10 transition"
-                            @click="cancelDelete"
+                            class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
+                            @click="reinstateUser"
                         >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="button"
-                            class="w-full py-3 text-sm font-semibold text-red-500 hover:bg-red-500/10 transition"
-                            @click="confirmDelete"
-                        >
-                            Delete User
+                            Reinstate
                         </button>
                     </div>
                 </div>
@@ -363,7 +802,30 @@ defineOptions({
             </div>
 
             <div class="flex gap-x-3">
-                <template v-if="!editing">
+                <template v-if="isTerminated">
+                    <button
+                        @click="openReinstateModal"
+                        class="flex items-center gap-x-2 px-4 py-2 rounded-xl border border-transparent bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-700 dark:hover:text-green-300 transition-all duration-200"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-rotate-ccw-icon lucide-rotate-ccw"
+                        >
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                        </svg>
+                        Reinstate
+                    </button>
+                </template>
+                <template v-else-if="!editing">
                     <button
                         v-if="canEdit"
                         @click="editing = true"
@@ -390,7 +852,7 @@ defineOptions({
 
                     <button
                         v-if="canDelete"
-                        @click="openDeleteModal"
+                        @click="openTerminateModal"
                         class="flex items-center justify-center gap-x-2 px-4 py-2 rounded-xl border border-transparent bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:border-red-500/40 transition-all duration-200"
                     >
                         <svg
@@ -408,7 +870,7 @@ defineOptions({
                             <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
                         </svg>
-                        Delete
+                        Terminate
                     </button>
                 </template>
 
@@ -448,6 +910,42 @@ defineOptions({
             >
                 {{ tab.label }}
             </button>
+        </div>
+
+        <!-- Terminated banner -->
+        <div
+            v-if="isTerminated"
+            class="mb-6 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 px-4 py-3"
+        >
+            <div class="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                </svg>
+                <span class="text-sm font-semibold">Terminated Account</span>
+            </div>
+            <p class="text-sm text-amber-800 dark:text-amber-300">
+                <span v-if="terminated?.at">Terminated on {{ formatTerminatedDate(terminated.at) }}</span>
+                <span v-if="terminated?.reason"> — Reason: {{ mapReason(terminated.reason) }}</span>
+                <span v-if="terminated?.by?.full_name"> — By {{ terminated.by.full_name }}</span>
+            </p>
+            <p
+                v-if="terminated?.notes"
+                class="text-sm bg-white/60 dark:bg-neutral-800/50 rounded-lg px-3 py-2 text-amber-900 dark:text-amber-200"
+            >
+                {{ terminated.notes }}
+            </p>
         </div>
 
         <!-- Card Container -->

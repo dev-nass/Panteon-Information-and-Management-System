@@ -211,13 +211,15 @@ defineOptions({
                                         class="ps-2 text-xs font-semibold text-green-600 dark:text-green-500 border-s border-gray-200 dark:border-neutral-700"
                                     >
                                         {{
-                                            filters.filter === "clerk"
-                                                ? "Clerk"
-                                                : filters.filter === "head"
-                                                  ? "Head"
-                                                  : filters.filter === "admin"
-                                                    ? "Admin"
-                                                    : "All"
+                                            filters.filter === "terminated"
+                                                ? "Terminated"
+                                                : filters.filter === "clerk"
+                                                  ? "Clerk"
+                                                  : filters.filter === "head"
+                                                    ? "Head"
+                                                    : filters.filter === "admin"
+                                                      ? "Admin"
+                                                      : "All"
                                         }}
                                     </span>
                                 </Button>
@@ -315,6 +317,27 @@ defineOptions({
                                                 >Clerk</span
                                             >
                                         </label>
+
+                                        <label
+                                            for="filter-terminated"
+                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="filter"
+                                                value="terminated"
+                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
+                                                id="filter-terminated"
+                                                :checked="
+                                                    filters.filter === 'terminated'
+                                                "
+                                                @change="applyFilter('terminated')"
+                                            />
+                                            <span
+                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
+                                                >Terminated</span
+                                            >
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -362,7 +385,10 @@ defineOptions({
                                         ),
                                     )
                                 "
-                                class="bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer"
+                                :class="[
+                                    'bg-white dark:bg-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-700 cursor-pointer',
+                                    user.is_terminated ? 'opacity-60' : '',
+                                ]"
                             >
                                 <TableData>{{ user.id }}</TableData>
                                 <TableData>
@@ -378,6 +404,13 @@ defineOptions({
                                 </TableData>
                                 <TableData>
                                     <span
+                                        v-if="user.is_terminated"
+                                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500"
+                                    >
+                                        Terminated
+                                    </span>
+                                    <span
+                                        v-else
                                         class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium"
                                         :class="{
                                             'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500':
@@ -413,7 +446,11 @@ defineOptions({
                                 <td colspan="6" class="px-6 py-8 text-center">
                                     <span
                                         class="text-sm text-gray-500 dark:text-neutral-400"
-                                        >No users found</span
+                                        >{{
+                                            filters.filter === "terminated"
+                                                ? "No terminated users found"
+                                                : "No users found"
+                                        }}</span
                                     >
                                 </td>
                             </tr>

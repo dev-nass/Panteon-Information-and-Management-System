@@ -11,11 +11,11 @@ class ClerkMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'clerk') {
+        if (! auth()->check() || auth()->user()->role !== 'clerk' || auth()->user()->terminated_at !== null) {
             abort(403, 'Unauthorized access.');
         }
 

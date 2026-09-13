@@ -23,6 +23,17 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'contact_number' => $this->contact_number,
             'role' => $this->role,
+            'is_terminated' => (bool) $this->terminated_at,
+            'terminated' => $this->when($this->terminated_at, function () {
+                return [
+                    'at' => $this->terminated_at?->toISOString(),
+                    'reason' => $this->terminated_reason,
+                    'notes' => $this->terminated_notes,
+                    'by' => $this->whenLoaded('terminatedBy', function () {
+                        return $this->terminatedBy ? new self($this->terminatedBy) : null;
+                    }),
+                ];
+            }),
         ];
     }
 }

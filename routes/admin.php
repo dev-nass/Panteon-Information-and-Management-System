@@ -41,6 +41,8 @@ Route::prefix('admin')
         Route::controller(UserManagementController::class)->group(function () {
             Route::get('/user-management', 'index')->name('user_management.index');
             Route::get('/user-management/export', 'export')->name('user_management.export');
+            Route::post('/user-management/{user}/terminate', 'terminate')->name('user_management.terminate');
+            Route::post('/user-management/{user}/reinstate', 'reinstate')->name('user_management.reinstate');
             Route::get('/user-management/{user}', 'show')->name('user_management.show');
             Route::post('/user-management/{user}', 'update')->name('user_management.update');
             Route::delete('/user-management/{user}', 'destroy')->name('user_management.destroy');

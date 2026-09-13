@@ -22,13 +22,29 @@ class LoginController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
+            if (Auth::user()->terminated_at !== null) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Account terminated. Contact admin.',
+                ]);
+            }
+
             $request->session()->regenerate();
 
-            if (Auth::user()->role === 'admin')
+            if (Auth::user()->role === 'admin') {
                 return to_route('admin.dashboard');
+            }
 
-            if (Auth::user()->role === 'clerk')
+            if (Auth::user()->role === 'clerk') {
                 return to_route('clerk.dashboard');
+            }
+
+            if (Auth::user()->role === 'head') {
+                return to_route('clerk.dashboard');
+            }
         }
 
         return back()->withErrors([
@@ -41,6 +57,7 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('visitor.index');
     }
 }

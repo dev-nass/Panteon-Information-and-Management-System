@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UserTerminateRequest;
 use App\Http\Requests\BurialRecordIndexRequest;
 use App\Http\Resources\BurialRecordResource;
 use App\Models\User;
 use App\Services\BurialRecordService;
+use App\Services\UserManagementService;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,7 +18,7 @@ class UserManagementController extends Controller
 {
     use LogsActivity;
 
-    public function __construct(protected BurialRecordService $service) {}
+    public function __construct(protected BurialRecordService $service, protected UserManagementService $userService) {}
 
     public function index(Request $request)
     {
@@ -70,8 +72,14 @@ class UserManagementController extends Controller
             });
         }
 
-        if ($request->filled('filter') && $request->filter !== 'all') {
-            $query->where('role', $request->filter);
+        if ($request->filter === 'terminated') {
+            $query->whereNotNull('users.terminated_at');
+        } else {
+            $query->whereNull('users.terminated_at');
+
+            if ($request->filled('filter') && $request->filter !== 'all') {
+                $query->where('role', $request->filter);
+            }
         }
 
         if ($request->filled('sort_field')) {
@@ -82,6 +90,42 @@ class UserManagementController extends Controller
         }
 
         return $query;
+    }
+
+    public function terminate(UserTerminateRequest $request, User $user)
+    {
+        if ($user->id === $request->user()->id) {
+            return back()->with('error', 'You cannot terminate your own account.');
+        }
+
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Admin accounts cannot be terminated.');
+        }
+
+        $this->userService->terminate($user, $request->validated(), auth()->id());
+
+        $this->logActivity(
+            'terminated',
+            $user,
+            "Terminated user {$user->first_name} {$user->last_name}",
+            null,
+            $request->validated(),
+        );
+
+        return to_route('admin.user_management.index')->with('success', 'User terminated successfully.');
+    }
+
+    public function reinstate(Request $request, User $user)
+    {
+        $this->userService->reinstate($user);
+
+        $this->logActivity(
+            'reinstated',
+            $user,
+            "Reinstated user {$user->first_name} {$user->last_name}",
+        );
+
+        return to_route('admin.user_management.index')->with('success', 'User reinstated successfully.');
     }
 
     public function destroy(Request $request, User $user)
@@ -108,6 +152,9 @@ class UserManagementController extends Controller
 
     public function show(BurialRecordIndexRequest $request, User $user)
     {
+        $user->load(['terminatedBy']);
+        $user->loadCount('burialRecords');
+
         $burialRecords = $this->service->index(
             $request->sortField(),
             $request->sortDirection(),
@@ -118,7 +165,7 @@ class UserManagementController extends Controller
         );
 
         return Inertia::render('Admin/UserManagement/ShowView', [
-            'user_data' => $user->loadCount('burialRecords'),
+            'user_data' => $user,
             'burial_records' => BurialRecordResource::collection($burialRecords),
             'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
         ]);
