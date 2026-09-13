@@ -95,18 +95,21 @@ class RecordNormalizationService
 
     /**
      * Compute age from date of birth and date of death.
-     * Falls back to explicitAge when dates are unavailable.
      */
-    public function computeAge(?string $dateOfBirth, ?string $dateOfDeath, ?int $explicitAge = null): ?int
+    public function computeAge(?string $dateOfBirth, ?string $dateOfDeath): ?int
     {
         if ($dateOfBirth !== null && $dateOfDeath !== null) {
             $birth = Carbon::parse($dateOfBirth);
             $death = Carbon::parse($dateOfDeath);
 
-            return $birth->diffInYears($death);
+            return (int) $birth->diffInYears($death);
         }
 
-        return $explicitAge;
+        if ($dateOfBirth !== null) {
+            return (int) Carbon::parse($dateOfBirth)->diffInYears(Carbon::now());
+        }
+
+        return null;
     }
 
     /**

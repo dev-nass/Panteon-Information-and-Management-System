@@ -382,15 +382,17 @@ class ImportingController extends Controller
 
         // Robust address handling: try primary column 7, then fallback to 3,8,9 if empty (handles variant templates)
         $rawAddress = $row[7] ?? null;
-        if (empty(trim((string) $rawAddress)) && !empty(trim((string) ($row[3] ?? ''))) && trim((string) ($row[3] ?? '')) !== trim((string) ($row[2] ?? ''))) {
+        if (empty(trim((string) $rawAddress)) && ! empty(trim((string) ($row[3] ?? ''))) && trim((string) ($row[3] ?? '')) !== trim((string) ($row[2] ?? ''))) {
             // Some templates put barangay at 3 if applicant column is shifted
             $maybe = trim((string) ($row[8] ?? $row[9] ?? ''));
-            if (!empty($maybe)) $rawAddress = $maybe;
+            if (! empty($maybe)) {
+                $rawAddress = $maybe;
+            }
         }
         if (empty(trim((string) $rawAddress))) {
             // Try next columns as fallback (covers 8-col vs 9-col variants)
             foreach ([8, 9, 10, 3] as $idx) {
-                if (!empty(trim((string) ($row[$idx] ?? '')))) {
+                if (! empty(trim((string) ($row[$idx] ?? '')))) {
                     $rawAddress = $row[$idx];
                     break;
                 }
@@ -436,16 +438,15 @@ class ImportingController extends Controller
         $applicantName = $this->normalizer->parseFullName(trim($row[9] ?? ''));
 
         $precinctNum = trim($row[1] ?? '');
-        $age = trim($row[14] ?? '');
 
         // Robust address: primary 3, fallback to 7,8 if empty (covers template variations)
         $rawAddress = $row[3] ?? null;
         if (empty(trim((string) $rawAddress))) {
             foreach ([7, 8, 10] as $idx) {
-                if (!empty(trim((string) ($row[$idx] ?? '')))) {
+                if (! empty(trim((string) ($row[$idx] ?? '')))) {
                     // Avoid picking date columns - check if it looks like an address (not a date)
                     $val = trim((string) $row[$idx]);
-                    if (!preg_match('/^\d{4}-\d{2}-\d{2}/', $val) && !is_numeric($val)) {
+                    if (! preg_match('/^\d{4}-\d{2}-\d{2}/', $val) && ! is_numeric($val)) {
                         $rawAddress = $val;
                         break;
                     }
@@ -464,7 +465,6 @@ class ImportingController extends Controller
                 'date_of_depository' => $this->normalizer->parseDate($row[7] ?? null),
                 'cremation_date' => $this->normalizer->parseDate($row[6] ?? null),
                 'cremation_place' => $this->normalizer->normalizeAddress($row[8] ?? null),
-                'age' => is_numeric($age) ? (int) $age : null,
                 'precinct_num' => is_numeric($precinctNum) ? (int) $precinctNum : null,
             ],
             'applicant' => [
@@ -494,7 +494,7 @@ class ImportingController extends Controller
         // Try to capture address if present (some muslim templates include it at 3,7,8)
         $rawAddress = null;
         foreach ([3, 7, 8, 9] as $idx) {
-            if (!empty(trim((string) ($row[$idx] ?? '')))) {
+            if (! empty(trim((string) ($row[$idx] ?? '')))) {
                 $val = trim((string) $row[$idx]);
                 // Avoid name/deceased duplicate and lot fields
                 if ($val !== trim((string) ($row[2] ?? '')) && $val !== trim((string) ($row[6] ?? ''))) {

@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Models\Applicant;
 use App\Models\DeceasedRecord;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -33,8 +32,6 @@ class DeceasedRecordFactory extends Factory
             'first_name' => $this->faker->firstName,
             'middle_name' => $this->faker->optional()->firstName,
             'last_name' => $this->faker->lastName,
-
-            'age' => Carbon::parse($dateOfBirth)->diffInYears($dateOfDeath),
 
             'date_of_birth' => $dateOfBirth->format('Y-m-d'),
             'date_of_death' => $dateOfDeath->format('Y-m-d'),

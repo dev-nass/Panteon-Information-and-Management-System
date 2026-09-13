@@ -1,7 +1,11 @@
 ## Testing
 
+[Sep 13, 2026]
+
 - [ ] Archiving is a new feature added on Burial Record; To view archived records, use the filter button at the table
 - [ ] User account termination is a new feature; Check if the session is currently logged in and is terminated by the admin, does it end or continue
+- [ ] Remove age column on the DB; Auto computed age is a new feature check that when creating new record (there are 3 ways to do this)
+
 - [ ] Try to create lot manually, then import the records on the Admin side;
       See if the records will automatically assign to those new lots
 - [ ] Cross reference to the actual record; The pending filter is responsible for showing record that have no "Date of depository" check on the actual data of Panteon if this is accurate.
@@ -15,7 +19,6 @@
 
 ### Issues
 
-- [ ] Remove the "age" on the deceased record, but its a computed state on the frontend
 - [ ] Do we still add image on Modal of Visitor searched burial record modal?
 
 ### Docs Revisions

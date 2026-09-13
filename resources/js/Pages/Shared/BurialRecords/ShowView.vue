@@ -385,6 +385,21 @@ const selectedClusterType = computed(() => {
     return cluster?.cluster_type || null;
 });
 
+const computedAge = computed(() => {
+    const dob = localData.value.deceased?.birth?.date;
+    const dod = localData.value.deceased?.death?.date;
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const death = dod ? new Date(dod) : new Date();
+    if (isNaN(birth.getTime()) || isNaN(death.getTime())) return null;
+    let age = death.getFullYear() - birth.getFullYear();
+    const m = death.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) {
+        age--;
+    }
+    return age >= 0 ? age : null;
+});
+
 defineOptions({
     layout: Dashboard,
 });
@@ -833,10 +848,8 @@ onBeforeUnmount(() => {
                 />
                 <Display
                     label="Age"
-                    :modelValue="localData.deceased?.age"
-                    :editing="editing"
-                    :error="errors['deceased.age']"
-                    @update:modelValue="(val) => (localData.deceased.age = val)"
+                    :modelValue="localData.deceased?.age ?? computedAge"
+                    :editing="false"
                 />
                 <Display
                     label="Date of Birth"

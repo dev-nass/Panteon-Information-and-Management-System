@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -11,12 +12,13 @@ class DeceasedRecord extends Model
 {
     use HasFactory;
 
+    protected $appends = ['age'];
+
     protected $fillable = [
         'applicant_id',
         'first_name',
         'middle_name',
         'last_name',
-        'age',
         'date_of_birth',
         'date_of_death',
         'cause_of_death',
@@ -40,11 +42,23 @@ class DeceasedRecord extends Model
         'precinct_num',
     ];
 
-    protected static function booted(): void
+    protected function age(): Attribute
     {
-        static::saving(function (DeceasedRecord $record) {
-            $record->computeAge();
-        });
+        return Attribute::make(
+            get: function (): ?int {
+                if (! $this->date_of_birth) {
+                    return null;
+                }
+
+                $birth = Carbon::parse($this->date_of_birth);
+
+                if ($this->date_of_death) {
+                    return (int) $birth->diffInYears(Carbon::parse($this->date_of_death));
+                }
+
+                return (int) $birth->diffInYears(Carbon::now());
+            },
+        );
     }
 
     public function burialRecords(): HasOne
@@ -55,19 +69,5 @@ class DeceasedRecord extends Model
     public function applicant()
     {
         return $this->belongsTo(Applicant::class);
-    }
-
-    private function computeAge(): void
-    {
-        $birth = $this->date_of_birth ? Carbon::parse($this->date_of_birth) : null;
-        $death = $this->date_of_death ? Carbon::parse($this->date_of_death) : null;
-
-        if ($birth && $death) {
-            $this->age = $birth->diffInYears($death);
-        } elseif ($birth) {
-            $this->age = $birth->diffInYears(Carbon::now());
-        } else {
-            $this->age = null;
-        }
     }
 }

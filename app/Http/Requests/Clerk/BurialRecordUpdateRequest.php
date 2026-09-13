@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Clerk;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BurialRecordUpdateRequest extends FormRequest
@@ -17,7 +18,7 @@ class BurialRecordUpdateRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -25,7 +26,6 @@ class BurialRecordUpdateRequest extends FormRequest
             'deceased.first_name' => 'required|string|max:255',
             'deceased.middle_name' => 'nullable|string|max:255',
             'deceased.last_name' => 'required|string|max:255',
-            'deceased.age' => 'nullable|integer',
             'deceased.birth.date' => 'nullable|date',
             'deceased.civil_status' => 'nullable|string|max:255',
             'deceased.religion' => 'nullable|string|max:255',

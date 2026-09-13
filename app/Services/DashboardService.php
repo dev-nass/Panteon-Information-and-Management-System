@@ -249,7 +249,7 @@ class DashboardService
 
     private function computedAgeExpression(string $table = 'deceased_records'): string
     {
-        return "COALESCE({$table}.age, TIMESTAMPDIFF(YEAR, {$table}.date_of_birth, {$table}.date_of_death))";
+        return "CASE WHEN {$table}.date_of_birth IS NOT NULL AND {$table}.date_of_death IS NOT NULL THEN TIMESTAMPDIFF(YEAR, {$table}.date_of_birth, {$table}.date_of_death) WHEN {$table}.date_of_birth IS NOT NULL THEN TIMESTAMPDIFF(YEAR, {$table}.date_of_birth, CURDATE()) ELSE NULL END";
     }
 
     /**
