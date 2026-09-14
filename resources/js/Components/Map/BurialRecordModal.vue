@@ -2,6 +2,7 @@
 import { Link, usePage } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
 import { route } from "ziggy-js";
+import LotImageModal from "@/Components/Map/LotImageModal.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -29,6 +30,30 @@ const handleViewPath = (burialId) => {
     } catch (_) {}
     // Fallback via data-hs-overlay attribute also handles close
     emit("viewPath", burialId);
+};
+
+// Lot image modal helpers
+const lotImageModalId = "hs-lot-image-modal-burial";
+
+const lotClusterType = computed(
+    () => activeFeature.value?.cluster?.properties?.type ?? "",
+);
+
+const lotPhaseName = computed(
+    () => activeFeature.value?.cluster?.properties?.phase ?? "",
+);
+
+const canShowLotImage = computed(() => {
+    const t = (lotClusterType.value ?? "").toString().toLowerCase().trim();
+    return t === "underground" || t === "apartment";
+});
+
+const openLotImageModal = () => {
+    try {
+        const overlay =
+            typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+        overlay?.open(`#${lotImageModalId}`);
+    } catch (_) {}
 };
 
 // Use feature prop if provided (search mode), otherwise fetch by clusterId
@@ -390,7 +415,7 @@ const paginatedBurials = computed(() => {
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 flex-wrap justify-end">
                                     <!-- Primary -->
                                     <Link
                                         v-if="user !== null"
@@ -405,11 +430,19 @@ const paginatedBurials = computed(() => {
                                         View More
                                     </Link>
 
-                                    <!-- Secondary -->
+                                    <!-- See Lot Image (plain green text, underline on hover) -->
+                                    <button
+                                        @click="openLotImageModal"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                    >
+                                        See Lot Image
+                                    </button>
+
+                                    <!-- View Path (highlighted green as normal) -->
                                     <button
                                         @click="handleViewPath(selectedBurial.burial?.id)"
                                         data-hs-overlay="#hs-scroll-inside-body-modal"
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-500/20 hover:border-green-500/40 transition"
                                     >
                                         View Path
                                     </button>
@@ -478,4 +511,10 @@ const paginatedBurials = computed(() => {
             </div>
         </div>
     </div>
+
+    <LotImageModal
+        :modal-id="lotImageModalId"
+        :cluster-type="lotClusterType"
+        :phase-name="lotPhaseName"
+    />
 </template>

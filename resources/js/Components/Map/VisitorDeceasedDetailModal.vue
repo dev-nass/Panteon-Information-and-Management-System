@@ -2,6 +2,7 @@
 import { Link, usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 import { route } from "ziggy-js";
+import LotImageModal from "@/Components/Map/LotImageModal.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -88,6 +89,30 @@ const formattedBurialDate = computed(() => {
     }
     return raw;
 });
+
+// Lot image modal helpers
+const lotImageModalId = "hs-lot-image-modal-visitor";
+
+const lotClusterType = computed(
+    () => clusterProps.value?.type ?? lotProps.value?.type ?? "",
+);
+
+const lotPhaseName = computed(
+    () => clusterProps.value?.phase ?? lotProps.value?.phase ?? "",
+);
+
+const canShowLotImage = computed(() => {
+    const t = (lotClusterType.value ?? "").toString().toLowerCase().trim();
+    return t === "underground" || t === "apartment";
+});
+
+const openLotImageModal = () => {
+    try {
+        const overlay =
+            typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+        overlay?.open(`#${lotImageModalId}`);
+    } catch (_) {}
+};
 </script>
 
 <template>
@@ -208,7 +233,7 @@ const formattedBurialDate = computed(() => {
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2 shrink-0">
+                                <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                                     <Link
                                         v-if="user !== null"
                                         :href="
@@ -222,10 +247,19 @@ const formattedBurialDate = computed(() => {
                                         View More
                                     </Link>
 
+                                    <!-- See Lot Image (plain green text, underline on hover) -->
+                                    <button
+                                        @click="openLotImageModal"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                    >
+                                        See Lot Image
+                                    </button>
+
+                                    <!-- View Path (highlighted green as normal) -->
                                     <button
                                         @click="handleViewPath(activeBurial.burial?.id)"
                                         data-hs-overlay="#hs-visitor-deceased-modal"
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                        class="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-500/20 hover:border-green-500/40 transition"
                                     >
                                         View Path
                                     </button>
@@ -340,4 +374,10 @@ const formattedBurialDate = computed(() => {
             </div>
         </div>
     </div>
+
+    <LotImageModal
+        :modal-id="lotImageModalId"
+        :cluster-type="lotClusterType"
+        :phase-name="lotPhaseName"
+    />
 </template>
