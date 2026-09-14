@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -18,7 +19,7 @@ class RegistrationRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -37,14 +38,16 @@ class RegistrationRequest extends FormRequest
                     ->numbers()
                     ->symbols(),
             ],
+            'agreement' => ['required', 'accepted'],
         ];
     }
-
 
     public function messages(): array
     {
         return [
             'contact_number.regex' => 'Contact number must start with 09 and be 11 digits long (e.g. 09171234567).',
+            'agreement.accepted' => 'You must accept the User Agreement to register.',
+            'agreement.required' => 'You must accept the User Agreement to register.',
         ];
     }
 }
