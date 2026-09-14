@@ -373,10 +373,10 @@ const paginatedBurials = computed(() => {
                         <div
                             class="p-5 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md"
                         >
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-center gap-4 min-w-0 flex-1">
                                     <div
-                                        class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400"
+                                        class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 shrink-0"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -392,9 +392,9 @@ const paginatedBurials = computed(() => {
                                         </svg>
                                     </div>
 
-                                    <div>
+                                    <div class="min-w-0">
                                         <h3
-                                            class="text-lg font-semibold text-green-600 dark:text-green-400"
+                                            class="text-lg font-semibold text-green-600 dark:text-green-400 truncate"
                                         >
                                             {{
                                                 selectedBurial.deceased
@@ -415,8 +415,10 @@ const paginatedBurials = computed(() => {
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2 flex-wrap justify-end">
-                                    <!-- Primary -->
+                                <!-- View More stays at top for clerk/admin; visitor sees inline actions -->
+                                <div
+                                    class="flex items-center gap-2 shrink-0 flex-wrap justify-end"
+                                >
                                     <Link
                                         v-if="user !== null"
                                         :href="
@@ -430,22 +432,26 @@ const paginatedBurials = computed(() => {
                                         View More
                                     </Link>
 
-                                    <!-- See Lot Image (plain green text, underline on hover) -->
-                                    <button
-                                        @click="openLotImageModal"
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
-                                    >
-                                        See Lot Image
-                                    </button>
-
-                                    <!-- View Path (highlighted green as normal) -->
-                                    <button
-                                        @click="handleViewPath(selectedBurial.burial?.id)"
-                                        data-hs-overlay="#hs-scroll-inside-body-modal"
-                                        class="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-500/20 hover:border-green-500/40 transition"
-                                    >
-                                        View Path
-                                    </button>
+                                    <!-- Visitor: inline See Lot Image + View Path (2 buttons, looks balanced) -->
+                                    <template v-if="user === null">
+                                        <button
+                                            @click="openLotImageModal"
+                                            class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                        >
+                                            See Lot Image
+                                        </button>
+                                        <button
+                                            @click="
+                                                handleViewPath(
+                                                    selectedBurial.burial?.id,
+                                                )
+                                            "
+                                            data-hs-overlay="#hs-scroll-inside-body-modal"
+                                            class="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-500/20 hover:border-green-500/40 transition"
+                                        >
+                                            View Path
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
 
@@ -504,6 +510,28 @@ const paginatedBurials = computed(() => {
                                         {{ selectedBurial.burial?.id }}
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Clerk/Admin: map actions below grid so 3 buttons are not cramped at top -->
+                            <div
+                                v-if="user !== null"
+                                class="mt-4 pt-4 border-t border-white/20 dark:border-white/10 flex flex-wrap items-center justify-end gap-2"
+                            >
+                                <button
+                                    @click="openLotImageModal"
+                                    class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
+                                >
+                                    See Lot Image
+                                </button>
+                                <button
+                                    @click="
+                                        handleViewPath(selectedBurial.burial?.id)
+                                    "
+                                    data-hs-overlay="#hs-scroll-inside-body-modal"
+                                    class="px-3 py-1.5 text-sm font-medium rounded-lg border border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300 hover:bg-green-500/20 hover:border-green-500/40 transition"
+                                >
+                                    View Path
+                                </button>
                             </div>
                         </div>
                     </template>
