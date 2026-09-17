@@ -158,6 +158,31 @@ const sort = (field) => {
     );
 };
 
+const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A";
+    const ymd = String(dateStr).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (ymd) {
+        const [, y, mo, d] = ymd;
+        const date = new Date(Number(y), Number(mo) - 1, Number(d));
+        if (!isNaN(date.getTime())) {
+            return new Intl.DateTimeFormat("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+            }).format(date);
+        }
+    }
+    const parsed = new Date(dateStr);
+    if (!isNaN(parsed.getTime())) {
+        return new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        }).format(parsed);
+    }
+    return dateStr;
+};
+
 const cleanupOverlays = () => {
     document.querySelectorAll(".hs-overlay").forEach((el) => {
         if (typeof HSOverlay !== "undefined") {
@@ -666,14 +691,14 @@ defineOptions({
                                     {{ record.deceased.last_name }}
                                 </TableData>
                                 <TableData>
-                                    {{ record.deceased.birth.date ?? "N/A" }}
+                                    {{ formatDate(record.deceased.birth.date) }}
                                 </TableData>
                                 <TableData>
-                                    {{ record.deceased.death.date ?? "N/A" }}
+                                    {{ formatDate(record.deceased.death.date) }}
                                 </TableData>
 
                                 <TableData>
-                                    {{ record.deceased.burial.date ?? "N/A" }}
+                                    {{ formatDate(record.deceased.burial.date) }}
                                 </TableData>
 
                                 <TableData>
