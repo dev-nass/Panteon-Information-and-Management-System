@@ -2,7 +2,7 @@
 import { Link, usePage } from "@inertiajs/vue3";
 import { ref, computed, watch } from "vue";
 import { route } from "ziggy-js";
-import LotImageModal from "@/Components/Map/LotImageModal.vue";
+import { useBurialRecordModal } from "@/composables/map/burialrecordmodal/useBurialRecordModal";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -28,19 +28,33 @@ const currentPage = ref(1);
 
 const emit = defineEmits(["viewPath"]);
 
-const handleViewPath = (burialId) => {
-    // Close immediately as requested, then emit to draw path
+const closeBurialModal = () => {
     try {
         const overlay = typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
         overlay?.close("#hs-scroll-inside-body-modal");
     } catch (_) {}
-    // Fallback via data-hs-overlay attribute also handles close
+    // Fallback manual cleanup if HSOverlay unavailable or still open
+    const el = document.getElementById("hs-scroll-inside-body-modal");
+    if (el) {
+        el.classList.add("hidden");
+        el.classList.remove("open", "opened");
+        el.setAttribute("aria-hidden", "true");
+    }
+    document.querySelectorAll(".hs-overlay-backdrop").forEach((b) => b.remove());
+    document.body.classList.remove("overflow-hidden");
+    document.body.style.removeProperty("overflow");
+};
+
+const handleViewPath = (burialId) => {
+    // Close immediately as requested, then emit to draw path
+    closeBurialModal();
     emit("viewPath", burialId);
 };
 
-// Lot image modal helpers
-const lotImageModalId = "hs-lot-image-modal-burial";
+// Use feature prop if provided (search mode), otherwise fetch by clusterId
+const activeFeature = computed(() => props.feature || fetchedFeature.value);
 
+// Lot image helpers - now embedded via composable (no separate overlay)
 const lotClusterType = computed(
     () => activeFeature.value?.cluster?.properties?.type ?? "",
 );
@@ -49,21 +63,20 @@ const lotPhaseName = computed(
     () => activeFeature.value?.cluster?.properties?.phase ?? "",
 );
 
-const canShowLotImage = computed(() => {
-    const t = (lotClusterType.value ?? "").toString().toLowerCase().trim();
-    return t === "underground" || t === "apartment";
-});
-
-const openLotImageModal = () => {
-    try {
-        const overlay =
-            typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
-        overlay?.open(`#${lotImageModalId}`);
-    } catch (_) {}
-};
-
-// Use feature prop if provided (search mode), otherwise fetch by clusterId
-const activeFeature = computed(() => props.feature || fetchedFeature.value);
+const {
+    imageError,
+    isShowingLotImage,
+    showLotImage,
+    hideLotImage,
+    backToDetails,
+    imageSrc,
+    imageLabel,
+    typeGuidance,
+    canShowLotImage,
+    openFullscreen,
+    modalWrapperClass,
+    modalContentClass,
+} = useBurialRecordModal(lotClusterType, lotPhaseName, selectedBurial);
 
 // Fetch cluster data when clusterId changes (only if feature is not provided)
 watch(
@@ -179,22 +192,32 @@ const formatDate = (dateStr) => {
         tabindex="-1"
         aria-labelledby="hs-scroll-inside-body-modal-label"
     >
-        <div
-            class="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-3xl sm:w-full m-3 sm:mx-auto h-[calc(100%-3.5rem)] min-h-[calc(100%-3.5rem)] flex items-center"
-        >
-            <div
-                class="max-h-full overflow-hidden flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50 rounded-2xl pointer-events-auto w-full"
-            >
+        <div :class="modalWrapperClass">
+            <div :class="modalContentClass">
                 <!-- Header -->
                 <div
-                    class="flex justify-between items-center py-3 px-4 border-b border-white/20 dark:border-white/10 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md"
+                    class="flex justify-between items-center py-3 px-4 border-b border-white/20 dark:border-white/10 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md shrink-0"
                 >
-                    <h3
-                        id="hs-scroll-inside-body-modal-label"
-                        class="font-bold text-gray-800 dark:text-white"
-                    >
-                        Cluster Details
-                    </h3>
+                    <div>
+                        <h3
+                            id="hs-scroll-inside-body-modal-label"
+                            class="font-bold text-gray-800 dark:text-white"
+                        >
+                            {{
+                                isShowingLotImage && selectedBurial
+                                    ? "Lot Image"
+                                    : "Cluster Details"
+                            }}
+                        </h3>
+                        <p
+                            v-if="isShowingLotImage && selectedBurial && imageSrc"
+                            class="text-xs text-gray-500 dark:text-gray-400"
+                        >
+                            {{ imageLabel }} · Phase
+                            {{ lotPhaseName || "N/A" }} ·
+                            {{ lotClusterType || "N/A" }}
+                        </p>
+                    </div>
 
                     <button
                         type="button"
@@ -378,28 +401,126 @@ const formatDate = (dateStr) => {
                         </p>
                     </template>
 
-                    <!-- DETAIL VIEW -->
+                    <!-- DETAIL VIEW / LOT IMAGE VIEW -->
                     <template v-if="selectedBurial">
-                        <button
-                            @click="selectedBurial = null"
-                            class="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 hover:underline"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="size-4"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                        <!-- Lot image embedded view -->
+                        <template v-if="isShowingLotImage">
+                            <button
+                                @click="backToDetails"
+                                class="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 hover:underline"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15 19l-7-7 7-7"
-                                />
-                            </svg>
-                            Back to occupants
-                        </button>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="size-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 19l-7-7 7-7"
+                                    />
+                                </svg>
+                                Back to details
+                            </button>
+
+                            <div class="space-y-3">
+                                <template v-if="imageSrc && !imageError">
+                                    <div
+                                        class="rounded-xl overflow-hidden border border-white/30 dark:border-white/10 bg-white dark:bg-neutral-800 flex items-center justify-center overflow-auto"
+                                    >
+                                        <img
+                                            :src="imageSrc"
+                                            :alt="imageLabel"
+                                            class="w-full h-auto max-h-[80vh] xl:max-h-[84vh] object-contain scale-[1.06] origin-center cursor-zoom-in"
+                                            loading="lazy"
+                                            title="Click to open fullscreen"
+                                            @click="openFullscreen"
+                                            @error="imageError = true"
+                                        />
+                                    </div>
+                                    <p
+                                        class="text-xs text-center text-gray-500 dark:text-gray-400"
+                                    >
+                                        Labeled lots – {{ imageLabel }}
+                                    </p>
+                                    <div
+                                        v-if="typeGuidance"
+                                        class="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/80 dark:bg-amber-900/20 px-3 py-2.5 flex gap-2.5"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <circle cx="12" cy="12" r="10" />
+                                            <path d="M12 16v-4" />
+                                            <path d="M12 8h.01" />
+                                        </svg>
+                                        <p
+                                            class="text-xs leading-relaxed text-amber-800 dark:text-amber-200"
+                                        >
+                                            {{ typeGuidance }}
+                                        </p>
+                                    </div>
+                                </template>
+
+                                <template v-else-if="imageSrc && imageError">
+                                    <div
+                                        class="text-center py-8 space-y-2 text-gray-500 dark:text-gray-400"
+                                    >
+                                        <p class="text-sm font-medium">
+                                            Failed to load lot image
+                                        </p>
+                                        <p class="text-xs">Tried: {{ imageSrc }}</p>
+                                    </div>
+                                </template>
+
+                                <template v-else>
+                                    <div
+                                        class="text-center py-8 space-y-2 text-gray-500 dark:text-gray-400"
+                                    >
+                                        <p class="text-sm">
+                                            No labeled lot image available for this lot
+                                            type.
+                                        </p>
+                                        <p class="text-xs">
+                                            Supported types: underground, apartment
+                                            <span v-if="lotClusterType">
+                                                · current: {{ lotClusterType }}</span
+                                            >
+                                        </p>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <template v-else>
+                            <button
+                                @click="selectedBurial = null"
+                                class="flex items-center gap-1 text-sm text-green-600 dark:text-green-400 hover:underline"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="size-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 19l-7-7 7-7"
+                                    />
+                                </svg>
+                                Back to occupants
+                            </button>
 
                         <div
                             class="p-5 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md"
@@ -458,6 +579,7 @@ const formatDate = (dateStr) => {
                                                 selectedBurial.burial?.id,
                                             )
                                         "
+                                        @click="closeBurialModal"
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
                                     >
                                         View More
@@ -466,7 +588,7 @@ const formatDate = (dateStr) => {
                                     <!-- Visitor: inline See Lot Image + View Path (2 buttons, looks balanced) -->
                                     <template v-if="user === null">
                                         <button
-                                            @click="openLotImageModal"
+                                            @click="showLotImage"
                                             class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
                                         >
                                             See Lot Image
@@ -491,14 +613,26 @@ const formatDate = (dateStr) => {
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Burial Date
+                                        Phase
                                     </span>
                                     <div class="font-medium">
                                         {{
-                                            formatDate(
-                                                selectedBurial.deceased?.burial
-                                                    ?.date,
-                                            )
+                                            activeFeature?.cluster?.properties
+                                                ?.phase ?? "N/A"
+                                        }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Cluster
+                                    </span>
+                                    <div class="font-medium">
+                                        {{
+                                            activeFeature?.cluster?.properties
+                                                ?.name ?? "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -510,11 +644,43 @@ const formatDate = (dateStr) => {
                                         Lot Location
                                     </span>
                                     <div class="font-medium">
-                                        {{
-                                            selectedBurial.lot?.properties
-                                                ?.column +
+                                        <template
+                                            v-if="
                                                 selectedBurial.lot?.properties
-                                                    ?.row ?? "N/A"
+                                                    ?.column ||
+                                                selectedBurial.lot?.properties
+                                                    ?.row
+                                            "
+                                        >
+                                            {{
+                                                selectedBurial.lot?.properties
+                                                    ?.column ?? ""
+                                            }}{{
+                                                selectedBurial.lot?.properties
+                                                    ?.row ?? ""
+                                            }}
+                                            <span
+                                                v-if="lotClusterType"
+                                                class="text-xs text-gray-500 dark:text-gray-400"
+                                                >({{ lotClusterType }})</span
+                                            >
+                                        </template>
+                                        <template v-else>N/A</template>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Burial Date
+                                    </span>
+                                    <div class="font-medium">
+                                        {{
+                                            formatDate(
+                                                selectedBurial.deceased?.burial
+                                                    ?.date,
+                                            )
                                         }}
                                     </div>
                                 </div>
@@ -551,7 +717,7 @@ const formatDate = (dateStr) => {
                                 class="mt-4 pt-4 border-t border-white/20 dark:border-white/10 flex flex-wrap items-center justify-end gap-2"
                             >
                                 <button
-                                    @click="openLotImageModal"
+                                    @click="showLotImage"
                                     class="px-3 py-1.5 text-sm font-medium rounded-lg text-green-600 dark:text-green-400 hover:underline transition"
                                 >
                                     See Lot Image
@@ -567,15 +733,10 @@ const formatDate = (dateStr) => {
                                 </button>
                             </div>
                         </div>
+                        </template>
                     </template>
                 </div>
             </div>
         </div>
     </div>
-
-    <LotImageModal
-        :modal-id="lotImageModalId"
-        :cluster-type="lotClusterType"
-        :phase-name="lotPhaseName"
-    />
 </template>
