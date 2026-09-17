@@ -6,6 +6,12 @@ import LotImageModal from "@/Components/Map/LotImageModal.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+const userRole = computed(() => page.props.auth?.user?.role?.toLowerCase()?.trim());
+const burialShowRoute = computed(() => {
+    if (userRole.value === 'admin') return 'admin.burial_records.show';
+    if (userRole.value === 'clerk') return 'clerk.burial_records.show';
+    return null;
+});
 
 const props = defineProps({
     clusterId: { type: Number, default: null },
@@ -420,10 +426,10 @@ const paginatedBurials = computed(() => {
                                     class="flex items-center gap-2 shrink-0 flex-wrap justify-end"
                                 >
                                     <Link
-                                        v-if="user !== null"
+                                        v-if="burialShowRoute"
                                         :href="
                                             route(
-                                                'clerk.burial_records.show',
+                                                burialShowRoute,
                                                 selectedBurial.burial?.id,
                                             )
                                         "
