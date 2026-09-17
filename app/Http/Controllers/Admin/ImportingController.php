@@ -79,25 +79,12 @@ class ImportingController extends Controller
                 'status' => 'processing',
             ]);
 
-            // Preload lots to avoid N+1 query per row (was 21k queries for large imports)
-            // Normalize phase/cluster/row to upper for case-insensitive matching (Excel has 1a/3n vs DB 1A/3N)
-            // Key includes cluster_type to disambiguate same cluster name under apartment vs underground (e.g. UG8S).
-            $lotsMap = [];
-            $lotsMapGeneric = [];
-            foreach (Lot::with('cluster.phase')->get() as $lot) {
-                $phaseKey = strtoupper($lot->cluster->phase->phase_name);
-                $clusterKey = strtoupper($lot->cluster->cluster_name);
-                $typeKey = strtolower($lot->cluster->cluster_type ?? '');
-                $rowKey = strtoupper($lot->row);
-                $colKey = $lot->column;
-                $typedKey = $phaseKey.'|'.$clusterKey.'|'.$typeKey.'|'.$rowKey.'|'.$colKey;
-                $lotsMap[$typedKey] = $lot;
-                $genericKey = $phaseKey.'|'.$clusterKey.'|'.$rowKey.'|'.$colKey;
-                if (! isset($lotsMapGeneric[$genericKey])) {
-                    $lotsMapGeneric[$genericKey] = $lot;
-                }
-            }
+            // Preload lots via shared service (typed + generic maps to handle UG disambiguation)
+            [$lotsMap, $lotsMapGeneric] = $this->normalizer->buildLotMaps(Lot::with('cluster.phase')->get());
             $usedLotIds = Lot::whereHas('burialRecords')->pluck('id')->flip()->toArray();
+            // In-file duplicate tracking: same deceased appears twice in uploaded Excel.
+            // Keyed by normalized first|last|birth|death|depository to catch file-level duplicates before DB.
+            $seenDeceasedKeys = [];
             // Merge already occupied + in-batch used
             foreach ($rows as $index => $row) {
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
@@ -131,7 +118,32 @@ class ImportingController extends Controller
                         continue;
                     }
 
-                    // Check if deceased record already exists
+                    // Duplicate handler: use shared service to keep controller thin
+                    $fileDuplicateRow = $this->normalizer->findFileDuplicate(
+                        $seenDeceasedKeys,
+                        $deceasedData['first_name'] ?? '',
+                        $deceasedData['last_name'] ?? '',
+                        $deceasedData['date_of_birth'],
+                        $deceasedData['date_of_death'],
+                        $deceasedData['date_of_depository']
+                    );
+                    if ($fileDuplicateRow !== null) {
+                        $errors[] = "Row {$rowNumber}: Duplicate deceased '{$deceasedData['first_name']} {$deceasedData['last_name']}' on ".($deceasedData['date_of_depository'] ?? $deceasedData['date_of_death'] ?? $deceasedData['date_of_birth'] ?? 'N/A')." already in this file at row {$fileDuplicateRow} — skipped.";
+
+                        continue;
+                    }
+                    $dedupKey = $this->normalizer->buildDedupKey(
+                        $deceasedData['first_name'] ?? '',
+                        $deceasedData['last_name'] ?? '',
+                        $deceasedData['date_of_birth'],
+                        $deceasedData['date_of_death'],
+                        $deceasedData['date_of_depository']
+                    );
+                    if ($dedupKey !== '||||' && strtolower(trim($deceasedData['first_name'] ?? '')) !== '' && strtolower(trim($deceasedData['last_name'] ?? '')) !== '') {
+                        $seenDeceasedKeys[$dedupKey] = $rowNumber;
+                    }
+
+                    // Check if deceased record already exists in DB
                     $existingRecord = $this->normalizer->findDuplicateDeceased(
                         $deceasedData['first_name'],
                         $deceasedData['last_name'],
@@ -151,20 +163,18 @@ class ImportingController extends Controller
                     $clusterName = $lotData['cluster_name'];
                     $aptNumber = $lotData['apt_number']; // e.g. 12A or 2B
 
-                    // Fix: Phase 1A underground uses compound rows E1/E2 (e.g. apt "1e1" = col 1 row E1).
-                    // Old logic merged digits: "1e1" => 11|E. Use leading-digits split instead.
-                    [$column, $rowLetter] = $this->parseAptNumber($aptNumber);
-                    // Excel encodes underground type as "UG8S" meaning 8S underground (not apartment). Normalize.
-                    [$normalizedCluster, $clusterTypeHint] = $this->normalizeClusterName($clusterName);
-                    $normalizedPhase = $this->normalizePhaseName($phaseName);
+                    // Lot lookup delegated to shared service (handles E1/E2 and UG8S)
+                    [$column, $rowLetter] = $this->normalizer->parseAptNumber($aptNumber);
+                    [$normalizedCluster, $clusterTypeHint] = $this->normalizer->normalizeClusterName($clusterName);
+                    $normalizedPhase = $this->normalizer->normalizePhaseName($phaseName);
 
                     $lot = null;
                     if (! empty($column) && ! empty($rowLetter) && $normalizedCluster !== '') {
-                        $lot = $this->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
+                        $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                         if (! $lot) {
                             $phaseKeyRaw = strtoupper(trim($phaseName));
                             if ($phaseKeyRaw !== $normalizedPhase) {
-                                $lot = $this->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
+                                $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                             }
                         }
                         if ($lot) {
@@ -391,132 +401,6 @@ class ImportingController extends Controller
         $clean = trim($clean);
 
         return $clean !== '' ? $clean : 'The file could not be processed. Please check the file format.';
-    }
-
-    /**
-     * Parse APT. number into column and row.
-     * Handles Phase 1A underground compound rows E1/E2.
-     * e.g. "1e1" => ["1","E1"], "10E2" => ["10","E2"], "5E" => ["5","E"], "12D" => ["12","D"]
-     *
-     * @return array{0: string, 1: string} [column, row]
-     */
-    private function parseAptNumber(string $aptNumber): array
-    {
-        $aptNumber = trim($aptNumber);
-
-        if ($aptNumber === '') {
-            return ['', ''];
-        }
-
-        if (preg_match('/^(\d+)([A-Za-z]+\d*)$/', $aptNumber, $matches)) {
-            return [$matches[1], strtoupper($matches[2])];
-        }
-
-        $column = preg_replace('/\D/', '', $aptNumber);
-        $rowLetter = strtoupper(preg_replace('/\d/', '', $aptNumber));
-
-        return [$column, $rowLetter];
-    }
-
-    /**
-     * Normalize Excel cluster encoding. Underground clusters are prefixed with UG (e.g. UG8S, UG 3N, UG-3N).
-     *
-     * @return array{0: string, 1: string|null} [normalizedClusterName, clusterTypeHint]
-     */
-    private function normalizeClusterName(string $raw): array
-    {
-        $raw = trim($raw);
-        if ($raw === '') {
-            return ['', null];
-        }
-
-        if (preg_match('/^ULT\s*[-_]?\s*(.+)$/i', $raw, $m)) {
-            $name = trim($m[1]);
-            $name = preg_replace('/[\s\-_]+/', '', $name);
-            $name = strtoupper($name);
-            $name = preg_replace('/^I(?=[0-9NS])/', '1', $name);
-            $name = preg_replace('/^LT/', '1', $name);
-            $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-            return [$name, 'underground'];
-        }
-        if (preg_match('/^UG\s*[-_]?\s*(.+)$/i', $raw, $m)) {
-            $name = trim($m[1]);
-            $name = preg_replace('/[\s\-_]+/', '', $name);
-            $name = strtoupper($name);
-            $name = preg_replace('/^I(?=[0-9NS])/', '1', $name);
-            $name = preg_replace('/^LT/', '1', $name);
-            $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-            return [$name, 'underground'];
-        }
-
-        $name = strtoupper($raw);
-        $name = preg_replace('/[\s\-_]+/', '', $name);
-        $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-        return [$name, null];
-    }
-
-    /**
-     * Normalize phase encoding from Excel. Handles variants like PH3, Ph1b, PH-2, P1A, 1-A, H3.
-     */
-    private function normalizePhaseName(string $raw): string
-    {
-        $raw = trim($raw);
-        if ($raw === '') {
-            return '';
-        }
-
-        $n = strtoupper($raw);
-        $n = preg_replace('/[\s\-_\.]+/', '', $n);
-        $n = preg_replace('/^(PH|P|H)+/', '', $n);
-
-        return $n;
-    }
-
-    /**
-     * Find lot using typed map; respects UG hint and falls back gracefully.
-     */
-    private function findLotByClusterAndApt(array $lotsMap, array $lotsMapGeneric, array $usedLotIds, string $phaseKey, string $clusterName, ?string $typeHint, string $rowLetter, string $column): ?Lot
-    {
-        $phaseCandidates = [$phaseKey];
-        if ($phaseKey === '1') {
-            $phaseCandidates = ['1A', '1B'];
-        }
-
-        foreach ($phaseCandidates as $pk) {
-            if ($typeHint !== null) {
-                $key = $pk.'|'.$clusterName.'|'.$typeHint.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-                $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMapGeneric[$genericKey] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-
-                continue;
-            }
-
-            foreach (['apartment', 'underground'] as $type) {
-                $key = $pk.'|'.$clusterName.'|'.$type.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-            }
-
-            $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
-            $candidate = $lotsMapGeneric[$genericKey] ?? null;
-            if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                return $candidate;
-            }
-        }
-
-        return null;
     }
 
     /**

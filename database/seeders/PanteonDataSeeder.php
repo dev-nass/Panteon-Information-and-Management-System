@@ -246,27 +246,12 @@ class PanteonDataSeeder extends Seeder
 
             $this->command->info('Total rows to process: '.count($rows));
 
-            // Preload lots to avoid N+1 query per row (was 21k queries)
-            // Normalize phase/cluster/row to upper for case-insensitive matching (Excel has 1a/3n vs DB 1A/3N)
-            // Key includes cluster_type to disambiguate same cluster name under apartment vs underground (e.g. 8S).
-            // Excel encodes underground as "UG8S", "UG 3N", "UG-3N" etc. -> normalizeClusterName() strips UG prefix and returns type hint.
-            $lotsMap = [];
-            $lotsMapGeneric = [];
-            foreach (Lot::with('cluster.phase')->get() as $lot) {
-                $phaseKey = strtoupper($lot->cluster->phase->phase_name);
-                $clusterKey = strtoupper($lot->cluster->cluster_name);
-                $typeKey = strtolower($lot->cluster->cluster_type ?? '');
-                $rowKey = strtoupper($lot->row);
-                $colKey = $lot->column;
-                $typedKey = $phaseKey.'|'.$clusterKey.'|'.$typeKey.'|'.$rowKey.'|'.$colKey;
-                $lotsMap[$typedKey] = $lot;
-                // Generic fallback without type (first wins) for clusters without UG hint
-                $genericKey = $phaseKey.'|'.$clusterKey.'|'.$rowKey.'|'.$colKey;
-                if (! isset($lotsMapGeneric[$genericKey])) {
-                    $lotsMapGeneric[$genericKey] = $lot;
-                }
-            }
+            // Preload lots via shared service (typed + generic maps to handle UG disambiguation)
+            [$lotsMap, $lotsMapGeneric] = $this->normalizer->buildLotMaps(Lot::with('cluster.phase')->get());
             $usedLotIds = [];
+            // In-file duplicate tracking: same deceased appears twice in Excel (first+last+burial date)
+            $seenDeceasedKeys = [];
+            $duplicateCount = 0;
 
             foreach ($rows as $index => $row) {
                 // Skip empty rows
@@ -287,28 +272,50 @@ class PanteonDataSeeder extends Seeder
                     $nameParts = $this->normalizer->parseFullName($fullName);
                     $burialDate = $this->normalizer->parseDate($row[1]);
 
-                    // Find lot based on phase, cluster, and apt number
+                    // Duplicate handler: Excel contains ~117 rows where same first+last+burial date appears twice.
+                    // Use shared service to keep seeder thin and avoid duplication with ImportingController.
+                    $dedupKey = $this->normalizer->buildDedupKey($nameParts['first_name'] ?? '', $nameParts['last_name'] ?? '', null, null, $burialDate);
+                    $fileDuplicateRow = $this->normalizer->findFileDuplicate($seenDeceasedKeys, $nameParts['first_name'] ?? '', $nameParts['last_name'] ?? '', null, null, $burialDate);
+                    if ($fileDuplicateRow !== null) {
+                        $skipped++;
+                        $duplicateCount++;
+                        $this->command->warn('Row '.($index + 2).": Duplicate deceased '{$fullName}' on ".($burialDate ?? 'N/A')." already seen at row {$fileDuplicateRow} — skipping duplicate entry.");
+
+                        continue;
+                    }
+                    $seenDeceasedKeys[$dedupKey] = $index + 2;
+
+                    $existing = $this->normalizer->findDuplicateDeceased(
+                        $nameParts['first_name'] ?? '',
+                        $nameParts['last_name'] ?? '',
+                        null,
+                        null,
+                        $burialDate
+                    );
+                    if ($existing) {
+                        $skipped++;
+                        $duplicateCount++;
+                        $this->command->warn('Row '.($index + 2).": Duplicate deceased '{$fullName}' on ".($burialDate ?? 'N/A')." already exists in DB (ID: {$existing->id}) — skipping.");
+
+                        continue;
+                    }
+
+                    // Find lot based on phase, cluster, and apt number (delegated to shared service)
                     $phaseName = trim($row[4] ?? '');
                     $clusterName = trim($row[5] ?? '');
                     $aptNumber = trim($row[6] ?? '');
 
-                    // Fix: Panteon de Dasma underground Phase 1A uses compound rows E1/E2 (e.g. apt "1e1" = col 1 row E1).
-                    // Old logic `preg_replace('/\D/', '', '1e1') => 11, row E` incorrectly merged digits.
-                    // Use leading-digits + trailing-letters+digits split so 1e1 => col 1 row E1, 10E2 => col 10 row E2.
-                    [$column, $rowLetter] = $this->parseAptNumber($aptNumber);
-                    // Excel encodes underground type as "UG8S" meaning 8S underground (not apartment). Normalize.
-                    [$normalizedCluster, $clusterTypeHint] = $this->normalizeClusterName($clusterName);
-                    // Normalize phase: Excel has variants like PH3, Ph1b, PH-2, P1A -> 3, 1B, 2, 1A
-                    $normalizedPhase = $this->normalizePhaseName($phaseName);
+                    [$column, $rowLetter] = $this->normalizer->parseAptNumber($aptNumber);
+                    [$normalizedCluster, $clusterTypeHint] = $this->normalizer->normalizeClusterName($clusterName);
+                    $normalizedPhase = $this->normalizer->normalizePhaseName($phaseName);
 
                     $lot = null;
                     if (! empty($column) && ! empty($rowLetter) && $normalizedCluster !== '') {
-                        $lot = $this->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
-                        // Fallback to raw phase if normalized didn't match (safety for unexpected phase encodings)
+                        $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                         if (! $lot) {
                             $phaseKeyRaw = strtoupper(trim($phaseName));
                             if ($phaseKeyRaw !== $normalizedPhase) {
-                                $lot = $this->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
+                                $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                             }
                         }
                         if ($lot) {
@@ -394,6 +401,9 @@ class PanteonDataSeeder extends Seeder
             $this->command->info('Import completed!');
             $this->command->info("Total records imported: {$imported}");
             $this->command->info("Total records skipped: {$skipped}");
+            if ($duplicateCount > 0) {
+                $this->command->info("Duplicate entries skipped: {$duplicateCount}");
+            }
 
         } catch (\Exception $e) {
             $friendly = $this->friendlyImportError($e);
@@ -436,147 +446,5 @@ class PanteonDataSeeder extends Seeder
         $clean = preg_replace('/\s*\(Connection:.*$/s', '', $msg);
 
         return trim($clean) !== '' ? trim($clean) : 'Failed to import deceased records.';
-    }
-
-    /**
-     * Parse APT. number into column and row.
-     * Handles Phase 1A underground compound rows E1/E2.
-     * e.g. "1e1" => ["1","E1"], "10E2" => ["10","E2"], "5E" => ["5","E"], "12D" => ["12","D"]
-     *
-     * @return array{0: string, 1: string} [column, row]
-     */
-    private function parseAptNumber(string $aptNumber): array
-    {
-        $aptNumber = trim($aptNumber);
-
-        if ($aptNumber === '') {
-            return ['', ''];
-        }
-
-        // Primary: leading digits + letters (+ optional trailing digits) — correct for 1e1, 10E2, etc.
-        if (preg_match('/^(\d+)([A-Za-z]+\d*)$/', $aptNumber, $matches)) {
-            return [$matches[1], strtoupper($matches[2])];
-        }
-
-        // Fallback for unexpected formats — keep old behaviour
-        $column = preg_replace('/\D/', '', $aptNumber);
-        $rowLetter = strtoupper(preg_replace('/\d/', '', $aptNumber));
-
-        return [$column, $rowLetter];
-    }
-
-    /**
-     * Normalize Excel cluster encoding. Underground clusters are prefixed with UG (e.g. UG8S, UG 3N, UG-3N, ug8s)
-     * and should map to cluster_name without prefix with type hint underground. Plain "8S" maps to apartment.
-     *
-     * @return array{0: string, 1: string|null} [normalizedClusterName, clusterTypeHint]
-     */
-    private function normalizeClusterName(string $raw): array
-    {
-        $raw = trim($raw);
-        if ($raw === '') {
-            return ['', null];
-        }
-
-        // Detect UG prefix (case-insensitive, optional space/hyphen/underscore after UG) + common typo ULT for UG
-        if (preg_match('/^ULT\s*[-_]?\s*(.+)$/i', $raw, $m)) {
-            $name = trim($m[1]);
-            $name = preg_replace('/[\s\-_]+/', '', $name);
-            $name = strtoupper($name);
-            $name = preg_replace('/^I(?=[0-9NS])/', '1', $name);
-            $name = preg_replace('/^LT/', '1', $name);
-            $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-            return [$name, 'underground'];
-        }
-        if (preg_match('/^UG\s*[-_]?\s*(.+)$/i', $raw, $m)) {
-            $name = trim($m[1]);
-            // Remove any remaining spaces/hyphens/underscores inside name (e.g. "1-N" -> "1N")
-            $name = preg_replace('/[\s\-_]+/', '', $name);
-            $name = strtoupper($name);
-            // Fix common OCR typo: I -> 1 (e.g. UGI-N -> UG1-N, UGIN -> 1N)
-            $name = preg_replace('/^I(?=[0-9NS])/', '1', $name);
-            // Also handle "ULT" typo for UG (rare)
-            $name = preg_replace('/^LT/', '1', $name);
-            // Strip leading zeros: "03S" -> "3S"
-            $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-            return [$name, 'underground'];
-        }
-
-        $name = strtoupper($raw);
-        $name = preg_replace('/[\s\-_]+/', '', $name);
-        $name = preg_replace('/^0+(\d)/', '$1', $name);
-
-        return [$name, null];
-    }
-
-    /**
-     * Normalize phase encoding from Excel. Handles variants like PH3, Ph1b, PH-2, P1A, 1-A, H3.
-     */
-    private function normalizePhaseName(string $raw): string
-    {
-        $raw = trim($raw);
-        if ($raw === '') {
-            return '';
-        }
-
-        $n = strtoupper($raw);
-        // Remove spaces, hyphens, dots, underscores
-        $n = preg_replace('/[\s\-_\.]+/', '', $n);
-        // Strip leading PH / P / H prefixes (e.g. PH1B -> 1B, P1A -> 1A, H3 -> 3)
-        $n = preg_replace('/^(PH|P|H)+/', '', $n);
-        // Handle "PPH" etc already stripped, keep result as is
-
-        return $n;
-    }
-
-    /**
-     * Find lot using typed map; respects UG hint and falls back gracefully.
-     */
-    private function findLotByClusterAndApt(array $lotsMap, array $lotsMapGeneric, array $usedLotIds, string $phaseKey, string $clusterName, ?string $typeHint, string $rowLetter, string $column): ?Lot
-    {
-        // Handle phase "1" ambiguity: try both 1A and 1B (covers Excel "Ph1" without suffix)
-        $phaseCandidates = [$phaseKey];
-        if ($phaseKey === '1') {
-            $phaseCandidates = ['1A', '1B'];
-        }
-
-        foreach ($phaseCandidates as $pk) {
-            // 1) If we have an explicit UG hint, try underground first
-            if ($typeHint !== null) {
-                $key = $pk.'|'.$clusterName.'|'.$typeHint.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-                // Fallback to generic (e.g. columbarium or single-type phase) if typed not found
-                $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMapGeneric[$genericKey] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-
-                continue;
-            }
-
-            // 2) No hint (plain "8S"): prefer apartment for phases that have both types, then underground, then generic
-            foreach (['apartment', 'underground'] as $type) {
-                $key = $pk.'|'.$clusterName.'|'.$type.'|'.$rowLetter.'|'.$column;
-                $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                    return $candidate;
-                }
-            }
-
-            // 3) Generic fallback (e.g. phase 1A which only has underground for some clusters, or columbarium)
-            $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
-            $candidate = $lotsMapGeneric[$genericKey] ?? null;
-            if ($candidate && ! isset($usedLotIds[$candidate->id])) {
-                return $candidate;
-            }
-        }
-
-        return null;
     }
 }
