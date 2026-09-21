@@ -9,6 +9,7 @@ use App\Models\Phase;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class LotManagementController extends Controller
@@ -26,7 +27,7 @@ class LotManagementController extends Controller
                     'name' => $phase->phase_name,
                     'total_clusters' => $phase->clusters_count,
                     'coordinates' => $phase->coordinates,
-                    'isPhase_mapped' => !is_null($phase->coordinates),
+                    'isPhase_mapped' => ! is_null($phase->coordinates),
                 ];
             });
 
@@ -42,7 +43,7 @@ class LotManagementController extends Controller
     {
         $burialRecord = $lot->burialRecords()->first();
 
-        if (!$burialRecord) {
+        if (! $burialRecord) {
             return to_route('admin.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }
@@ -107,7 +108,7 @@ class LotManagementController extends Controller
 
         $phase = Phase::create([
             'phase_name' => $validated['name'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         $this->logActivity(
@@ -124,10 +125,20 @@ class LotManagementController extends Controller
     {
         $validated = $request->validate([
             'phase_id' => 'required|exists:phases,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('clusters', 'cluster_name')->where(function ($query) use ($request) {
+                    return $query->where('phase_id', $request->input('phase_id'))
+                        ->where('cluster_type', $request->input('type'));
+                }),
+            ],
             'type' => 'required|in:apartment,underground,columbarium',
             'total_capacity' => 'required|integer|min:5',
             'coordinates' => 'required|json',
+        ], [
+            'name.unique' => 'A cluster with this name and type already exists in the selected phase.',
         ]);
 
         $cluster = Cluster::create([
@@ -135,7 +146,7 @@ class LotManagementController extends Controller
             'cluster_name' => $validated['name'],
             'cluster_type' => $validated['type'],
             'total_capacity' => $validated['total_capacity'],
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         $this->logActivity(
@@ -174,7 +185,7 @@ class LotManagementController extends Controller
             'cluster_id' => $validated['cluster_id'],
             'column' => $validated['column'],
             'row' => strtoupper($validated['row']),
-            'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $validated['coordinates'] . "')"),
+            'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         $this->logActivity(
@@ -203,11 +214,11 @@ class LotManagementController extends Controller
         $seenKeys = [];
 
         foreach ($validated['lots'] as $lot) {
-            $key = $lot['column'] . '|' . $lot['row'];
+            $key = $lot['column'].'|'.$lot['row'];
 
             if (isset($seenKeys[$key])) {
                 return back()->withErrors([
-                    'lots' => 'Duplicate lot (column ' . $lot['column'] . ', row ' . $lot['row'] . ') found in the batch.',
+                    'lots' => 'Duplicate lot (column '.$lot['column'].', row '.$lot['row'].') found in the batch.',
                 ]);
             }
 
@@ -217,15 +228,15 @@ class LotManagementController extends Controller
         // Check for duplicates against existing lots in the cluster
         $existingKeys = Lot::where('cluster_id', $cluster->id)
             ->get(['column', 'row'])
-            ->map(fn($lot) => $lot->column . '|' . $lot->row)
+            ->map(fn ($lot) => $lot->column.'|'.$lot->row)
             ->flip();
 
         foreach ($validated['lots'] as $lot) {
-            $key = $lot['column'] . '|' . $lot['row'];
+            $key = $lot['column'].'|'.$lot['row'];
 
             if (isset($existingKeys[$key])) {
                 return back()->withErrors([
-                    'lots' => 'A lot with column ' . $lot['column'] . ' and row ' . $lot['row'] . ' already exists in this cluster.',
+                    'lots' => 'A lot with column '.$lot['column'].' and row '.$lot['row'].' already exists in this cluster.',
                 ]);
             }
         }
@@ -236,7 +247,7 @@ class LotManagementController extends Controller
 
             if (count($validated['lots']) > $remainingCapacity) {
                 return back()->withErrors([
-                    'lots' => 'Not enough capacity in this cluster. Only ' . $remainingCapacity . ' more lot(s) can be created.',
+                    'lots' => 'Not enough capacity in this cluster. Only '.$remainingCapacity.' more lot(s) can be created.',
                 ]);
             }
         }
@@ -247,7 +258,7 @@ class LotManagementController extends Controller
                     'cluster_id' => $validated['cluster_id'],
                     'column' => $lot['column'],
                     'row' => $lot['row'],
-                    'coordinates' => DB::raw("ST_GeomFromGeoJSON('" . $lot['coordinates'] . "')"),
+                    'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$lot['coordinates']."')"),
                 ]);
             }
         });
@@ -255,13 +266,13 @@ class LotManagementController extends Controller
         $this->logActivity(
             'created',
             $cluster,
-            'Bulk created ' . count($validated['lots']) . " lots in cluster {$cluster->cluster_name}",
+            'Bulk created '.count($validated['lots'])." lots in cluster {$cluster->cluster_name}",
             null,
             ['lot_count' => count($validated['lots'])],
         );
 
         return to_route('admin.lot_management.index')
-            ->with('success', count($validated['lots']) . ' lots created successfully.');
+            ->with('success', count($validated['lots']).' lots created successfully.');
     }
 
     public function updatePhase(Request $request, Phase $phase)
@@ -292,10 +303,25 @@ class LotManagementController extends Controller
     public function updateCluster(Request $request, Cluster $cluster)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'type' => 'required|in:apartment,underground',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('clusters', 'cluster_name')
+                    ->where(function ($query) use ($request, $cluster) {
+                        // Use the incoming type if provided, otherwise fall back to the existing cluster's type
+                        $type = $request->input('type', $cluster->cluster_type);
+
+                        return $query->where('phase_id', $cluster->phase_id)
+                            ->where('cluster_type', $type);
+                    })
+                    ->ignore($cluster->id),
+            ],
+            'type' => 'required|in:apartment,underground,columbarium',
             'total_capacity' => 'nullable|integer|min:1',
             'coordinates' => 'nullable|json',
+        ], [
+            'name.unique' => 'A cluster with this name and type already exists in this phase.',
         ]);
 
         $oldValues = $cluster->only(['cluster_name', 'cluster_type', 'total_capacity']);
