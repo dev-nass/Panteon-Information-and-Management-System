@@ -34,8 +34,8 @@ class BurialRecordRepository extends Repository
             })
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($q2) use ($search) {
-                    $q2->whereRaw("CONCAT(deceased_records.first_name, ' ', deceased_records.last_name) like ?", ["%{$search}%"])
-                        ->orWhereRaw("CONCAT(deceased_records.first_name, ' ', deceased_records.middle_name, ' ', deceased_records.last_name) like ?", ["%{$search}%"])
+                    $q2->whereRaw("CONCAT_WS(' ', deceased_records.first_name, deceased_records.last_name) like ?", ["%{$search}%"])
+                        ->orWhereRaw("CONCAT_WS(' ', deceased_records.first_name, deceased_records.middle_name, deceased_records.last_name) like ?", ["%{$search}%"])
                         ->orWhere('deceased_records.first_name', 'like', "%{$search}%")
                         ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
                         ->orWhere('deceased_records.last_name', 'like', "%{$search}%");

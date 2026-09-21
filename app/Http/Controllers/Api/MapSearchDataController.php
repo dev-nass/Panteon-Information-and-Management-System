@@ -20,7 +20,8 @@ class MapSearchDataController extends Controller
             'burial_id' => 'nullable|integer',
         ]);
 
-        $search = $validated['search'] ?? null;
+        $search = isset($validated['search']) ? trim($validated['search']) : null;
+        $search = $search === '' ? null : $search;
         $burialId = $validated['burial_id'] ?? null;
 
         // If burial_id is provided, fetch specific cluster for that burial
@@ -64,15 +65,20 @@ class MapSearchDataController extends Controller
             return ClusterResource::collection([$clusterModel]);
         }
 
-        // Otherwise, search by deceased name
+        // Otherwise, search by deceased name — empty search returns nothing
+        if (! $search) {
+            return ClusterResource::collection([]);
+        }
+
         $lotIds = DB::table('burial_records')
             ->whereNull('burial_records.archived_at')
             ->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
-            ->when($search, function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('deceased_records.first_name', 'like', "%{$search}%")
-                        ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
-                });
+            ->where(function ($q) use ($search) {
+                $q->whereRaw("CONCAT_WS(' ', deceased_records.first_name, deceased_records.last_name) like ?", ["%{$search}%"])
+                    ->orWhereRaw("CONCAT_WS(' ', deceased_records.first_name, deceased_records.middle_name, deceased_records.last_name) like ?", ["%{$search}%"])
+                    ->orWhere('deceased_records.first_name', 'like', "%{$search}%")
+                    ->orWhere('deceased_records.middle_name', 'like', "%{$search}%")
+                    ->orWhere('deceased_records.last_name', 'like', "%{$search}%");
             })
             ->distinct()
             ->limit(10)
