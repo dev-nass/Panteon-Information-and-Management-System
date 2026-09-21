@@ -93,7 +93,7 @@ class DeceasedRecordFactory extends Factory
                 'prefer_not_to_say',
             ]),
 
-            'precinct_num' => $this->faker->numberBetween(1, 9999),
+            'precinct_num' => $this->faker->bothify('??-####'),
         ];
     }
 }

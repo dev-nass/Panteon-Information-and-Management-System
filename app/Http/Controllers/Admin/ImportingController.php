@@ -497,7 +497,7 @@ class ImportingController extends Controller
                 'date_of_depository' => $this->normalizer->parseDate($row[7] ?? null),
                 'cremation_date' => $this->normalizer->parseDate($row[6] ?? null),
                 'cremation_place' => $this->normalizer->normalizeAddress($row[8] ?? null),
-                'precinct_num' => is_numeric($precinctNum) ? (int) $precinctNum : null,
+                'precinct_num' => $precinctNum !== '' ? $precinctNum : null,
             ],
             'applicant' => [
                 'first_name' => $applicantName['first_name'],

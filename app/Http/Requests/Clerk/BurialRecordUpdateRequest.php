@@ -22,6 +22,10 @@ class BurialRecordUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $burialRecord = $this->route('burial_record');
+        $deceased = $burialRecord?->deceasedRecord;
+        $missingPrecinct = $deceased === null || $deceased->precinct_num === null || $deceased->precinct_num === '';
+
         return [
             'deceased.first_name' => 'required|string|max:255',
             'deceased.middle_name' => 'nullable|string|max:255',
@@ -33,7 +37,7 @@ class BurialRecordUpdateRequest extends FormRequest
             'deceased.occupation.name' => 'nullable|string|max:255',
             'deceased.address' => 'nullable|string|max:255',
             'deceased.lgbtq' => 'nullable|string|max:255',
-            'deceased.precinct_num' => 'nullable|integer',
+            'deceased.precinct_num' => $missingPrecinct ? 'nullable|string|max:255' : 'required|string|max:255',
             'deceased.death.date' => 'nullable|date',
             'deceased.death.cause' => 'nullable|string|max:255',
             'deceased.death.place' => 'nullable|string|max:255',
@@ -49,7 +53,7 @@ class BurialRecordUpdateRequest extends FormRequest
             'deceased.applicant.first_name' => 'required|string|max:255',
             'deceased.applicant.middle_name' => 'nullable|string|max:255',
             'deceased.applicant.last_name' => 'required|string|max:255',
-            'deceased.applicant.contact_number' => 'required|string|regex:/^09\d{9}$/',
+            'deceased.applicant.contact_number' => $missingPrecinct ? 'nullable|string|regex:/^09\d{9}$/' : 'required|string|regex:/^09\d{9}$/',
             'deceased.applicant.relationship' => 'nullable|string|max:255',
             'lot_id' => 'nullable|exists:lots,id',
         ];

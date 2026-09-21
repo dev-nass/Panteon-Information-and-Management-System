@@ -60,7 +60,7 @@ return new class extends Migration
                 'prefer_not_to_say',
             ])->nullable();
 
-            $table->unsignedBigInteger('precinct_num')->nullable();
+            $table->string('precinct_num')->nullable();
 
             $table->timestamps(); // created_at & updated_at
         });

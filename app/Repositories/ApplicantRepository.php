@@ -14,22 +14,35 @@ class ApplicantRepository extends Repository
 
     public function findOrCreateApplicant(array $validated): Model
     {
-        return $this->findByContactNumber($validated['applicant_contact_number'])
-            ?? $this->create([
-                'first_name' => $validated['applicant_first_name'],
-                'middle_name' => $validated['applicant_middle_name'] ?? null,
-                'last_name' => $validated['applicant_last_name'],
-                'contact_number' => $validated['applicant_contact_number'],
-                'relationship' => $validated['applicant_relationship'] ?? null,
-            ]);
+        $contactNumber = $validated['applicant_contact_number'] ?? null;
+
+        if ($contactNumber !== null && $contactNumber !== '') {
+            $existing = $this->findByContactNumber($contactNumber);
+
+            if ($existing !== null) {
+                return $existing;
+            }
+        }
+
+        return $this->create([
+            'first_name' => $validated['applicant_first_name'],
+            'middle_name' => $validated['applicant_middle_name'] ?? null,
+            'last_name' => $validated['applicant_last_name'],
+            'contact_number' => $contactNumber,
+            'relationship' => $validated['applicant_relationship'] ?? null,
+        ]);
     }
 
     /**
      * Description: Custom method for finding the applicant record based
      * on contact number
      * */
-    public function findByContactNumber(int $contactNumber, array $columns = ['*'], array|string $relations = []): ?Model
+    public function findByContactNumber(?string $contactNumber, array $columns = ['*'], array|string $relations = []): ?Model
     {
+        if ($contactNumber === null || $contactNumber === '') {
+            return null;
+        }
+
         return $this->query()
             ->with($relations)
             ->where('contact_number', $contactNumber)

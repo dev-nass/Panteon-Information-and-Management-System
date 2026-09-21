@@ -36,7 +36,7 @@ class BurialRecordStoreRequest extends FormRequest
             'occupation_name' => 'nullable|string|max:255',
             'address' => 'required|string|max:255',
             'lgbtq' => 'nullable|string|max:255',
-            'precinct_num' => 'nullable|integer',
+            'precinct_num' => 'required|string|max:255',
             'death_date' => 'required|date',
             'death_cause' => 'nullable|string|max:255',
             'death_place' => 'nullable|string|max:255',
