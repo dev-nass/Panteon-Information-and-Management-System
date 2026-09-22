@@ -40,16 +40,57 @@ const showNoDates = computed(() => {
     return reportType.value === "phase";
 });
 
-// Large range detection for PDF performance (A+B)
-const rangeDays = computed(() => {
-    if (!startDate.value || !endDate.value) return 0;
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    const diff = (end - start) / (1000 * 60 * 60 * 24);
-    return Math.ceil(diff) + 1;
-});
-const isLargeRange = computed(() => rangeDays.value > 90);
-const isPdfLargeRange = computed(() => isLargeRange.value && format.value === 'pdf' && showDateRange.value);
+// Count-based PDF guard: soft 1,000-1,500 warns, >1,500 blocks — DomPDF OOMs at ~2k+ rows
+const PDF_SOFT_LIMIT = 1000;
+const PDF_HARD_LIMIT = 1500;
+
+const recordCount = ref(null);
+const isCounting = ref(false);
+let countAbort = null;
+let countDebounceTimer = null;
+
+const isHardExceeded = computed(() => recordCount.value !== null && recordCount.value > PDF_HARD_LIMIT);
+const isSoftRange = computed(() => recordCount.value !== null && recordCount.value >= PDF_SOFT_LIMIT && recordCount.value <= PDF_HARD_LIMIT);
+const isPdfHardExceeded = computed(() => isHardExceeded.value && format.value === 'pdf' && showDateRange.value);
+const isPdfSoftRange = computed(() => isSoftRange.value && format.value === 'pdf' && showDateRange.value);
+
+const fetchRecordCount = async () => {
+    if (!showDateRange.value || !startDate.value || !endDate.value) {
+        recordCount.value = null;
+        return;
+    }
+    // Validate dates locally before request
+    const s = new Date(startDate.value);
+    const e = new Date(endDate.value);
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || s > e) {
+        recordCount.value = null;
+        return;
+    }
+    if (countAbort) countAbort.abort();
+    countAbort = new AbortController();
+    isCounting.value = true;
+    try {
+        const url = route('admin.generate_report.count', {
+            reportType: reportType.value,
+            startDate: startDate.value,
+            endDate: endDate.value,
+        });
+        const res = await fetch(url, { signal: countAbort.signal, headers: { Accept: 'application/json' } });
+        if (!res.ok) throw new Error('count failed');
+        const json = await res.json();
+        recordCount.value = json.count ?? 0;
+    } catch (err) {
+        if (err?.name !== 'AbortError') recordCount.value = null;
+    } finally {
+        isCounting.value = false;
+    }
+};
+
+const scheduleCountFetch = () => {
+    if (countDebounceTimer) clearTimeout(countDebounceTimer);
+    // debounce 400ms to avoid spamming while typing dates
+    countDebounceTimer = setTimeout(fetchRecordCount, 400);
+};
 
 // Reset date fields when report type changes
 watch(reportType, () => {
@@ -57,6 +98,16 @@ watch(reportType, () => {
     endDate.value = "";
     monthDate.value = "";
     yearDate.value = new Date().getFullYear();
+    recordCount.value = null;
+    isCounting.value = false;
+});
+
+watch([reportType, startDate, endDate], () => {
+    if (showDateRange.value && reportType.value && startDate.value && endDate.value) {
+        scheduleCountFetch();
+    } else {
+        recordCount.value = null;
+    }
 });
 
 const setDateRange = (type) => {
@@ -98,6 +149,8 @@ const resetForm = () => {
     endDate.value = "";
     monthDate.value = "";
     format.value = "pdf";
+    recordCount.value = null;
+    isCounting.value = false;
 };
 
 const openLargeRangeModal = () => {
@@ -190,8 +243,8 @@ const generateReport = () => {
         return;
     }
 
-    // B: Warn for large PDF ranges (>90 days / 5,000 records max) – Dompdf 30s limit, Excel recommended
-    if (isPdfLargeRange.value) {
+    // Count-based guard: >1,500 blocks PDF (Excel only), 1,000-1,500 is soft warning
+    if (isPdfHardExceeded.value) {
         openLargeRangeModal();
         return;
     }
@@ -449,13 +502,29 @@ const generateReport = () => {
                                     v-if="format === 'pdf' && showDateRange"
                                     class="text-xs text-gray-500 dark:text-gray-400 mt-1"
                                 >
-                                    Tip: Max for PDF is <span class="font-semibold">90 days / 5,000 records</span> — for larger ranges, Excel is faster and avoids timeouts (PDF will be blocked by server).
+                                    <span v-if="isCounting" class="italic">Checking records...</span>
+                                    <span v-else-if="recordCount !== null">Found <span class="font-semibold">{{ recordCount.toLocaleString() }} record{{ recordCount === 1 ? '' : 's' }}</span> — PDF max is <span class="font-semibold">1,500</span><span v-if="isPdfHardExceeded" class="text-red-600 dark:text-red-400 font-semibold"> (exceeds limit — Excel required)</span><span v-else-if="isPdfSoftRange" class="text-amber-600 dark:text-amber-400"> (1,000-1,500: Excel recommended)</span>.</span>
+                                    <span v-else>Tip: PDF max is <span class="font-semibold">1,500 records</span> — large results are faster as Excel (server will block PDF over limit).</span>
                                 </p>
                             </div>
 
-                            <!-- Large range warning (B) -->
+                            <!-- Count-based warnings: >1.5k hard block, 1k-1.5k soft advisory -->
                             <div
-                                v-if="isPdfLargeRange"
+                                v-if="isPdfHardExceeded"
+                                class="col-span-full flex items-start gap-3 p-4 rounded-xl border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-200 w-full min-w-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <path d="M12 8v4" />
+                                    <path d="M12 16h.01" />
+                                </svg>
+                                <div class="text-sm flex-1 min-w-0 break-words">
+                                    <p class="font-semibold break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Large result set ({{ recordCount?.toLocaleString() }} records) — exceeds max 1,500 for PDF</p>
+                                    <p class="mt-1 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">PDF is not available for this count. Server enforces <span class="font-semibold">max 1,500 records for PDF</span>. Please switch to <button type="button" @click="format='excel'" class="underline font-semibold">Excel</button> or narrow the date range.</p>
+                                </div>
+                            </div>
+                            <div
+                                v-else-if="isPdfSoftRange"
                                 class="col-span-full flex items-start gap-3 p-4 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-200 w-full min-w-0"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
@@ -464,20 +533,28 @@ const generateReport = () => {
                                     <path d="M12 16h.01" />
                                 </svg>
                                 <div class="text-sm flex-1 min-w-0 break-words">
-                                    <p class="font-semibold break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Large date range ({{ rangeDays }} days) — exceeds max 90 days / 5,000 records for PDF</p>
-                                    <p class="mt-1 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">PDF generation is not available for this range. Server enforces <span class="font-semibold">max 5,000 records for PDF</span> and will block the request. Please switch to <button type="button" @click="format='excel'" class="underline font-semibold">Excel</button> or narrow to ≤90 days.</p>
+                                    <p class="font-semibold break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Large result set ({{ recordCount?.toLocaleString() }} records) — in advisory range 1,000-1,500</p>
+                                    <p class="mt-1 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">PDF is still available but may be slow (many pages). For best performance, <button type="button" @click="format='excel'" class="underline font-semibold">Excel is recommended</button>.</p>
                                 </div>
                             </div>
                             <div
-                                v-else-if="isLargeRange && showDateRange"
+                                v-else-if="isCounting && showDateRange && startDate && endDate"
                                 class="col-span-full flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-600 dark:text-gray-300 w-full min-w-0"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <path d="M12 16v-4" />
-                                    <path d="M12 8h.01" />
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5 animate-spin">
+                                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                                 </svg>
-                                <p class="text-sm flex-1 min-w-0 break-words [overflow-wrap:break-word] whitespace-normal leading-snug">Range is {{ rangeDays }} days (max 90 days / 5,000 records for PDF). For best performance with large data, Excel is recommended.</p>
+                                <p class="text-sm flex-1 min-w-0">Checking records for selected dates...</p>
+                            </div>
+                            <div
+                                v-else-if="recordCount !== null && showDateRange && !isPdfHardExceeded && !isPdfSoftRange"
+                                class="col-span-full flex items-start gap-3 p-3 rounded-xl border border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 w-full min-w-0"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="shrink-0 mt-0.5">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <path d="M22 4L12 14.01l-3-3" />
+                                </svg>
+                                <p class="text-sm flex-1 min-w-0">{{ recordCount.toLocaleString() }} record{{ recordCount === 1 ? '' : 's' }} found — PDF ready.</p>
                             </div>
                         </div>
 
@@ -535,7 +612,7 @@ const generateReport = () => {
 
                     <div class="p-10 flex flex-col items-center gap-y-4 text-center">
                         <div
-                            class="flex items-center justify-center size-14 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            class="flex items-center justify-center size-14 rounded-full bg-red-500/10 text-red-600 dark:text-red-400"
                         >
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -556,23 +633,23 @@ const generateReport = () => {
 
                         <h3
                             id="pdf-large-range-modal-label"
-                            class="-mt-2 text-2xl font-bold text-amber-600 dark:text-amber-400"
+                            class="-mt-2 text-2xl font-bold text-red-600 dark:text-red-400"
                         >
-                            Large Date Range
+                            Too Many Records for PDF
                         </h3>
 
                         <div class="text-gray-600 dark:text-neutral-300 max-w-sm space-y-2">
                             <p>
-                                The selected range is
-                                <span class="font-semibold text-gray-900 dark:text-white">{{ rangeDays }} days</span>
-                                (max for PDF is <span class="font-semibold">90 days / 5,000 records</span>).
+                                The selected range contains
+                                <span class="font-semibold text-gray-900 dark:text-white">{{ recordCount?.toLocaleString() ?? '—' }} records</span>
+                                (PDF max is <span class="font-semibold">1,500</span>).
                             </p>
                             <p>
-                                PDF generation may exceed 30 seconds and fail. Server enforces
-                                <span class="font-semibold">max 5,000 records for PDF</span> and will block the request.
+                                PDF generation would exceed limits and will be blocked by the server
+                                (<span class="font-semibold">max 1,500 records</span>).
                             </p>
                             <p class="font-medium text-amber-700 dark:text-amber-300">
-                                It is strongly recommended to use Excel for large ranges.
+                                Please use Excel for this range or narrow the dates to reduce the count.
                             </p>
                         </div>
                     </div>

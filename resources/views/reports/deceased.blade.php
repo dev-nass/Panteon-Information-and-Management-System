@@ -11,9 +11,7 @@
     <thead>
         <tr>
             <th>Seq. No</th>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Last Name</th>
+            <th>Full Name</th>
             <th>Date of Burial</th>
             <th>Address</th>
             <th>Applicant</th>
@@ -23,12 +21,10 @@
         @foreach($data as $index => $deceased)
         <tr>
             <td>{{ $index + 1 }}</td>
-            <td>{{ $deceased->first_name }}</td>
-            <td>{{ $deceased->middle_name }}</td>
-            <td>{{ $deceased->last_name }}</td>
+            <td>{{ trim($deceased->first_name.' '.($deceased->middle_name ? $deceased->middle_name.' ' : '').$deceased->last_name) }}</td>
             <td>{{ \Carbon\Carbon::parse($deceased->date_of_depository)->format('F d, Y') }}</td>
             <td>{{ $deceased->address ?? $deceased->place_of_death ?? $deceased->company_address ?? 'N/A' }}</td>
-            <td>{{ $deceased->applicant ? $deceased->applicant->first_name . ' ' . $deceased->applicant->last_name : 'N/A' }}</td>
+            <td>{{ $deceased->applicant ? $deceased->applicant->first_name.' '.$deceased->applicant->last_name : 'N/A' }}</td>
         </tr>
         @endforeach
     </tbody>

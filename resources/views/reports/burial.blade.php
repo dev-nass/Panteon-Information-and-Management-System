@@ -23,12 +23,12 @@
         @foreach($data as $index => $burial)
         <tr>
             <td>{{ $index + 1 }}</td>
-            <td>{{ $burial->deceasedRecord->first_name }} {{ $burial->deceasedRecord->last_name }}</td>
-            <td>{{ \Carbon\Carbon::parse($burial->deceasedRecord->date_of_depository)->format('F d, Y') }}</td>
-            <td>{{ $burial->lot && $burial->lot->cluster && $burial->lot->cluster->phase ? $burial->lot->cluster->phase->phase_name : 'N/A' }}</td>
-            <td>{{ $burial->lot && $burial->lot->cluster ? $burial->lot->cluster->cluster_name : 'N/A' }}</td>
+            <td>{{ $burial->deceasedRecord?->first_name ?? 'N/A' }} {{ $burial->deceasedRecord?->last_name ?? '' }}</td>
+            <td>{{ $burial->deceasedRecord?->date_of_depository ? \Carbon\Carbon::parse($burial->deceasedRecord->date_of_depository)->format('F d, Y') : 'N/A' }}</td>
+            <td>{{ $burial->lot?->cluster?->phase?->phase_name ?? 'N/A' }}</td>
+            <td>{{ $burial->lot?->cluster?->cluster_name ?? 'N/A' }}</td>
             <td>{{ $burial->lot ? $burial->lot->column . $burial->lot->row : 'N/A' }}</td>
-            <td>{{ $burial->deceasedRecord->address ?? $burial->deceasedRecord->place_of_death ?? $burial->deceasedRecord->company_address ?? 'N/A' }}</td>
+            <td>{{ $burial->deceasedRecord?->address ?? $burial->deceasedRecord?->place_of_death ?? $burial->deceasedRecord?->company_address ?? 'N/A' }}</td>
         </tr>
         @endforeach
     </tbody>

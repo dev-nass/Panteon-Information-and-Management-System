@@ -10,13 +10,37 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-use Rap2hpoutre\FastExcel\FastExcel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class GenerateReportController extends Controller
 {
+    private const PDF_HARD_LIMIT = 1500;
+
+    private const PDF_SOFT_LIMIT = 1000;
+
     public function index()
     {
         return Inertia::render('Admin/GenerateReport/IndexView');
+    }
+
+    public function count(Request $request)
+    {
+        $request->validate([
+            'reportType' => 'required|in:burial,deceased',
+            'startDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:startDate',
+        ]);
+
+        $count = $this->getReportCount($request->reportType, $request->startDate, $request->endDate);
+
+        return response()->json([
+            'count' => $count,
+            'softLimit' => self::PDF_SOFT_LIMIT,
+            'hardLimit' => self::PDF_HARD_LIMIT,
+            'exceedsHard' => $count > self::PDF_HARD_LIMIT,
+            'inSoftRange' => $count >= self::PDF_SOFT_LIMIT && $count <= self::PDF_HARD_LIMIT,
+        ]);
     }
 
     public function generate(Request $request)
@@ -87,25 +111,31 @@ class GenerateReportController extends Controller
         $startDate = $request->startDate;
         $endDate = $request->endDate;
 
-        // A+B: Guard large PDF ranges (>5000 records) and raise limits for heavy reports
+        // Guard large PDF ranges by actual record count (>1500 blocks, 1000-1500 warns) — DomPDF OOMs at ~2000+ rows
         if ($format === 'pdf' && in_array($reportType, ['burial', 'deceased'])) {
             $count = $this->getReportCount($reportType, $startDate, $endDate);
-            if ($count > 5000) {
-                return back()->with('error', "PDF generation is limited to 5,000 records for performance ({$count} records found). Please use Excel format or narrow the date range.");
+            if ($count > self::PDF_HARD_LIMIT) {
+                return back()->with('error', 'PDF generation is limited to '.number_format(self::PDF_HARD_LIMIT)." records for performance ({$count} records found). Please use Excel format or narrow the date range.");
             }
-            set_time_limit(120);
-            ini_set('memory_limit', '512M');
-            ini_set('max_execution_time', '120');
+            set_time_limit(180);
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '180');
         } elseif ($format === 'excel' && in_array($reportType, ['burial', 'deceased'])) {
             // Excel handles large sets better but still needs headroom
-            set_time_limit(120);
-            ini_set('memory_limit', '512M');
+            set_time_limit(180);
+            ini_set('memory_limit', '1024M');
         }
 
         $data = $this->getReportData($reportType, $startDate, $endDate);
 
         if ($format === 'pdf') {
-            return $this->generatePDF($reportType, $data, $startDate, $endDate);
+            try {
+                return $this->generatePDF($reportType, $data, $startDate, $endDate);
+            } catch (\Throwable $e) {
+                report($e);
+
+                return back()->with('error', 'PDF generation failed ('.$e->getMessage().'). The selected range is too large for PDF. Please use Excel or narrow the date range.');
+            }
         }
 
         return $this->generateExcel($reportType, $data, $startDate, $endDate);
@@ -241,7 +271,7 @@ class GenerateReportController extends Controller
             $exportData->push(['Month' => $month['month_name'], 'Count' => $month['count']]);
         }
 
-        return (new FastExcel($exportData))->download($filename);
+        return $this->downloadProtectedExcel($exportData, $filename);
     }
 
     private function getPhaseAvailabilityData()
@@ -275,13 +305,14 @@ class GenerateReportController extends Controller
 
     private function generatePDF($reportType, $data, $startDate, $endDate)
     {
-        set_time_limit(120);
-        ini_set('memory_limit', '512M');
+        set_time_limit(180);
+        ini_set('memory_limit', '1024M');
         $pdf = Pdf::loadView('reports.'.$reportType, [
             'data' => $data,
             'startDate' => $startDate,
             'endDate' => $endDate,
         ]);
+        $pdf->setPaper('a4', 'portrait');
 
         $filename = $reportType.'_report_'.date('Y-m-d').'.pdf';
 
@@ -340,12 +371,12 @@ class GenerateReportController extends Controller
             foreach ($data as $index => $burial) {
                 $exportData->push([
                     'Seq. No' => $index + 1,
-                    'Deceased Name' => $burial->deceasedRecord->first_name.' '.$burial->deceasedRecord->last_name,
-                    'Date of Burial' => $burial->deceasedRecord->date_of_depository,
-                    'Phase' => $burial->lot && $burial->lot->cluster && $burial->lot->cluster->phase ? $burial->lot->cluster->phase->phase_name : 'N/A',
-                    'Cluster' => $burial->lot && $burial->lot->cluster ? $burial->lot->cluster->cluster_name : 'N/A',
+                    'Deceased Name' => trim(($burial->deceasedRecord?->first_name ?? 'N/A').' '.($burial->deceasedRecord?->last_name ?? '')),
+                    'Date of Burial' => $burial->deceasedRecord?->date_of_depository ?? 'N/A',
+                    'Phase' => $burial->lot?->cluster?->phase?->phase_name ?? 'N/A',
+                    'Cluster' => $burial->lot?->cluster?->cluster_name ?? 'N/A',
                     'Lot' => $burial->lot ? $burial->lot->column.$burial->lot->row : 'N/A',
-                    'Address' => $burial->deceasedRecord->address ?? $burial->deceasedRecord->place_of_death ?? $burial->deceasedRecord->company_address ?? 'N/A',
+                    'Address' => $burial->deceasedRecord?->address ?? $burial->deceasedRecord?->place_of_death ?? $burial->deceasedRecord?->company_address ?? 'N/A',
                 ]);
             }
         } elseif ($reportType === 'deceased') {
@@ -362,6 +393,7 @@ class GenerateReportController extends Controller
 
             foreach ($data as $index => $deceased) {
                 $fullName = trim($deceased->first_name.' '.($deceased->middle_name ?? '').' '.$deceased->last_name);
+                $fullName = preg_replace('/\s+/', ' ', $fullName);
                 $exportData->push([
                     'Seq. No' => $index + 1,
                     'Full Name' => $fullName,
@@ -372,7 +404,7 @@ class GenerateReportController extends Controller
             }
         }
 
-        return (new FastExcel($exportData))->download($filename);
+        return $this->downloadProtectedExcel($exportData, $filename);
     }
 
     private function generateMonthlySummaryExcel($data, $monthDate)
@@ -396,7 +428,7 @@ class GenerateReportController extends Controller
             $exportData->push(['Day' => $day->day, 'Count' => $day->count]);
         }
 
-        return (new FastExcel($exportData))->download($filename);
+        return $this->downloadProtectedExcel($exportData, $filename);
     }
 
     private function generatePhaseExcel($data)
@@ -404,11 +436,6 @@ class GenerateReportController extends Controller
         $filename = 'phase_availability_'.date('Y-m-d').'.xlsx';
 
         $exportData = collect([]);
-        $exportData->push([
-            'Report Type' => 'Phase Availability Report',
-            'Generated' => date('Y-m-d H:i:s'),
-        ]);
-        $exportData->push([]);
         $exportData->push([
             'Phase Name' => 'Phase Name',
             'Total Clusters' => 'Total Clusters',
@@ -429,6 +456,74 @@ class GenerateReportController extends Controller
             ]);
         }
 
-        return (new FastExcel($exportData))->download($filename);
+        // Prepend meta rows for protected sheet (keep consistent with other reports)
+        $meta = collect([]);
+        $meta->push([
+            'Report Type' => 'Phase Availability Report',
+            'Generated' => date('Y-m-d H:i:s'),
+        ]);
+        $meta->push([]);
+        foreach ($exportData as $row) {
+            $meta->push($row);
+        }
+
+        return $this->downloadProtectedExcel($meta, $filename);
+    }
+
+    /**
+     * Build a sheet-protected XLSX (read-only) download.
+     * Sheet is locked with password; user can view but must unprotect to edit.
+     */
+    private function downloadProtectedExcel($exportData, string $filename)
+    {
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle(substr(pathinfo($filename, PATHINFO_FILENAME), 0, 31));
+
+        $rowNum = 1;
+        foreach ($exportData as $row) {
+            // $row may be Collection row, array, or empty array
+            $values = is_array($row) ? array_values($row) : (is_object($row) ? array_values((array) $row) : []);
+            if (empty($values)) {
+                $rowNum++;
+
+                continue;
+            }
+            $colNum = 1;
+            foreach ($values as $value) {
+                $sheet->setCellValue([$colNum, $rowNum], $value);
+                $colNum++;
+            }
+            $rowNum++;
+        }
+
+        // Auto-size columns for readability
+        $highestColumn = $sheet->getHighestColumn();
+        foreach (range('A', $highestColumn) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Sheet protection: read-only (password: Panteon2026)
+        $sheet->getProtection()->setPassword('Panteon2026');
+        $sheet->getProtection()->setSheet(true);
+        $sheet->getProtection()->setSort(true);
+        $sheet->getProtection()->setInsertRows(true);
+        $sheet->getProtection()->setInsertColumns(true);
+        $sheet->getProtection()->setFormatCells(true);
+        $sheet->getProtection()->setSelectLockedCells(true);
+        $sheet->getProtection()->setSelectUnlockedCells(true);
+
+        // Also set workbook security (read-only recommended flag)
+        $spreadsheet->getSecurity()->setLockWindows(false);
+        $spreadsheet->getSecurity()->setLockStructure(false);
+
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

@@ -174,12 +174,8 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'contact_number' => 'required|string|max:20',
-            'role' => 'required|in:clerk,head,admin',
+            'role' => 'required|in:clerk,admin',
         ]);
 
         if ($user->id === $request->user()->id && $user->role !== $validated['role']) {
@@ -187,11 +183,11 @@ class UserManagementController extends Controller
         }
 
         $name = "{$user->first_name} {$user->last_name}";
-        $oldValues = $user->only(['first_name', 'middle_name', 'last_name', 'email', 'contact_number', 'role']);
+        $oldValues = $user->only(['contact_number', 'role']);
 
         $user->update($validated);
 
-        $newValues = $user->only(['first_name', 'middle_name', 'last_name', 'email', 'contact_number', 'role']);
+        $newValues = $user->only(['contact_number', 'role']);
 
         if ($oldValues['role'] !== $newValues['role']) {
             $this->logActivity(

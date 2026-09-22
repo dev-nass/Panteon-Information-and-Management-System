@@ -29,6 +29,7 @@ Route::prefix('admin')
 
         Route::controller(GenerateReportController::class)->group(function () {
             Route::get('/generate-report', 'index')->name('generate_report.index');
+            Route::get('/generate-report/count', 'count')->name('generate_report.count');
             Route::get('/generate-report/download', 'generate')->name('generate_report.generate');
         });
 

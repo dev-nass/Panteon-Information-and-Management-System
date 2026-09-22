@@ -215,11 +215,9 @@ defineOptions({
                                                 ? "Terminated"
                                                 : filters.filter === "clerk"
                                                   ? "Clerk"
-                                                  : filters.filter === "head"
-                                                    ? "Head"
-                                                    : filters.filter === "admin"
-                                                      ? "Admin"
-                                                      : "All"
+                                                  : filters.filter === "admin"
+                                                    ? "Admin"
+                                                    : "All"
                                         }}
                                     </span>
                                 </Button>
@@ -273,27 +271,6 @@ defineOptions({
                                             <span
                                                 class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
                                                 >Admin</span
-                                            >
-                                        </label>
-
-                                        <label
-                                            for="filter-head"
-                                            class="flex items-center py-2.5 px-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-neutral-800"
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="filter"
-                                                value="head"
-                                                class="shrink-0 size-4 bg-transparent border-gray-300 dark:border-neutral-600 rounded-full shadow-2xs text-green-600 dark:text-green-500 focus:ring-0 focus:ring-offset-0 checked:bg-green-600 dark:checked:bg-green-500 checked:border-green-600 dark:checked:border-green-500"
-                                                id="filter-head"
-                                                :checked="
-                                                    filters.filter === 'head'
-                                                "
-                                                @change="applyFilter('head')"
-                                            />
-                                            <span
-                                                class="ms-3 text-sm text-gray-800 dark:text-neutral-200"
-                                                >Head</span
                                             >
                                         </label>
 
@@ -415,10 +392,10 @@ defineOptions({
                                         :class="{
                                             'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500':
                                                 user.role === 'admin',
-                                            'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
-                                                user.role === 'head',
                                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
                                                 user.role === 'clerk',
+                                            'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
+                                                user.role === 'head',
                                         }"
                                     >
                                         {{ user.role }}

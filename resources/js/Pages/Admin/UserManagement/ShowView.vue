@@ -247,10 +247,6 @@ const saveChanges = () => {
     router.post(
         route("admin.user_management.update", localData.value.id),
         {
-            first_name: localData.value.first_name,
-            middle_name: localData.value.middle_name,
-            last_name: localData.value.last_name,
-            email: localData.value.email,
             contact_number: localData.value.contact_number,
             role: localData.value.role,
         },
@@ -960,48 +956,27 @@ defineOptions({
                 <Display
                     label="First Name"
                     :modelValue="localData.first_name"
-                    :editing="editing"
-                    :error="errors.first_name"
-                    @update:modelValue="(val) => (localData.first_name = val)"
+                    :editing="false"
                 />
 
                 <Display
                     label="Middle Name"
                     :modelValue="localData.middle_name"
-                    :editing="editing"
-                    :error="errors.middle_name"
-                    @update:modelValue="(val) => (localData.middle_name = val)"
+                    :editing="false"
                 />
 
                 <Display
                     label="Last Name"
                     :modelValue="localData.last_name"
-                    :editing="editing"
-                    :error="errors.last_name"
-                    @update:modelValue="(val) => (localData.last_name = val)"
+                    :editing="false"
                 />
 
                 <div>
                     <label class="text-sm text-gray-500 dark:text-gray-400">
                         Email
                     </label>
-                    <input
-                        type="email"
-                        :value="localData.email"
-                        @input="(e) => (localData.email = e.target.value)"
-                        :disabled="!editing"
-                        placeholder="—"
-                        :class="{
-                            'border-red-500 focus:ring-red-500':
-                                editing && errors.email,
-                        }"
-                        class="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white px-3 py-2 text-sm transition disabled:border-none disabled:bg-white disabled:dark:bg-neutral-900 disabled:dark:text-gray-200 disabled:hover:text-green-600 disabled:hover:dark:text-green-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    />
-                    <p
-                        v-if="editing && errors.email"
-                        class="mt-1 text-sm text-red-500"
-                    >
-                        {{ errors.email }}
+                    <p class="mt-1 text-sm text-gray-800 dark:text-gray-200">
+                        {{ localData.email || "—" }}
                     </p>
                 </div>
 
@@ -1068,7 +1043,6 @@ defineOptions({
                         class="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     >
                         <option value="clerk">Clerk</option>
-                        <option value="head">Head</option>
                         <option value="admin">Admin</option>
                     </select>
                     <div v-else class="mt-1.5">
@@ -1077,10 +1051,10 @@ defineOptions({
                             :class="{
                                 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500':
                                     localData.role === 'admin',
-                                'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
-                                    localData.role === 'head',
                                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
                                     localData.role === 'clerk',
+                                'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
+                                    localData.role === 'head',
                             }"
                         >
                             {{ localData.role }}
