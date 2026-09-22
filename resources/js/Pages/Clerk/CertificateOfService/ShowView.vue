@@ -27,8 +27,12 @@ const form = ref({
     relationship: props.prefilled.relationship ?? "",
 });
 
-const templateId = ref(null);
+const templateId = ref(
+    props.templates.length === 1 ? props.templates[0].id : null,
+);
 const errors = ref({});
+
+const hasTemplates = computed(() => props.templates.length > 0);
 
 const requiredFields = computed(() => {
     const fields = [
@@ -68,6 +72,16 @@ const goBack = () => {
 
 const generate = async () => {
     errors.value = {};
+
+    if (!hasTemplates.value) {
+        errors.value.template_id =
+            "No certificate template available. Please upload a template first.";
+        return;
+    }
+
+    if (!templateId.value) {
+        errors.value.template_id = "Please select a certificate template.";
+    }
 
     for (const field of requiredFields.value) {
         if (!form.value[field]) {
@@ -146,12 +160,38 @@ defineOptions({ layout: Dashboard });
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
                         Certificate Template
+                        <span class="text-red-400">*</span>
                     </label>
+                    <div
+                        v-if="!hasTemplates"
+                        class="mb-2 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 px-3 py-2.5 text-sm text-amber-800 dark:text-amber-300"
+                    >
+                        No certificate template available. Please upload a
+                        template in
+                        <a
+                            :href="route('clerk.certificate_templates.index')"
+                            class="font-semibold underline hover:text-amber-900 dark:hover:text-amber-200"
+                            >Certificate Templates</a
+                        >
+                        before generating a certificate.
+                    </div>
                     <select
                         v-model="templateId"
-                        class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none"
+                        :disabled="!hasTemplates"
+                        :class="{
+                            'border-red-500 focus:border-red-500 focus:ring-red-500':
+                                errors.template_id,
+                            'opacity-60 cursor-not-allowed': !hasTemplates,
+                        }"
+                        class="w-full px-3 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 focus:border-green-500 focus:ring-2 focus:ring-green-500 outline-none disabled:opacity-60"
                     >
-                        <option :value="null">Plain (text-only PDF)</option>
+                        <option :value="null" disabled>
+                            {{
+                                hasTemplates
+                                    ? "Select a template"
+                                    : "No templates available"
+                            }}
+                        </option>
                         <option
                             v-for="template in templates"
                             :key="template.id"
@@ -160,9 +200,12 @@ defineOptions({ layout: Dashboard });
                             {{ template.name }}
                         </option>
                     </select>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                        Choose an uploaded template to use as the background, or
-                        keep "Plain" for no background.
+                    <p
+                        v-if="hasTemplates"
+                        class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+                    >
+                        Select the uploaded template to use as the background
+                        for the certificate.
                     </p>
                     <span
                         v-if="errors.template_id"
@@ -360,7 +403,16 @@ defineOptions({ layout: Dashboard });
                     <Button
                         type="button"
                         @click="generate"
-                        class="bg-green-500/10 text-green-400 hover:bg-green-500/20"
+                        :disabled="!hasTemplates"
+                        :class="{
+                            'opacity-50 cursor-not-allowed': !hasTemplates,
+                        }"
+                        class="bg-green-500/10 text-green-400 hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        :title="
+                            !hasTemplates
+                                ? 'No template available — generation disabled'
+                                : ''
+                        "
                     >
                         Generate PDF
                     </Button>

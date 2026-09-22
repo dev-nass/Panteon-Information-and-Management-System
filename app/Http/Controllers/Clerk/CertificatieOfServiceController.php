@@ -73,7 +73,7 @@ class CertificatieOfServiceController extends Controller
             'applicant_name' => 'required|string|max:255',
             'applicant_address' => 'required|string|max:255',
             'relationship' => 'required|string|max:255',
-            'template_id' => 'nullable|integer|exists:certificate_templates,id',
+            'template_id' => 'required|integer|exists:certificate_templates,id',
         ]);
 
         $viewName = $isColumbarium
@@ -84,23 +84,9 @@ class CertificatieOfServiceController extends Controller
             'data' => $data,
         ])->output();
 
-        $description = "Generated certificate of service for {$data['deceased_name']}";
-
-        if (! empty($data['template_id'])) {
-            $templateName = CertificateTemplate::find($data['template_id'])?->name;
-            $description .= " using template \"{$templateName}\"";
-        }
-
-        if (empty($data['template_id'])) {
-            $this->logActivity('generated', $burial_record, $description);
-
-            return response($contentPdf, 200, [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="certificate_of_service_'.$burial_record->id.'.pdf"',
-            ]);
-        }
-
         $template = CertificateTemplate::findOrFail($data['template_id']);
+        $templateName = $template->name;
+        $description = "Generated certificate of service for {$data['deceased_name']} using template \"{$templateName}\"";
         $templatePath = $this->downgradePdf(Storage::disk('local')->path($template->file_path));
 
         // Write DomPDF output to a temp file so FPDI can import it
