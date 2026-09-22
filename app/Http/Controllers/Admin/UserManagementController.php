@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\UserReinstateRequest;
 use App\Http\Requests\Admin\UserTerminateRequest;
 use App\Http\Requests\BurialRecordIndexRequest;
 use App\Http\Resources\BurialRecordResource;
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\BurialRecordService;
 use App\Services\UserManagementService;
@@ -167,10 +168,32 @@ class UserManagementController extends Controller
             $user->id,
         );
 
+        $statusHistory = ActivityLog::where('subject_type', User::class)
+            ->where('subject_id', $user->id)
+            ->whereIn('action', ['terminated', 'reinstated'])
+            ->with('user:id,first_name,middle_name,last_name,email')
+            ->latest()
+            ->get()
+            ->map(function (ActivityLog $log) {
+                return [
+                    'id' => $log->id,
+                    'action' => $log->action,
+                    'description' => $log->description,
+                    'properties' => $log->properties,
+                    'created_at' => $log->created_at?->toISOString(),
+                    'actor' => $log->user ? [
+                        'id' => $log->user->id,
+                        'full_name' => trim("{$log->user->first_name} {$log->user->middle_name} {$log->user->last_name}"),
+                        'email' => $log->user->email,
+                    ] : null,
+                ];
+            });
+
         return Inertia::render('Admin/UserManagement/ShowView', [
             'user_data' => $user,
             'burial_records' => BurialRecordResource::collection($burialRecords),
             'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
+            'status_history' => $statusHistory,
         ]);
     }
 

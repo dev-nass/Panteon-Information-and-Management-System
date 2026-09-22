@@ -13,6 +13,7 @@ const props = defineProps({
     user_data: { type: Object, required: true },
     burial_records: { type: Object, default: () => ({ data: [], meta: {} }) },
     filters: { type: Object, default: () => ({}) },
+    status_history: { type: Array, default: () => [] },
 });
 
 const page = usePage();
@@ -34,6 +35,7 @@ const tabs = [
     { key: "profile", label: "Profile" },
     { key: "account", label: "Account" },
     { key: "records", label: "Records" },
+    { key: "history", label: "History" },
 ];
 
 const switchTab = (tabKey) => {
@@ -1415,6 +1417,145 @@ defineOptions({
                             </template>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div v-if="activeTab === 'history'" class="space-y-6">
+                <!-- Current Status Summary -->
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-500 dark:text-gray-400">Current Status:</span>
+                    <span
+                        v-if="isTerminated"
+                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-500"
+                    >Terminated</span>
+                    <span
+                        v-else-if="reinstated?.at"
+                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-500"
+                    >Active (Reinstated)</span>
+                    <span
+                        v-else
+                        class="inline-flex items-center gap-x-1.5 py-1.5 px-3 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-neutral-700 dark:text-neutral-300"
+                    >Active</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Termination Details -->
+                    <div class="rounded-xl border border-amber-200 bg-amber-50/50 dark:bg-amber-900/10 dark:border-amber-800 p-5 space-y-3">
+                        <div class="flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                            <h3 class="text-sm font-semibold">Termination Details</h3>
+                        </div>
+
+                        <template v-if="terminated?.at">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">Date</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ formatTerminatedDate(terminated.at) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">Reason</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ mapReason(terminated.reason) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">By</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ terminated.by?.full_name || '—' }}</span>
+                                </div>
+                                <div v-if="terminated.by?.email" class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">By Email</span>
+                                    <span class="font-medium text-gray-900 dark:text-white text-xs">{{ terminated.by.email }}</span>
+                                </div>
+                            </div>
+                            <div v-if="terminated.notes" class="rounded-lg bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+                                <p class="text-xs font-medium text-amber-700 dark:text-amber-400 mb-1">Notes</p>
+                                {{ terminated.notes }}
+                            </div>
+                            <div v-else class="text-xs text-gray-400 dark:text-neutral-500 italic">No notes provided.</div>
+                        </template>
+                        <template v-else>
+                            <p class="text-sm text-gray-500 dark:text-neutral-400">No termination record. User has never been terminated.</p>
+                        </template>
+                    </div>
+
+                    <!-- Reinstatement Details -->
+                    <div class="rounded-xl border border-green-200 bg-green-50/50 dark:bg-green-900/10 dark:border-green-800 p-5 space-y-3">
+                        <div class="flex items-center gap-2 text-green-700 dark:text-green-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            <h3 class="text-sm font-semibold">Reinstatement Details</h3>
+                        </div>
+
+                        <template v-if="reinstated?.at">
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">Date</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ formatTerminatedDate(reinstated.at) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">Reason</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ mapReinstateReason(reinstated.reason) }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">By</span>
+                                    <span class="font-medium text-gray-900 dark:text-white">{{ reinstated.by?.full_name || '—' }}</span>
+                                </div>
+                                <div v-if="reinstated.by?.email" class="flex justify-between">
+                                    <span class="text-gray-500 dark:text-neutral-400">By Email</span>
+                                    <span class="font-medium text-gray-900 dark:text-white text-xs">{{ reinstated.by.email }}</span>
+                                </div>
+                            </div>
+                            <div v-if="reinstated.notes" class="rounded-lg bg-white dark:bg-neutral-800 border border-green-200 dark:border-green-800 px-3 py-2 text-sm text-green-900 dark:text-green-200">
+                                <p class="text-xs font-medium text-green-700 dark:text-green-400 mb-1">Notes</p>
+                                {{ reinstated.notes }}
+                            </div>
+                            <div v-else class="text-xs text-gray-400 dark:text-neutral-500 italic">No notes provided.</div>
+                        </template>
+                        <template v-else>
+                            <p class="text-sm text-gray-500 dark:text-neutral-400">No reinstatement record.</p>
+                            <p v-if="isTerminated" class="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">User is currently terminated. Reinstatement details will appear after reactivation.</p>
+                        </template>
+                    </div>
+                </div>
+
+                <div v-if="status_history.length > 0" class="rounded-xl border border-gray-200 dark:border-neutral-700 p-5">
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Status Timeline</h3>
+                    <div class="relative">
+                        <div class="absolute left-2 top-0 bottom-0 w-px bg-gray-200 dark:bg-neutral-700"></div>
+                        <div v-for="entry in status_history" :key="entry.id" class="relative flex gap-4 pb-6 last:pb-0">
+                            <div
+                                class="relative z-10 flex items-center justify-center size-4 rounded-full mt-1 shrink-0"
+                                :class="entry.action === 'terminated' ? 'bg-amber-500' : 'bg-green-500'"
+                            ></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span
+                                        class="inline-flex items-center gap-x-1.5 py-1 px-2.5 rounded-full text-xs font-medium capitalize"
+                                        :class="entry.action === 'terminated' ? 'bg-amber-100 text-amber-800 dark:bg-amber-800/30 dark:text-amber-400' : 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400'"
+                                    >{{ entry.action }}</span>
+                                    <span class="text-xs text-gray-500 dark:text-neutral-400">{{ formatTerminatedDate(entry.created_at) }}</span>
+                                    <span v-if="entry.actor" class="text-xs text-gray-500 dark:text-neutral-400">by {{ entry.actor.full_name }}</span>
+                                </div>
+                                <p class="mt-1 text-sm text-gray-700 dark:text-neutral-300">{{ entry.description }}</p>
+                                <div v-if="entry.properties?.new" class="mt-2 rounded-lg bg-gray-50 dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 px-3 py-2 text-xs space-y-1">
+                                    <div v-if="entry.properties.new.terminated_reason" class="flex justify-between">
+                                        <span class="text-gray-500 dark:text-neutral-400">Reason</span>
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ mapReason(entry.properties.new.terminated_reason) }}</span>
+                                    </div>
+                                    <div v-if="entry.properties.new.reinstated_reason" class="flex justify-between">
+                                        <span class="text-gray-500 dark:text-neutral-400">Reason</span>
+                                        <span class="font-medium text-gray-900 dark:text-white">{{ mapReinstateReason(entry.properties.new.reinstated_reason) }}</span>
+                                    </div>
+                                    <div v-if="entry.properties.new.terminated_notes || entry.properties.new.reinstated_notes" class="pt-1">
+                                        <span class="text-gray-500 dark:text-neutral-400">Notes:</span>
+                                        <p class="mt-1 text-gray-700 dark:text-neutral-300">{{ entry.properties.new.terminated_notes || entry.properties.new.reinstated_notes }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="!terminated?.at && !reinstated?.at && status_history.length === 0" class="text-center py-8 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700">
+                    <p class="text-sm text-gray-500 dark:text-neutral-400">No status history for this account.</p>
                 </div>
             </div>
         </div>
