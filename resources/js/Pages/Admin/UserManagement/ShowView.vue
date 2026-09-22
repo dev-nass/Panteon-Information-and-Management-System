@@ -63,9 +63,13 @@ watch(
 
 const isTerminated = computed(() => !!props.user_data.is_terminated);
 const terminated = computed(() => props.user_data.terminated);
+const reinstated = computed(() => props.user_data.reinstated);
 const terminateForm = ref({ terminated_reason: "", terminated_notes: "" });
 const terminateClientErrors = ref({ terminated_reason: "", terminated_notes: "" });
 const terminateServerErrors = ref({ terminated_reason: "", terminated_notes: "" });
+const reinstateForm = ref({ reinstated_reason: "", reinstated_notes: "" });
+const reinstateClientErrors = ref({ reinstated_reason: "", reinstated_notes: "" });
+const reinstateServerErrors = ref({ reinstated_reason: "", reinstated_notes: "" });
 
 watch(isTerminated, (val) => {
     if (val) editing.value = false;
@@ -78,6 +82,17 @@ const mapReason = (reason) => {
         terminated: "Terminated",
         end_of_contract: "End of Contract",
         transferred: "Transferred",
+        other: "Other",
+    };
+    return map[reason] || reason;
+};
+
+const mapReinstateReason = (reason) => {
+    const map = {
+        rehired: "Rehired",
+        contract_renewed: "Contract Renewed",
+        error_correction: "Error Correction",
+        appeal_approved: "Appeal Approved",
         other: "Other",
     };
     return map[reason] || reason;
@@ -191,6 +206,8 @@ const terminateUser = () => {
 };
 
 const openReinstateModal = () => {
+    reinstateClientErrors.value = { reinstated_reason: "", reinstated_notes: "" };
+    reinstateServerErrors.value = { reinstated_reason: "", reinstated_notes: "" };
     const el = document.getElementById("reinstate-modal");
     if (typeof HSOverlay !== "undefined" && el) {
         try {
@@ -208,21 +225,48 @@ const openReinstateModal = () => {
 const closeReinstateModal = () => {
     const el = document.getElementById("reinstate-modal");
     closeTerminateOverlay(el);
+    reinstateForm.value = { reinstated_reason: "", reinstated_notes: "" };
+    reinstateClientErrors.value = { reinstated_reason: "", reinstated_notes: "" };
+    reinstateServerErrors.value = { reinstated_reason: "", reinstated_notes: "" };
 };
 
 const reinstateUser = () => {
+    reinstateClientErrors.value = { reinstated_reason: "", reinstated_notes: "" };
+    let hasError = false;
+
+    if (!reinstateForm.value.reinstated_reason) {
+        reinstateClientErrors.value.reinstated_reason = "Please select a reinstatement reason.";
+        $toast.error("Please select a reinstatement reason.");
+        hasError = true;
+    }
+    if (reinstateForm.value.reinstated_reason === "other" && !reinstateForm.value.reinstated_notes?.trim()) {
+        reinstateClientErrors.value.reinstated_notes = "Please provide details for 'Other' reason.";
+        $toast.error("Please provide details for 'Other' reason.");
+        hasError = true;
+    }
+
+    if (hasError) return;
+
     router.post(
         route("admin.user_management.reinstate", props.user_data.id),
-        {},
+        {
+            reinstated_reason: reinstateForm.value.reinstated_reason,
+            reinstated_notes: reinstateForm.value.reinstated_notes,
+        },
         {
             preserveScroll: true,
             onSuccess: () => {
                 $toast.success("User reinstated successfully!");
                 const el = document.getElementById("reinstate-modal");
                 closeTerminateOverlay(el);
+                reinstateForm.value = { reinstated_reason: "", reinstated_notes: "" };
             },
             onError: (err) => {
-                $toast.error(err.email || err.terminated_reason || err.terminated_notes || "Failed to reinstate user.");
+                reinstateServerErrors.value = {
+                    reinstated_reason: err.reinstated_reason || "",
+                    reinstated_notes: err.reinstated_notes || "",
+                };
+                $toast.error(err.reinstated_reason || err.reinstated_notes || err.email || "Failed to reinstate user.");
             },
         },
     );
@@ -731,13 +775,96 @@ defineOptions({
                                 If email is already taken by an active user, reinstate will fail. Free email first or use different email.
                             </p>
                         </div>
-                        <p
-                            v-if="errors.email"
-                            class="text-sm text-red-500 text-center"
-                        >
-                            {{ errors.email }}
-                        </p>
                     </div>
+
+                        <div class="px-6 pb-2 flex flex-col gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Reason <span class="text-red-500">*</span>
+                                </label>
+                                <select
+                                    v-model="reinstateForm.reinstated_reason"
+                                    @change="
+                                        reinstateClientErrors.reinstated_reason = '';
+                                        reinstateClientErrors.reinstated_notes = '';
+                                        reinstateServerErrors.reinstated_reason = '';
+                                        reinstateServerErrors.reinstated_notes = '';
+                                    "
+                                    :class="{
+                                        'border-red-500 focus:ring-red-500 focus:border-red-500':
+                                            reinstateClientErrors.reinstated_reason ||
+                                            reinstateServerErrors.reinstated_reason ||
+                                            errors.reinstated_reason,
+                                    }"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option value="">Select reason</option>
+                                    <option value="rehired">Rehired</option>
+                                    <option value="contract_renewed">Contract Renewed</option>
+                                    <option value="error_correction">Error Correction</option>
+                                    <option value="appeal_approved">Appeal Approved</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <p
+                                    v-if="
+                                        reinstateClientErrors.reinstated_reason ||
+                                        reinstateServerErrors.reinstated_reason ||
+                                        errors.reinstated_reason
+                                    "
+                                    class="mt-1 text-sm text-red-500"
+                                >
+                                    {{
+                                        reinstateClientErrors.reinstated_reason ||
+                                        reinstateServerErrors.reinstated_reason ||
+                                        errors.reinstated_reason
+                                    }}
+                                </p>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Notes
+                                    <span v-if="reinstateForm.reinstated_reason === 'other'" class="text-red-500">*</span>
+                                    <span v-else class="text-gray-400 font-normal">(optional)</span>
+                                </label>
+                                <textarea
+                                    v-model="reinstateForm.reinstated_notes"
+                                    @input="
+                                        reinstateClientErrors.reinstated_notes = '';
+                                        reinstateServerErrors.reinstated_notes = '';
+                                    "
+                                    rows="3"
+                                    placeholder="Provide details (required if Other)..."
+                                    :class="{
+                                        'border-red-500 focus:ring-red-500 focus:border-red-500':
+                                            reinstateClientErrors.reinstated_notes ||
+                                            reinstateServerErrors.reinstated_notes ||
+                                            errors.reinstated_notes,
+                                    }"
+                                    class="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                                ></textarea>
+                                <p
+                                    v-if="
+                                        reinstateClientErrors.reinstated_notes ||
+                                        reinstateServerErrors.reinstated_notes ||
+                                        errors.reinstated_notes
+                                    "
+                                    class="mt-1 text-sm text-red-500"
+                                >
+                                    {{
+                                        reinstateClientErrors.reinstated_notes ||
+                                        reinstateServerErrors.reinstated_notes ||
+                                        errors.reinstated_notes
+                                    }}
+                                </p>
+                                <p
+                                    v-if="errors.email"
+                                    class="text-sm text-red-500 text-center"
+                                >
+                                    {{ errors.email }}
+                                </p>
+                            </div>
+                        </div>
 
                     <div
                         class="flex border-t border-white/20 dark:border-white/10"
@@ -941,6 +1068,41 @@ defineOptions({
                 class="text-sm bg-white/60 dark:bg-neutral-800/50 rounded-lg px-3 py-2 text-amber-900 dark:text-amber-200"
             >
                 {{ terminated.notes }}
+            </p>
+        </div>
+
+        <!-- Reinstated banner -->
+        <div
+            v-if="!isTerminated && reinstated?.at"
+            class="mb-6 flex flex-col gap-2 rounded-xl border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 px-4 py-3"
+        >
+            <div class="flex items-center gap-2 text-green-700 dark:text-green-400">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                </svg>
+                <span class="text-sm font-semibold">Reinstated Account</span>
+            </div>
+            <p class="text-sm text-green-800 dark:text-green-300">
+                <span v-if="reinstated?.at">Reinstated on {{ formatTerminatedDate(reinstated.at) }}</span>
+                <span v-if="reinstated?.reason"> — Reason: {{ mapReinstateReason(reinstated.reason) }}</span>
+                <span v-if="reinstated?.by?.full_name"> — By {{ reinstated.by.full_name }}</span>
+            </p>
+            <p
+                v-if="reinstated?.notes"
+                class="text-sm bg-white/60 dark:bg-neutral-800/50 rounded-lg px-3 py-2 text-green-900 dark:text-green-200"
+            >
+                {{ reinstated.notes }}
             </p>
         </div>
 

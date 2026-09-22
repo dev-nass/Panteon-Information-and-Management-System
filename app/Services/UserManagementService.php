@@ -24,7 +24,7 @@ class UserManagementService
         });
     }
 
-    public function reinstate(User $user): User
+    public function reinstate(User $user, array $data, int $by): User
     {
         abort_if($user->terminated_at === null, 422, 'Not terminated.');
 
@@ -32,12 +32,16 @@ class UserManagementService
             throw ValidationException::withMessages(['email' => 'Email already taken by active user. Free email first.']);
         }
 
-        return DB::transaction(function () use ($user) {
+        return DB::transaction(function () use ($user, $data, $by) {
             $user->update([
                 'terminated_at' => null,
                 'terminated_reason' => null,
                 'terminated_by' => null,
                 'terminated_notes' => null,
+                'reinstated_at' => now(),
+                'reinstated_reason' => $data['reinstated_reason'] ?? null,
+                'reinstated_by' => $by,
+                'reinstated_notes' => $data['reinstated_notes'] ?? null,
             ]);
 
             return $user;

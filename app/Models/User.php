@@ -36,6 +36,10 @@ class User extends Authenticatable
         'terminated_reason',
         'terminated_by',
         'terminated_notes',
+        'reinstated_at',
+        'reinstated_reason',
+        'reinstated_by',
+        'reinstated_notes',
     ];
 
     /**
@@ -48,7 +52,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    protected $appends = ['is_terminated', 'terminated'];
+    protected $appends = ['is_terminated', 'terminated', 'reinstated'];
 
     /**
      * Get the attributes that should be cast.
@@ -61,6 +65,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'terminated_at' => 'datetime',
+            'reinstated_at' => 'datetime',
         ];
     }
 
@@ -97,6 +102,34 @@ class User extends Authenticatable
         ];
     }
 
+    protected function getReinstatedAttribute(): ?array
+    {
+        if ($this->reinstated_at === null) {
+            return null;
+        }
+
+        $by = null;
+        if ($this->relationLoaded('reinstatedBy') && $this->reinstatedBy) {
+            $by = [
+                'id' => $this->reinstatedBy->id,
+                'full_name' => trim("{$this->reinstatedBy->first_name} {$this->reinstatedBy->middle_name} {$this->reinstatedBy->last_name}"),
+                'email' => $this->reinstatedBy->email,
+                'first_name' => $this->reinstatedBy->first_name,
+                'middle_name' => $this->reinstatedBy->middle_name,
+                'last_name' => $this->reinstatedBy->last_name,
+            ];
+        } elseif ($this->reinstated_by) {
+            $by = ['id' => $this->reinstated_by];
+        }
+
+        return [
+            'at' => $this->reinstated_at?->toISOString(),
+            'reason' => $this->reinstated_reason,
+            'notes' => $this->reinstated_notes,
+            'by' => $by,
+        ];
+    }
+
     public function importLogs()
     {
         return $this->hasMany(ImportedExcelLog::class);
@@ -110,6 +143,11 @@ class User extends Authenticatable
     public function terminatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'terminated_by');
+    }
+
+    public function reinstatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reinstated_by');
     }
 
     public function isTerminated(): bool

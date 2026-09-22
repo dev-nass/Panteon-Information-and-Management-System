@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UserReinstateRequest;
 use App\Http\Requests\Admin\UserTerminateRequest;
 use App\Http\Requests\BurialRecordIndexRequest;
 use App\Http\Resources\BurialRecordResource;
@@ -115,14 +116,16 @@ class UserManagementController extends Controller
         return to_route('admin.user_management.index')->with('success', 'User terminated successfully.');
     }
 
-    public function reinstate(Request $request, User $user)
+    public function reinstate(UserReinstateRequest $request, User $user)
     {
-        $this->userService->reinstate($user);
+        $this->userService->reinstate($user, $request->validated(), auth()->id());
 
         $this->logActivity(
             'reinstated',
             $user,
             "Reinstated user {$user->first_name} {$user->last_name}",
+            null,
+            $request->validated(),
         );
 
         return to_route('admin.user_management.index')->with('success', 'User reinstated successfully.');
@@ -152,7 +155,7 @@ class UserManagementController extends Controller
 
     public function show(BurialRecordIndexRequest $request, User $user)
     {
-        $user->load(['terminatedBy']);
+        $user->load(['terminatedBy', 'reinstatedBy']);
         $user->loadCount('burialRecords');
 
         $burialRecords = $this->service->index(
