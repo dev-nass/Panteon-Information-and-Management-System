@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Junction;
-use App\Models\Pathway;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -22,21 +21,36 @@ class PathfinderSeeder extends Seeder
     {
         $geoJsonPath = public_path('data/pathways/junctions.geojson');
 
-        if (!file_exists($geoJsonPath)) {
+        if (! file_exists($geoJsonPath)) {
             $this->command->error("GeoJSON file for junctions not found at path: {$geoJsonPath}");
+
             return;
         }
 
         $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
 
-        if (!$geoJsonData || !isset($geoJsonData['features'])) {
+        if (! $geoJsonData || ! isset($geoJsonData['features'])) {
             $this->command->error("Invalid GeoJSON format: 'features' key not found");
+
             return;
         }
+
+        // Idempotency guard: skip already-seeded junctions (matches PanteonDataSeeder pattern)
+        $existingJunctions = DB::table('junctions')->pluck('junction_number')->flip();
+        $imported = 0;
+        $skipped = 0;
 
         foreach ($geoJsonData['features'] as $feature) {
             $coordinates = $feature['geometry']['coordinates'];
             $properties = $feature['properties'];
+
+            $junctionNumber = 'J'.str_pad($properties['id'], 3, '0', STR_PAD_LEFT);
+
+            if (isset($existingJunctions[$junctionNumber])) {
+                $skipped++;
+
+                continue;
+            }
 
             // Determine type based on label
             $type = 'intersection';
@@ -44,53 +58,76 @@ class PathfinderSeeder extends Seeder
                 $type = 'entrance';
             }
 
-            // Create POINT geometry from coordinates
-            $point = DB::raw("ST_GeomFromText('POINT({$coordinates[0]} {$coordinates[1]})', 4326)");
+            // Use GeoJSON (ST_GeomFromGeoJSON) so [lon,lat] order is handled correctly
+            // on both MariaDB (local) and MySQL 8 (Railway) - fixes Latitude 120 out-of-range
+            $pointGeoJson = json_encode([
+                'type' => 'Point',
+                'coordinates' => [(float) $coordinates[0], (float) $coordinates[1]],
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            Junction::insert([
-                'junction_number' => 'J' . str_pad($properties['id'], 3, '0', STR_PAD_LEFT),
-                'type' => $type,
-                'coordinates' => $point,
-                'label' => $properties['label'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            DB::statement(
+                'INSERT INTO junctions (junction_number, type, coordinates, label, created_at, updated_at) VALUES (?, ?, ST_GeomFromGeoJSON(?), ?, NOW(), NOW())',
+                [$junctionNumber, $type, $pointGeoJson, $properties['label'] ?? null]
+            );
+
+            $existingJunctions[$junctionNumber] = true;
+            $imported++;
         }
 
-        $this->command->info("Junctions imported: " . count($geoJsonData['features']));
+        $this->command->info("Junctions imported: {$imported}".($skipped > 0 ? " ({$skipped} skipped - already exists)" : ''));
     }
 
     private function seedPathways(): void
     {
         $geoJsonPath = public_path('data/pathways/pathways.geojson');
 
-        if (!file_exists($geoJsonPath)) {
+        if (! file_exists($geoJsonPath)) {
             $this->command->error("GeoJSON file for pathways not found at path: {$geoJsonPath}");
+
             return;
         }
 
         $geoJsonData = json_decode(file_get_contents($geoJsonPath), true);
 
-        if (!$geoJsonData || !isset($geoJsonData['features'])) {
+        if (! $geoJsonData || ! isset($geoJsonData['features'])) {
             $this->command->error("Invalid GeoJSON format: 'features' key not found");
+
             return;
         }
+
+        // Idempotency guard: preload existing pathways (from->to) and junction lookup
+        $existingPathways = DB::table('pathways')->select('from_junction_id', 'to_junction_id')->get()
+            ->mapWithKeys(fn ($p) => ["{$p->from_junction_id}|{$p->to_junction_id}" => true])->toArray();
+        $junctionMap = Junction::pluck('id', 'junction_number')->toArray();
+
+        $imported = 0;
+        $skipped = 0;
 
         foreach ($geoJsonData['features'] as $feature) {
             $properties = $feature['properties'];
             // LineString coordinates are directly in the coordinates array
             $coordinates = $feature['geometry']['coordinates'];
 
-            // Get junction IDs from database
-            $fromJunction = Junction::where('junction_number', 'J' . str_pad($properties['f_id'], 3, '0', STR_PAD_LEFT))->first();
-            $toJunction = Junction::where('junction_number', 'J' . str_pad($properties['t_id'], 3, '0', STR_PAD_LEFT))->first();
+            // Get junction IDs from preloaded map (avoids N+1 query)
+            $fromNumber = 'J'.str_pad($properties['f_id'], 3, '0', STR_PAD_LEFT);
+            $toNumber = 'J'.str_pad($properties['t_id'], 3, '0', STR_PAD_LEFT);
+            $fromId = $junctionMap[$fromNumber] ?? null;
+            $toId = $junctionMap[$toNumber] ?? null;
 
-            if (!$fromJunction || !$toJunction) {
+            if (! $fromId || ! $toId) {
                 $this->command->warn("Skipping pathway {$properties['id']}: Junction not found (f_id: {$properties['f_id']}, t_id: {$properties['t_id']})");
+
                 continue;
             }
 
-            // Calculate distance between points
+            $pathwayKey = "{$fromId}|{$toId}";
+            if (isset($existingPathways[$pathwayKey])) {
+                $skipped++;
+
+                continue;
+            }
+
+            // Calculate distance between points (Haversine expects lat,lon)
             $distance = $this->calculateDistance(
                 $coordinates[0][1],
                 $coordinates[0][0],
@@ -98,24 +135,22 @@ class PathfinderSeeder extends Seeder
                 $coordinates[1][0]
             );
 
-            // Create LINESTRING geometry from coordinates
-            $lineString = 'LINESTRING(';
-            foreach ($coordinates as $coord) {
-                $lineString .= "{$coord[0]} {$coord[1]},";
-            }
-            $lineString = rtrim($lineString, ',') . ')';
+            // Use GeoJSON for LineString so [lon,lat] order works on both MariaDB and MySQL 8
+            $lineGeoJson = json_encode([
+                'type' => 'LineString',
+                'coordinates' => array_map(fn ($c) => [(float) $c[0], (float) $c[1]], $coordinates),
+            ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-            Pathway::insert([
-                'from_junction_id' => $fromJunction->id,
-                'to_junction_id' => $toJunction->id,
-                'distance_meters' => $distance,
-                'coordinates' => DB::raw("ST_GeomFromText('{$lineString}', 4326)"),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            DB::statement(
+                'INSERT INTO pathways (from_junction_id, to_junction_id, distance_meters, coordinates, created_at, updated_at) VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())',
+                [$fromId, $toId, $distance, $lineGeoJson]
+            );
+
+            $existingPathways[$pathwayKey] = true;
+            $imported++;
         }
 
-        $this->command->info("Pathways imported: " . count($geoJsonData['features']));
+        $this->command->info("Pathways imported: {$imported}".($skipped > 0 ? " ({$skipped} skipped - already exists)" : ''));
     }
 
     /**
