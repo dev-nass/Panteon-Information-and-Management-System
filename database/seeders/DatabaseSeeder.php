@@ -36,27 +36,31 @@ class DatabaseSeeder extends Seeder
         //     DeceasedRecord::insert($deceasedBatch);
         // }
 
-        User::create([
-            'first_name' => 'Alex',
-            'middle_name' => '',
-            'last_name' => 'Gonzales',
-            'email' => 'admin@panteon.com',
-            'email_verified_at' => now(),
-            'password' => bcrypt('admin123'),
-            'contact_number' => '09123456789',
-            'role' => 'admin',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@panteon.com'],
+            [
+                'first_name' => 'Alex',
+                'middle_name' => '',
+                'last_name' => 'Gonzales',
+                'email_verified_at' => now(),
+                'password' => bcrypt('admin123'),
+                'contact_number' => '09123456789',
+                'role' => 'admin',
+            ]
+        );
 
-        User::create([
-            'first_name' => 'Jonas',
-            'middle_name' => '',
-            'last_name' => 'Macawile',
-            'email' => 'jonas@panteon.com',
-            'email_verified_at' => now(),
-            'password' => bcrypt('aDmin123!'),
-            'contact_number' => '09071055556',
-            'role' => 'clerk',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'jonas@panteon.com'],
+            [
+                'first_name' => 'Jonas',
+                'middle_name' => '',
+                'last_name' => 'Macawile',
+                'email_verified_at' => now(),
+                'password' => bcrypt('aDmin123!'),
+                'contact_number' => '09071055556',
+                'role' => 'clerk',
+            ]
+        );
 
         $this->call(PanteonDataSeeder::class);
         $this->call(PathfinderSeeder::class);
