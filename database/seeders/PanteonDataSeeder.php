@@ -50,16 +50,32 @@ class PanteonDataSeeder extends Seeder
 
         $this->command->info('Seeding phases from GeoJSON...');
 
+        // Guard clause: preload existing phase names for idempotency
+        $existingPhases = DB::table('phases')->pluck('phase_name')->flip();
+        $imported = 0;
+        $skipped = 0;
+
         foreach ($geoJsonData['features'] as $feature) {
+            $phaseName = $feature['properties']['phase_name'];
+
+            if (isset($existingPhases[$phaseName])) {
+                $skipped++;
+
+                continue;
+            }
+
             $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             DB::statement('INSERT INTO phases(phase_name, coordinates, created_at, updated_at) VALUES (?, ST_GeomFromGeoJSON(?), NOW(), NOW())', [
-                $feature['properties']['phase_name'],
+                $phaseName,
                 $geometryJson,
             ]);
+
+            $existingPhases[$phaseName] = true;
+            $imported++;
         }
 
-        $this->command->info('Total phases imported: '.count($geoJsonData['features']));
+        $this->command->info("Total phases imported: {$imported}".($skipped > 0 ? " ({$skipped} skipped - already exists)" : ''));
     }
 
     // modified by ai
@@ -81,7 +97,16 @@ class PanteonDataSeeder extends Seeder
 
         $this->command->info('Seeding clusters from GeoJSON...');
 
+        // Guard clause: preload existing clusters for idempotency (by PK and unique composite)
+        $existingClusterIds = DB::table('clusters')->pluck('id')->flip();
+        $existingClusterKeys = DB::table('clusters')
+            ->select('phase_id', 'cluster_name', 'cluster_type')
+            ->get()
+            ->mapWithKeys(fn ($c) => ["{$c->phase_id}|{$c->cluster_name}|{$c->cluster_type}" => true])
+            ->toArray();
+
         $counter = 0;
+        $skipped = 0;
 
         foreach ($clusterFiles as $file) {
             $geoJsonPath = public_path($file);
@@ -112,24 +137,46 @@ class PanteonDataSeeder extends Seeder
                 }
 
                 $attributes = $feature['properties'];
+                $clusterId = $attributes['id'];
+                $compositeKey = "{$attributes['phase_id']}|{$attributes['name']}|{$attributes['type']}";
+
+                // Guard clause: skip if this cluster already exists (by PK or unique phase+name+type)
+                if (isset($existingClusterIds[$clusterId]) || isset($existingClusterKeys[$compositeKey])) {
+                    $skipped++;
+
+                    continue;
+                }
+
                 $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
-                DB::statement('
-                    INSERT INTO clusters (id, phase_id, cluster_name, cluster_type, coordinates, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
-                ', [
-                    $attributes['id'],
-                    $attributes['phase_id'],
-                    $attributes['name'],
-                    $attributes['type'],
-                    $geometryJson,
-                ]);
+                try {
+                    DB::statement('
+                        INSERT INTO clusters (id, phase_id, cluster_name, cluster_type, coordinates, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+                    ', [
+                        $clusterId,
+                        $attributes['phase_id'],
+                        $attributes['name'],
+                        $attributes['type'],
+                        $geometryJson,
+                    ]);
+                } catch (QueryException $e) {
+                    // Race / duplicate guard: MySQL error 1062
+                    if ($e->getCode() === '23000' && str_contains($e->getMessage(), 'Duplicate entry')) {
+                        $skipped++;
 
+                        continue;
+                    }
+                    throw $e;
+                }
+
+                $existingClusterIds[$clusterId] = true;
+                $existingClusterKeys[$compositeKey] = true;
                 $counter++;
             }
         }
 
-        $this->command->info("Total clusters imported: {$counter}");
+        $this->command->info("Total clusters imported: {$counter}".($skipped > 0 ? " ({$skipped} skipped - already exists)" : ''));
     }
 
     // seed lots
@@ -154,10 +201,14 @@ class PanteonDataSeeder extends Seeder
         $this->command->info('Seeding lots from GeoJSON files...');
 
         $counter = 0;
-        // Initialize all capacity clusters to 0
-        $clusterCapacities = Cluster::pluck('id')->mapWithKeys(function ($id) {
-            return [$id => 0];
-        })->toArray();
+        $skipped = 0;
+
+        // Guard clause: preload existing lots for idempotency (cluster_id + row + column)
+        $existingLotKeys = DB::table('lots')
+            ->select('cluster_id', 'row', 'column')
+            ->get()
+            ->mapWithKeys(fn ($lot) => ["{$lot->cluster_id}|{$lot->row}|{$lot->column}" => true])
+            ->toArray();
 
         foreach ($lotFiles as $file) {
             $geoJsonData = json_decode(file_get_contents($file), true);
@@ -180,30 +231,50 @@ class PanteonDataSeeder extends Seeder
                 $attributes = $feature['properties'];
                 $geometryJson = json_encode($feature['geometry'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 $clusterId = $attributes['cluster_id'];
+                $row = strtoupper($attributes['row'] ?? '');
+                $column = $attributes['id'] ?? null;
+                $lotKey = "{$clusterId}|{$row}|{$column}";
 
-                DB::statement('
-                    INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
-                    VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
-                ', [
-                    strtoupper($attributes['row'] ?? ''),
-                    $attributes['id'] ?? null,
-                    $clusterId,
-                    $geometryJson,
-                ]);
+                // Guard clause: skip if this lot already exists
+                if (isset($existingLotKeys[$lotKey])) {
+                    $skipped++;
 
-                // Increment capacity for this cluster
-                $clusterCapacities[$clusterId]++;
+                    continue;
+                }
+
+                try {
+                    DB::statement('
+                        INSERT INTO lots (`row`, `column`, cluster_id, coordinates, created_at, updated_at)
+                        VALUES (?, ?, ?, ST_GeomFromGeoJSON(?), NOW(), NOW())
+                    ', [
+                        $row,
+                        $column,
+                        $clusterId,
+                        $geometryJson,
+                    ]);
+                } catch (QueryException $e) {
+                    if ($e->getCode() === '23000' && str_contains($e->getMessage(), 'Duplicate entry')) {
+                        $skipped++;
+
+                        continue;
+                    }
+                    throw $e;
+                }
+
+                $existingLotKeys[$lotKey] = true;
                 $counter++;
             }
         }
 
-        // Update total_capacity for each cluster
-        foreach ($clusterCapacities as $clusterId => $capacity) {
-            Cluster::where('id', $clusterId)->update(['total_capacity' => $capacity]);
+        // Update total_capacity for each cluster based on actual lot count (idempotent)
+        $allClusterIds = Cluster::pluck('id');
+        foreach ($allClusterIds as $clusterId) {
+            $actualCount = DB::table('lots')->where('cluster_id', $clusterId)->count();
+            Cluster::where('id', $clusterId)->update(['total_capacity' => $actualCount]);
         }
 
-        $this->command->info("Total lots imported: {$counter}");
-        $this->command->info('Updated capacity for '.count($clusterCapacities).' clusters');
+        $this->command->info("Total lots imported: {$counter}".($skipped > 0 ? " ({$skipped} skipped - already exists)" : ''));
+        $this->command->info('Updated capacity for '.count($allClusterIds).' clusters');
     }
 
     /**
