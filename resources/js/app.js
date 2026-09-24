@@ -60,14 +60,8 @@ router.on("finish", () => {
     NProgress.done();
 });
 
-// --------- AI SUGGESTION for leaflet, BUT ITS CAUSING ERROR
-// delete L.Icon.Default.prototype._getIconUrl;
-//
-// L.Icon.Default.mergeOptions({
-//     iconUrl: icon,
-//     shadowUrl: iconShadow,
-// });
-// ---------
+// Leaflet default marker fix is handled in ./utils/leafletPatch.js
+// (imports marker images and calls L.Icon.Default.mergeOptions).
 
 /**
  * The following event listener are used for listening to

@@ -1,4 +1,20 @@
 import L from "leaflet";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
+// Fix broken default marker icons in Vite production builds.
+// Leaflet's default Icon.Default tries to auto-detect its image path via
+// CSS (`.leaflet-default-icon-path` or `link[href$="leaflet.css"]`), which
+// fails when Vite bundles/hashes assets (CSS is merged into app.css and
+// image URLs are hashed). Without this, markers appear as broken images.
+// See: https://leafletjs.com/examples/custom-icons/
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+});
 
 /**
  * Patch deprecated L.Polyline._flat -> L.LineUtil.isFlat
