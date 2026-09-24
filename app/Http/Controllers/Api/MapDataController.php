@@ -60,10 +60,21 @@ class MapDataController extends Controller
             'maxLat' => 'required|numeric',
             'minLng' => 'required|numeric',
             'maxLng' => 'required|numeric',
+            'zoom' => 'nullable|numeric|min:0|max:22',
             'limit' => 'nullable|integer|min:1|max:5000',
         ]);
 
         $limit = $validated['limit'] ?? 1000;
+
+        // Normalize bounds to avoid degenerate / inverted polygons at fractional zoom
+        $minLat = min($validated['minLat'], $validated['maxLat']);
+        $maxLat = max($validated['minLat'], $validated['maxLat']);
+        $minLng = min($validated['minLng'], $validated['maxLng']);
+        $maxLng = max($validated['minLng'], $validated['maxLng']);
+
+        if (abs($maxLat - $minLat) < 1e-7 || abs($maxLng - $minLng) < 1e-7) {
+            return ClusterResource::collection(collect([]));
+        }
 
         // Only fetch clusters without lots/burial records but with counts
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
@@ -77,20 +88,20 @@ class MapDataController extends Controller
                     ?, ' ', ?, ',',
                     ?, ' ', ?,
                     '))'
-                )),
+                ), 4326),
                 coordinates
             )",
                 [
-                    $validated['minLng'],
-                    $validated['minLat'],
-                    $validated['maxLng'],
-                    $validated['minLat'],
-                    $validated['maxLng'],
-                    $validated['maxLat'],
-                    $validated['minLng'],
-                    $validated['maxLat'],
-                    $validated['minLng'],
-                    $validated['minLat'],
+                    $minLng,
+                    $minLat,
+                    $maxLng,
+                    $minLat,
+                    $maxLng,
+                    $maxLat,
+                    $minLng,
+                    $maxLat,
+                    $minLng,
+                    $minLat,
                 ]
             )
             ->with('phase:id,phase_name')

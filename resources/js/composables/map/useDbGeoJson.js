@@ -33,10 +33,12 @@ export function useDbGeoJson() {
         try {
             const response = await fetch(route("api.map.phases"), {
                 credentials: "same-origin",
+                headers: { Accept: "application/json" },
             });
 
             if (!response.ok) {
-                throw new Error("Failed to fetch phases");
+                const text = await response.text();
+                throw new Error(`Failed to fetch phases: ${response.status} ${text.slice(0, 500)}`);
             }
 
             const json = await response.json();
@@ -94,8 +96,17 @@ export function useDbGeoJson() {
                     maxLng: bounds.getEast(),
                     zoom: currentZoom,
                 }),
-                { credentials: "same-origin" }
+                {
+                    credentials: "same-origin",
+                    headers: { Accept: "application/json" },
+                }
             );
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.warn(`partial-burials failed: ${response.status}`, text.slice(0, 500));
+                return;
+            }
 
             const json = await response.json();
             // Backend returns array of clusters with nested lots and burial_records
@@ -126,6 +137,8 @@ export function useDbGeoJson() {
             const processed = processFeatures(clusters);
             // console.log("processed", processed);
             separateClustersByType(processed);
+        } catch (error) {
+            console.error("Error loading visible clusters:", error);
         } finally {
             NProgress.done();
         }
