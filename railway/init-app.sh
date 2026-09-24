@@ -15,3 +15,6 @@ php artisan config:cache
 php artisan event:cache
 php artisan route:cache
 php artisan view:cache
+
+# Restart queue workers so they pick up new cached config (MAIL_MAILER etc.)
+php artisan queue:restart || true

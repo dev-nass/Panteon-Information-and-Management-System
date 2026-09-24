@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useMapStates } from "@/stores/useMapStates";
+import { getMinRenderZoom, useMapStates } from "@/stores/useMapStates";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { useDbGeoJson } from "./map/useDbGeoJson";
 
@@ -7,7 +7,6 @@ import { useDbGeoJson } from "./map/useDbGeoJson";
 const LAT = 14.3052681;
 const LONG = 120.9758;
 const ZOOM_LVL = 18;
-const MIN_RENDER_ZOOM = 20;
 const RENDER_DEBOUNCE_MS = 2000;
 let moveTimeout = null;
 
@@ -33,6 +32,7 @@ export function useMap() {
      * @param {*} mapContainerElem the instance of the map assigned to an HTML element
      */
     const initializeMap = async (mapContainerElem) => {
+        const isMobile = (L.Browser && L.Browser.mobile) || (typeof window !== "undefined" && window.innerWidth < 640);
         map.value = L.map(mapContainerElem, {
             maxZoom: 22,
             minZoom: 5,
@@ -40,12 +40,20 @@ export function useMap() {
                 L.latLng(14.295, 120.965),
                 L.latLng(14.315, 120.985),
             ),
-            maxBoundsViscosity: 0.8,
+            maxBoundsViscosity: isMobile ? 0.35 : 0.8,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5,
+            wheelDebounceTime: 40,
+            tap: true,
+            touchZoom: true,
+            doubleClickZoom: true,
+            scrollWheelZoom: true,
+            bounceAtZoomLimits: false,
         }).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
         L.control
             .zoom({
-                position: "bottomleft",
+                position: "bottomright",
             })
             .addTo(map.value);
 
@@ -190,9 +198,10 @@ export function useMap() {
         }
 
         const zoom = map.value.getZoom();
+        const minZoom = getMinRenderZoom();
 
         // loads the cluster
-        if (zoom >= MIN_RENDER_ZOOM) {
+        if (zoom >= minZoom) {
             phaseVisibility.value = false;
             if (
                 phaseLayerGroup.value &&

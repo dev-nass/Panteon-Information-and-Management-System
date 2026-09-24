@@ -1,10 +1,9 @@
 import NProgress from "nprogress";
 import { useDebounceFn } from "@vueuse/core";
 import { useFeatureProcessing } from "./useFeatureProcessing";
-import { useMapStates } from "@/stores/useMapStates";
+import { getMinRenderZoom, useMapStates } from "@/stores/useMapStates";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 
-const MIN_RENDER_ZOOM = 20;
 let lastBounds = null;
 let lastZoom = null;
 let lastFeatureIds = new Set();
@@ -27,7 +26,7 @@ export function useDbGeoJson() {
 
         const currentZoom = map.value.getZoom();
 
-        if (currentZoom >= MIN_RENDER_ZOOM) {
+        if (currentZoom >= getMinRenderZoom()) {
             return;
         }
 
@@ -57,10 +56,11 @@ export function useDbGeoJson() {
             return;
 
         const currentZoom = map.value.getZoom();
+        const minZoom = getMinRenderZoom();
 
-        if (currentZoom < MIN_RENDER_ZOOM) {
+        if (currentZoom < minZoom) {
             // Only clear if we were previously rendering layers
-            if (lastZoom !== null && lastZoom >= MIN_RENDER_ZOOM) {
+            if (lastZoom !== null && lastZoom >= minZoom) {
                 // clearLayers();
                 lastBounds = null;
                 lastFeatureIds = new Set();

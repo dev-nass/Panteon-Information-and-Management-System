@@ -54,3 +54,20 @@ body {
 .dark-tiles {
     filter: brightness(0.9); /* 0 = black, 1 = normal */
 }
+
+/* Leaflet zoom control – larger touch target for mobile (WCAG 44px) */
+.leaflet-control-zoom a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 20px !important;
+}
+.leaflet-control-zoom {
+    margin-bottom: 24px !important;
+    margin-right: 12px !important;
+}
+@media (max-width: 640px) {
+    .leaflet-control-zoom {
+        margin-bottom: 84px !important; /* avoid browser UI + bottom sheets */
+    }
+}

@@ -1,13 +1,12 @@
 import L from "leaflet";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
-import { useMapStates } from "@/stores/useMapStates";
+import { getMinRenderZoom, useMapStates } from "@/stores/useMapStates";
 import { useDrawProcessedPath } from "@/composables/map/pathfinder/useDrawProcessedPath";
 import { useDbGeoJson } from "@/composables/map/useDbGeoJson";
 
 const LAT = 14.3052681;
 const LONG = 120.9758;
 const ZOOM_LVL = 18;
-const MIN_RENDER_ZOOM = 20;
 let moveTimeout = null;
 
 export function useVisitorMap() {
@@ -24,6 +23,7 @@ export function useVisitorMap() {
     const { loadAllPhases, loadVisibleClusters } = useDbGeoJson();
 
     const initializeMap = (mapContainerElem) => {
+        const isMobile = (L.Browser && L.Browser.mobile) || (typeof window !== "undefined" && window.innerWidth < 640);
         map.value = L.map(mapContainerElem, {
             maxZoom: 22,
             minZoom: 5,
@@ -31,10 +31,18 @@ export function useVisitorMap() {
                 L.latLng(14.295, 120.965),
                 L.latLng(14.315, 120.985),
             ),
-            maxBoundsViscosity: 0.8,
+            maxBoundsViscosity: isMobile ? 0.35 : 0.8,
+            zoomSnap: 0.5,
+            zoomDelta: 0.5,
+            wheelDebounceTime: 40,
+            tap: true,
+            touchZoom: true,
+            doubleClickZoom: true,
+            scrollWheelZoom: true,
+            bounceAtZoomLimits: false,
         }).setView([LAT, LONG], ZOOM_LVL);
         map.value.zoomControl.remove();
-        L.control.zoom({ position: "bottomleft" }).addTo(map.value);
+        L.control.zoom({ position: "bottomright" }).addTo(map.value);
 
         if (!googleLayer.value) {
             googleLayer.value = L.tileLayer(
@@ -83,8 +91,9 @@ export function useVisitorMap() {
         }
 
         const zoom = map.value.getZoom();
+        const minZoom = getMinRenderZoom();
 
-        if (zoom >= MIN_RENDER_ZOOM) {
+        if (zoom >= minZoom) {
             phaseVisibility.value = false;
             if (phaseLayerGroup.value && map.value.hasLayer(phaseLayerGroup.value)) {
                 map.value.removeLayer(phaseLayerGroup.value);

@@ -80,8 +80,14 @@ class ClerkInvitationController extends Controller
 
         $url = route('clerk.register', ['token' => $token]);
 
+        // Resend free sandbox (onboarding@resend.dev) via 443: contact form goes to panteon gmail (allowed),
+        // clerk invite must go to the input gmail (clerk). With free domain without verification it will
+        // fail on Railway (sandbox only allows to panteondedasmasystem@gmail.com) — verify a domain to deliver
+        // to any clerk. Local failover[resend,smtp,log] will still deliver via Gmail SMTP.
+        $recipient = $request->email;
+
         try {
-            Mail::to($request->email)->send(new ClerkInvitationMail($url));
+            Mail::to($recipient)->send(new ClerkInvitationMail($url));
         } catch (\Throwable $e) {
             Log::error('Mail queue dispatch failed', ['email' => $request->email, 'exception' => $e->getMessage()]);
 

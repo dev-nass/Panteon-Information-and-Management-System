@@ -321,9 +321,9 @@ const {
                             class="p-5 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md"
                         >
                             <div
-                                class="flex items-center justify-between gap-3"
+                                class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                             >
-                                <div class="flex items-center gap-4 min-w-0">
+                                <div class="flex items-center gap-4 min-w-0 w-full">
                                     <div
                                         class="flex items-center justify-center size-14 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 shrink-0"
                                     >
@@ -341,9 +341,9 @@ const {
                                         </svg>
                                     </div>
 
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 flex-1">
                                         <h3
-                                            class="text-lg font-semibold text-green-600 dark:text-green-400 truncate"
+                                            class="text-lg font-semibold text-green-600 dark:text-green-400 break-words sm:truncate"
                                         >
                                             {{ deceasedFullName }}
                                         </h3>
@@ -358,7 +358,7 @@ const {
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                                <div class="flex items-center gap-2 flex-wrap justify-start sm:justify-end w-full sm:w-auto sm:shrink-0 border-t sm:border-0 border-white/20 dark:border-white/10 pt-3 sm:pt-0">
                                     <Link
                                         v-if="burialShowRoute"
                                         :href="

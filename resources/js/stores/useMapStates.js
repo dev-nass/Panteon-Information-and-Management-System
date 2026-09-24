@@ -1,6 +1,25 @@
 import { computed, ref } from "vue";
 import L from "leaflet";
 
+export const MIN_RENDER_ZOOM_DESKTOP = 20;
+export const MIN_RENDER_ZOOM_MOBILE = 19;
+
+/**
+ * Returns the minimum zoom at which clusters should render.
+ * Mobile (L.Browser.mobile OR viewport <640px) uses 19 so pinch/double-tap
+ * on small screens reaches clusters sooner; desktop keeps 20.
+ */
+export function getMinRenderZoom() {
+    if (typeof window !== "undefined") {
+        const isMobileViewport = window.innerWidth < 640;
+        const isMobileBrowser = !!(L && L.Browser && L.Browser.mobile);
+        if (isMobileViewport || isMobileBrowser) {
+            return MIN_RENDER_ZOOM_MOBILE;
+        }
+    }
+    return MIN_RENDER_ZOOM_DESKTOP;
+}
+
 const map = ref(null);
 const googleLayer = ref(null);
 

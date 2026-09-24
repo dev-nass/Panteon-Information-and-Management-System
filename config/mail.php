@@ -81,10 +81,11 @@ return [
 
         'failover' => [
             'transport' => 'failover',
-            'mailers' => [
+            'mailers' => array_filter([
+                env('MAIL_RESEND_ENABLED', true) ? 'resend' : null,
                 'smtp',
                 'log',
-            ],
+            ]),
             'retry_after' => 60,
         ],
 
