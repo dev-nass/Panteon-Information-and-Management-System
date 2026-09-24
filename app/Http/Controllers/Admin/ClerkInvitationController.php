@@ -61,16 +61,24 @@ class ClerkInvitationController extends Controller
     {
         $request->validate(['email' => 'required|email|unique:users,email']);
 
-        $token = Str::random(64);
+        $existing = ClerkInvitation::where('email', $request->email)->first();
 
-        $invitation = ClerkInvitation::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'token' => $token,
-                'expires_at' => now()->addHours(24),
-                'used_at' => null,
-            ]
-        );
+        if ($existing && $existing->isValid()) {
+            $existing->update(['expires_at' => now()->addHours(24)]);
+            $invitation = $existing;
+            $token = $existing->token;
+        } else {
+            $token = Str::random(64);
+
+            $invitation = ClerkInvitation::updateOrCreate(
+                ['email' => $request->email],
+                [
+                    'token' => $token,
+                    'expires_at' => now()->addHours(24),
+                    'used_at' => null,
+                ]
+            );
+        }
 
         $this->logActivity(
             'created',
