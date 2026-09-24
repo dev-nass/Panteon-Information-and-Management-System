@@ -11,8 +11,30 @@ use Inertia\Inertia;
 
 class LoginController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
+        if (Auth::check()) {
+            $user = $request->user() ?? Auth::user();
+
+            if ($user && $user->terminated_at !== null) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return Inertia::render('Auth/LoginView');
+            }
+
+            if ($user && $user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+
+            if ($user && $user->role === 'clerk') {
+                return redirect()->route('clerk.dashboard');
+            }
+
+            return redirect()->route('visitor.index');
+        }
+
         return Inertia::render('Auth/LoginView');
     }
 
