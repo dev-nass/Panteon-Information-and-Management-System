@@ -77,6 +77,8 @@ class MapDataController extends Controller
         }
 
         // Only fetch clusters without lots/burial records but with counts
+        // Use SRID 0 for comparison to avoid MySQL 8 strict lat/lng validation (4326) and SRID mismatch (0 vs 4326 across envs)
+        // GeoJSON is lng lat, so WKT polygon also lng lat
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->whereRaw(
                 "MBRContains(
@@ -88,8 +90,8 @@ class MapDataController extends Controller
                     ?, ' ', ?, ',',
                     ?, ' ', ?,
                     '))'
-                ), 4326),
-                coordinates
+                )),
+                ST_GeomFromText(ST_AsText(coordinates))
             )",
                 [
                     $minLng,
