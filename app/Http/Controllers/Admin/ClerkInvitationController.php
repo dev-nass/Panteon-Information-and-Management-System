@@ -80,10 +80,8 @@ class ClerkInvitationController extends Controller
 
         $url = route('clerk.register', ['token' => $token]);
 
-        // Resend free sandbox (onboarding@resend.dev) via 443: contact form goes to panteon gmail (allowed),
-        // clerk invite must go to the input gmail (clerk). With free domain without verification it will
-        // fail on Railway (sandbox only allows to panteondedasmasystem@gmail.com) — verify a domain to deliver
-        // to any clerk. Local failover[resend,smtp,log] will still deliver via Gmail SMTP.
+        // Resend verified domain (noreply@panteon-de-dasma.click) via 443: delivers to any clerk email.
+        // failover[resend,smtp,log] falls back to Gmail SMTP locally if Resend fails.
         $recipient = $request->email;
 
         try {
