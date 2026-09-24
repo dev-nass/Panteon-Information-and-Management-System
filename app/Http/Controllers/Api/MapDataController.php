@@ -78,9 +78,11 @@ class MapDataController extends Controller
 
         // Only fetch clusters without lots/burial records but with counts
         // Use centroid bounding check to avoid SRID/axis-order issues between local (0) and prod (4326) and strict lat validation
+        // NOTE: MySQL 8+ does not implement ST_Centroid() for geographic SRID 4326 (error 3618). ST_AsText() strips the SRID
+        // and ST_GeomFromText() re-creates it as SRID 0 (Cartesian) so centroid works on both local and Railway prod.
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->whereRaw(
-                'ST_X(ST_Centroid(coordinates)) BETWEEN ? AND ? AND ST_Y(ST_Centroid(coordinates)) BETWEEN ? AND ?',
+                'ST_X(ST_Centroid(ST_GeomFromText(ST_AsText(coordinates)))) BETWEEN ? AND ? AND ST_Y(ST_Centroid(ST_GeomFromText(ST_AsText(coordinates)))) BETWEEN ? AND ?',
                 [$minLng, $maxLng, $minLat, $maxLat]
             )
             ->with('phase:id,phase_name')
