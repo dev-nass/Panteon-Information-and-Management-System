@@ -1217,8 +1217,6 @@ defineOptions({
                                     localData.role === 'admin',
                                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
                                     localData.role === 'clerk',
-                                'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
-                                    localData.role === 'head',
                             }"
                         >
                             {{ localData.role }}

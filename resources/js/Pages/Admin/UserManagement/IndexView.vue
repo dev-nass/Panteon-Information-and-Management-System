@@ -394,8 +394,6 @@ defineOptions({
                                                 user.role === 'admin',
                                             'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-500':
                                                 user.role === 'clerk',
-                                            'bg-blue-100 text-blue-800 dark:bg-blue-800/30 dark:text-blue-500':
-                                                user.role === 'head',
                                         }"
                                     >
                                         {{ user.role }}

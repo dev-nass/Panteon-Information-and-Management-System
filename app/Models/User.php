@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
@@ -40,6 +41,9 @@ class User extends Authenticatable
         'reinstated_reason',
         'reinstated_by',
         'reinstated_notes',
+        'active_session_id',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     /**
@@ -66,7 +70,27 @@ class User extends Authenticatable
             'password' => 'hashed',
             'terminated_at' => 'datetime',
             'reinstated_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Determine if the user has an active session that is still valid.
+     */
+    public function hasActiveSession(): bool
+    {
+        if ($this->active_session_id === null) {
+            return false;
+        }
+
+        $lifetime = (int) config('session.lifetime', 120);
+        $threshold = now()->subMinutes($lifetime)->getTimestamp();
+
+        return DB::table(config('session.table', 'sessions'))
+            ->where('id', $this->active_session_id)
+            ->where('user_id', $this->id)
+            ->where('last_activity', '>', $threshold)
+            ->exists();
     }
 
     protected function getIsTerminatedAttribute(): bool

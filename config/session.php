@@ -214,4 +214,20 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Single Session Enforcement
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, a user may only have one active session at a time.
+    | A second login from another device will be blocked while the first
+    | session is still valid (last_activity within lifetime).
+    | Null means auto: enabled only when APP_ENV=production.
+    |
+    */
+
+    'single_session' => [
+        'enabled' => env('SINGLE_SESSION_ENABLED', null),
+    ],
+
 ];
