@@ -77,34 +77,11 @@ class MapDataController extends Controller
         }
 
         // Only fetch clusters without lots/burial records but with counts
-        // Use SRID 0 for comparison to avoid MySQL 8 strict lat/lng validation (4326) and SRID mismatch (0 vs 4326 across envs)
-        // GeoJSON is lng lat, so WKT polygon also lng lat
+        // Use centroid bounding check to avoid SRID/axis-order issues between local (0) and prod (4326) and strict lat validation
         $clusters = Cluster::select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->whereRaw(
-                "MBRContains(
-                ST_GeomFromText(CONCAT(
-                    'POLYGON((',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?, ',',
-                    ?, ' ', ?,
-                    '))'
-                )),
-                ST_GeomFromText(ST_AsText(coordinates))
-            )",
-                [
-                    $minLng,
-                    $minLat,
-                    $maxLng,
-                    $minLat,
-                    $maxLng,
-                    $maxLat,
-                    $minLng,
-                    $maxLat,
-                    $minLng,
-                    $minLat,
-                ]
+                'ST_X(ST_Centroid(coordinates)) BETWEEN ? AND ? AND ST_Y(ST_Centroid(coordinates)) BETWEEN ? AND ?',
+                [$minLng, $maxLng, $minLat, $maxLat]
             )
             ->with('phase:id,phase_name')
             ->withCount([
