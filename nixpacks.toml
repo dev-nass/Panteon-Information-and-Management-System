@@ -1,2 +1,2 @@
 [phases.setup]
-nixPkgs = ["php", "composer", "mariadb"]
+nixPkgs = ["php", "composer", "mariadb", "mariadb-client"]
