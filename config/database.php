@@ -61,7 +61,7 @@ return [
             'engine' => null,
             'dump' => [
                 'dump_binary_path' => env('DB_DUMP_BINARY_PATH', ''),
-                'add_extra_option' => '--ssl-mode=DISABLED',
+                'add_extra_option' => '--skip-ssl',
             ],
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
