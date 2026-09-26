@@ -13,7 +13,7 @@ class BackupController extends Controller
 {
     public function index()
     {
-        $files = collect(Storage::disk('backups')->files())
+        $files = collect(Storage::disk('backups')->files($this->directory()))
             ->filter(fn (string $path) => str_ends_with($path, '.zip'))
             ->map(function (string $path) {
                 return [
@@ -46,28 +46,43 @@ class BackupController extends Controller
 
     public function download(Request $request, string $filename)
     {
-        $filename = basename($filename);
+        $path = $this->backupPath($filename);
 
-        if (! Storage::disk('backups')->exists($filename)) {
+        if (! Storage::disk('backups')->exists($path)) {
             abort(404);
         }
 
-        return Storage::disk('backups')->download($filename);
+        return Storage::disk('backups')->download($path, basename($path));
     }
 
     public function destroy(Request $request, string $filename)
     {
-        $filename = basename($filename);
+        $path = $this->backupPath($filename);
 
-        if (! Storage::disk('backups')->exists($filename)) {
+        if (! Storage::disk('backups')->exists($path)) {
             return back()->with('error', 'Backup file not found.');
         }
 
-        Storage::disk('backups')->delete($filename);
+        Storage::disk('backups')->delete($path);
 
-        $this->logBackupActivity('deleted', "Deleted backup {$filename}");
+        $this->logBackupActivity('deleted', 'Deleted backup '.basename($path));
 
         return back()->with('success', 'Backup deleted successfully.');
+    }
+
+    /**
+     * The subfolder on the `backups` disk that spatie/laravel-backup writes to.
+     * It must stay in sync with `config('backup.backup.name')`, which is also
+     * what `backup:list`, `backup:monitor` and `backup:clean` read from.
+     */
+    private function directory(): string
+    {
+        return config('backup.backup.name');
+    }
+
+    private function backupPath(string $filename): string
+    {
+        return $this->directory().'/'.basename($filename);
     }
 
     private function logBackupActivity(string $action, string $description): void

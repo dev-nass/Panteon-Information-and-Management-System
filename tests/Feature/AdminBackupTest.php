@@ -10,6 +10,11 @@ use Mockery\MockInterface;
 
 use function Pest\Laravel\actingAs;
 
+function adminBackupPath(string $filename): string
+{
+    return config('backup.backup.name').'/'.basename($filename);
+}
+
 beforeEach(function () {
     $this->artisan('migrate', ['--path' => 'database/migrations/0001_01_01_000000_create_users_table.php']);
     $this->artisan('migrate', ['--path' => 'database/migrations/2026_08_13_213303_create_activity_logs_table.php']);
@@ -51,7 +56,7 @@ it('only allows admins to access backup pages', function () {
 });
 
 it('lists existing backups', function () {
-    Storage::disk('backups')->put('2026-08-14-01-30-00.zip', 'backup content');
+    Storage::disk('backups')->put(adminBackupPath('2026-08-14-01-30-00.zip'), 'backup content');
 
     actingAs($this->admin)
         ->get(route('admin.backup.index'))
@@ -61,6 +66,17 @@ it('lists existing backups', function () {
             ->has('backups', 1)
             ->where('backups.0.filename', '2026-08-14-01-30-00.zip')
             ->where('backups.0.size', 14));
+});
+
+it('ignores backup files sitting outside the configured backup directory', function () {
+    Storage::disk('backups')->put('2026-08-14-01-30-00.zip', 'stray backup');
+
+    actingAs($this->admin)
+        ->get(route('admin.backup.index'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/DatabaseBackup/IndexView')
+            ->has('backups', 0));
 });
 
 it('creates a backup and logs the activity', function () {
@@ -88,7 +104,7 @@ it('creates a backup and logs the activity', function () {
 });
 
 it('downloads an existing backup', function () {
-    Storage::disk('backups')->put('2026-08-14-01-30-00.zip', 'backup content');
+    Storage::disk('backups')->put(adminBackupPath('2026-08-14-01-30-00.zip'), 'backup content');
 
     actingAs($this->admin)
         ->get(route('admin.backup.download', '2026-08-14-01-30-00.zip'))
@@ -103,14 +119,14 @@ it('does not download a missing backup', function () {
 });
 
 it('deletes a backup and logs the activity', function () {
-    Storage::disk('backups')->put('2026-08-14-01-30-00.zip', 'backup content');
+    Storage::disk('backups')->put(adminBackupPath('2026-08-14-01-30-00.zip'), 'backup content');
 
     actingAs($this->admin)
         ->delete(route('admin.backup.destroy', '2026-08-14-01-30-00.zip'))
         ->assertRedirect()
         ->assertSessionHas('success', 'Backup deleted successfully.');
 
-    Storage::disk('backups')->assertMissing('2026-08-14-01-30-00.zip');
+    Storage::disk('backups')->assertMissing(adminBackupPath('2026-08-14-01-30-00.zip'));
 
     $this->assertDatabaseHas('activity_logs', [
         'user_id' => $this->admin->id,

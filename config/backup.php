@@ -15,10 +15,13 @@ return [
 
     'backup' => [
         /*
-         * The name of this application. You can use this name to monitor
-         * the backups.
+         * The name of this application. This value becomes the subfolder every
+         * backup is written into on the destination disk, so it MUST be
+         * identical to `monitor_backups[0].name` below. When the two differ,
+         * `backup:run` writes to one folder while `backup:list`,
+         * `backup:monitor` and `backup:clean` read from another.
          */
-        'name' => '',
+        'name' => env('BACKUP_NAME', 'panteon'),
 
         'source' => [
             'files' => [
@@ -236,7 +239,7 @@ return [
         'notifiable' => Notifiable::class,
 
         'mail' => [
-            'to' => 'your@example.com',
+            'to' => env('CONTACT_MAIL_TO', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
 
             'from' => [
                 'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
@@ -296,7 +299,7 @@ return [
      */
     'monitor_backups' => [
         [
-            'name' => env('APP_NAME', 'laravel-backup'),
+            'name' => env('BACKUP_NAME', 'panteon'),
             'disks' => ['backups'],
             'health_checks' => [
                 MaximumAgeInDays::class => 1,
