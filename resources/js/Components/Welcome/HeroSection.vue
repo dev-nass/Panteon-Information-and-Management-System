@@ -6,9 +6,16 @@ import Button from "../Form/Button.vue";
 // Serving these straight from public/ keeps the hero out of the hashed
 // build manifest and lets it use the cache headers in public/.htaccess.
 const heroImageSrc = "/" + "images/front-office-v5-1920.webp";
-const heroImageSrcset = [768, 1280, 1920, 2560]
+const heroImageSrcset = [768, 1280, 1920, 2560, 3072, 3840]
     .map((w) => `/images/front-office-v5-${w}.webp ${w}w`)
     .join(", ");
+
+// The photo is 2.22:1 but the hero box is 0.60:1 on mobile (h-150 = 600px
+// tall), so object-cover fits by height and renders ~1333px wide before
+// cropping to the 358px slot. The browser has to be told that, or it
+// sizes against the 390px viewport, picks the 768w candidate and renders
+// a 346px-tall file into a 600px-tall box.
+const heroImageSizes = "(min-width: 768px) 125vw, 372vw";
 </script>
 
 <template>
@@ -21,7 +28,7 @@ const heroImageSrcset = [768, 1280, 1920, 2560]
                 <img
                     :src="heroImageSrc"
                     :srcset="heroImageSrcset"
-                    sizes="100vw"
+                    :sizes="heroImageSizes"
                     width="1920"
                     height="864"
                     alt=""
