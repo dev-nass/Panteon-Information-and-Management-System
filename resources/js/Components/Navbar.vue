@@ -11,6 +11,11 @@ const links = [
 
 const activeSection = ref("home");
 
+// Bound in script so Vue does not rewrite it into a Vite asset import.
+// Served straight from public/ so it picks up the cache headers in
+// public/.htaccess and stays out of the hashed build manifest.
+const logoSrc = "/" + "images/dasmarinas-logo.webp";
+
 const handleScroll = () => {
     const scrollPos = window.scrollY + 100; // offset for fixed navbar
     for (const link of links) {
@@ -52,7 +57,7 @@ onBeforeUnmount(() => {
                 >
                     <img
                         class="h-10"
-                        src="/public/images/dasmarinas-logo.png"
+                        :src="logoSrc"
                         alt="Dasmariñas Logo"
                     />
                 </a>

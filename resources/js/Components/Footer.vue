@@ -5,7 +5,7 @@
     >
         <!-- Background Image -->
         <div
-            class="absolute inset-0 bg-cover bg-center bg-[url('/images/entrance.jpg')]"
+            class="absolute inset-0 bg-cover bg-center bg-[url('/images/entrance.webp')]"
         ></div>
 
         <!-- Gradient Overlay -->

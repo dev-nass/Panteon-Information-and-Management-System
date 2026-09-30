@@ -6,7 +6,7 @@ import { Link } from "@inertiajs/vue3";
     <!-- Use Map -->
     <div id="map" class="px-4 sm:px-6 lg:px-4">
         <div
-            class="relative h-150 max-h-250 md:h-[100dvh] flex flex-col bg-[url('/images/use-map.png')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
+            class="relative h-150 max-h-250 md:h-[100dvh] flex flex-col bg-[url('/images/use-map.webp')] bg-cover bg-center bg-no-repeat rounded-2xl overflow-hidden"
         >
             <!-- Overlay -->
             <div class="absolute inset-0 bg-black/40 rounded-2xl"></div>

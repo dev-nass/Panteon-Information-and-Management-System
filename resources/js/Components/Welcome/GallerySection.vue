@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { reactive } from "vue";
 import Modal from "../Modal.vue";
 import emblaCarouselVue from "embla-carousel-vue";
 
@@ -17,24 +18,42 @@ const [emblaRef3, emblaApi3] = emblaCarouselVue();
 const scrollPrev3 = () => emblaApi3.value?.scrollPrev();
 const scrollNext3 = () => emblaApi3.value?.scrollNext();
 
+// The facility photos and the full-size org chart are only attached once
+// their modal has been opened, so they are not requested on first paint.
+// Preline still drives show/hide through data-hs-overlay.
+//
+// The carousel markup itself must stay mounted: embla-carousel-vue
+// initialises in onMounted and bails out if its element is absent, so
+// wrapping these in v-if would break the prev/next arrows. Only the
+// src/srcset attributes are withheld instead.
+const openedModalIds = reactive(new Set<string>());
+
+const showModal = (id: string) => openedModalIds.add(id);
+const isModalOpened = (id: string) => openedModalIds.has(id);
+
 const lotTypeModalImages = [
-    "/" + "images/underground.png",
-    "/" + "images/apartment.png",
+    "/" + "images/underground.webp",
+    "/" + "images/apartment.webp",
 ];
 
-const orgChartPreviewImage = "/" + "images/org-chart-darker.png";
-const orgChartModalImage = "/" + "images/org-chart.png";
+const orgChartPreviewImage = "/" + "images/org-chart-darker.webp";
+const orgChartModalImage = "/" + "images/org-chart.webp";
 
-const facilitiesPreviewImage = "/" + "images/facilities.png";
+const facilitiesPreviewImage = "/" + "images/facilities.webp";
 
 const facilitiesImages = [
-    "/" + "images/facilities/IMG_20260327_163528_636.jpg",
-    "/" + "images/facilities/IMG_20260327_165238_402.jpg",
-    "/" + "images/facilities/IMG_20260327_165414_515.jpg",
-    "/" + "images/facilities/IMG_20260327_165559_020.jpg",
-    "/" + "images/facilities/IMG_20260327_165613_342.jpg",
-    "/" + "images/facilities/IMG_20260327_170105_723.jpg",
+    "/" + "images/facilities/IMG_20260327_163528_636-1920.webp",
+    "/" + "images/facilities/IMG_20260327_165238_402-1920.webp",
+    "/" + "images/facilities/IMG_20260327_165414_515-1920.webp",
+    "/" + "images/facilities/IMG_20260327_165559_020-1920.webp",
+    "/" + "images/facilities/IMG_20260327_165613_342-1920.webp",
+    "/" + "images/facilities/IMG_20260327_170105_723-1920.webp",
 ];
+
+// Derive the "-1280" sibling from the "-1920" path so narrow viewports do
+// not pull a 1920px photo into a ~390px wide slot.
+const srcsetFor = (src: string) =>
+    `${src.replace("-1920.webp", "-1280.webp")} 1280w, ${src} 1920w`;
 </script>
 
 <template>
@@ -59,14 +78,17 @@ const facilitiesImages = [
                         aria-expanded="false"
                         aria-controls="hs-lot-type"
                         data-hs-overlay="#hs-lot-type"
+                        @click="showModal('hs-lot-type')"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
                         >
                             <img
                                 class="w-full h-full object-cover rounded-xl transition-transform duration-500 ease-in-out group-hover:scale-105 group-active:scale-95"
-                                :src="'/' + 'images/columbarium.png'"
+                                :src="'/' + 'images/columbarium-thumb.webp'"
                                 alt="Masonry Cards Image"
+                                loading="lazy"
+                                decoding="async"
                             />
                         </div>
 
@@ -84,7 +106,9 @@ const facilitiesImages = [
                     <Teleport to="body">
                         <Modal id="hs-lot-type" size="xl" :no-padding="true">
                             <template v-slot:main>
-                                <div class="relative">
+                                <div
+                                    class="relative flex items-center justify-center bg-black"
+                                >
                                     <!-- Carousel -->
                                     <div
                                         class="overflow-hidden"
@@ -99,9 +123,23 @@ const facilitiesImages = [
                                                 class="flex-[0_0_100%]"
                                             >
                                                 <img
-                                                    :src="img"
-                                                    :alt="`Lot Type ${idx + 1}`"
-                                                    class="w-full h-[90vh] object-cover"
+                                                    :src="
+                                                        isModalOpened(
+                                                            'hs-lot-type',
+                                                        )
+                                                            ? img
+                                                            : undefined
+                                                    "
+                                                    :alt="
+                                                        isModalOpened(
+                                                            'hs-lot-type',
+                                                        )
+                                                            ? `Lot Type ${idx + 1}`
+                                                            : ''
+                                                    "
+                                                    width="628"
+                                                    height="490"
+                                                    class="mx-auto max-h-[85vh] w-auto max-w-full object-contain"
                                                 />
                                             </div>
                                         </div>
@@ -188,6 +226,7 @@ const facilitiesImages = [
                         aria-expanded="false"
                         aria-controls="hs-org-chart"
                         data-hs-overlay="#hs-org-chart"
+                        @click="showModal('hs-org-chart')"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
@@ -196,6 +235,8 @@ const facilitiesImages = [
                                 class="w-full h-full object-cover object-center scale-[1.35] rounded-xl transition-transform duration-500 ease-in-out group-hover:scale-[1.42] group-active:scale-95"
                                 :src="orgChartPreviewImage"
                                 alt="Masonry Cards Image"
+                                loading="lazy"
+                                decoding="async"
                             />
                         </div>
 
@@ -213,9 +254,14 @@ const facilitiesImages = [
                     <!-- End Card -->
 
                     <Teleport to="body">
-                        <Modal id="hs-org-chart" size="screen" :no-padding="true">
+                        <Modal
+                            id="hs-org-chart"
+                            size="screen"
+                            :no-padding="true"
+                        >
                             <template v-slot:main>
                                 <div
+                                    v-if="isModalOpened('hs-org-chart')"
                                     class="relative w-full h-full min-h-[85vh] flex items-center justify-center bg-black p-6"
                                 >
                                     <img
@@ -239,6 +285,7 @@ const facilitiesImages = [
                         aria-expanded="false"
                         aria-controls="hs-facilities"
                         data-hs-overlay="#hs-facilities"
+                        @click="showModal('hs-facilities')"
                     >
                         <div
                             class="h-full sm:aspect-w-12 sm:aspect-h-7 sm:aspect-none rounded-xl overflow-hidden"
@@ -247,6 +294,8 @@ const facilitiesImages = [
                                 class="group-hover:scale-105 group-focus:scale-105 transition-transform duration-500 ease-in-out rounded-xl w-full h-full object-cover"
                                 :src="facilitiesPreviewImage"
                                 alt="Facilities Preview Image"
+                                loading="lazy"
+                                decoding="async"
                             />
                         </div>
                         <div class="absolute top-0 start-0 end-0 p-2 sm:p-4">
@@ -278,9 +327,30 @@ const facilitiesImages = [
                                                 class="flex-[0_0_100%]"
                                             >
                                                 <img
-                                                    :src="img"
-                                                    :alt="`Facilities ${idx + 1}`"
+                                                    :src="
+                                                        isModalOpened(
+                                                            'hs-facilities',
+                                                        )
+                                                            ? img
+                                                            : undefined
+                                                    "
+                                                    :srcset="
+                                                        isModalOpened(
+                                                            'hs-facilities',
+                                                        )
+                                                            ? srcsetFor(img)
+                                                            : undefined
+                                                    "
+                                                    sizes="(min-width: 896px) 896px, 100vw"
+                                                    :alt="
+                                                        isModalOpened(
+                                                            'hs-facilities',
+                                                        )
+                                                            ? `Facilities ${idx + 1}`
+                                                            : ''
+                                                    "
                                                     class="w-full h-[90vh] object-cover"
+                                                    decoding="async"
                                                 />
                                             </div>
                                         </div>
