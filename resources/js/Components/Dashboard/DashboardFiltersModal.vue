@@ -37,6 +37,7 @@ const ageRanges = [
 ];
 
 const applyFilters = () => {
+    HSOverlay.close(`#${modalId}`);
     emit("apply", {
         age_range: localAgeRange.value,
         barangay: localBarangay.value,
@@ -142,7 +143,6 @@ const hasActiveFilters = () => {
             <button
                 type="button"
                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
-                :data-hs-overlay="`#${modalId}`"
                 @click="applyFilters"
             >
                 Apply Filters

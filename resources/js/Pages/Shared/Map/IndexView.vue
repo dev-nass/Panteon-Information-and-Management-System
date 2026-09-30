@@ -37,7 +37,8 @@ const {
     mode,
     context,
 } = useMapStates();
-const { search, suggestions, isOnSearchMode, rateLimitError } = useMapSearchStates();
+const { search, suggestions, isOnSearchMode, rateLimitError } =
+    useMapSearchStates();
 
 // compsable
 const { initializeMap, cleanupMap, toggleMapFeatures, togglePhaseVisibility } =
@@ -228,7 +229,11 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <section id="map-wrapper" class="relative w-full" style="height: 100vh">
+    <section
+        id="map-wrapper"
+        class="relative w-full isolate"
+        style="height: 100vh"
+    >
         <!--- NOTE: Uncomment this later -->
         <!-- <Teleport to="body"> -->
         <BurialRecordModal
@@ -471,7 +476,5 @@ onBeforeUnmount(() => {
                 <!-- END: Toggle table view -->
             </div>
         </div>
-
-
     </section>
 </template>
