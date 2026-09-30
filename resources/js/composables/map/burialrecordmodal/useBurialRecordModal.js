@@ -11,7 +11,11 @@ import { ref, computed, watch } from "vue";
  * @param {import('vue').Ref<string>} phaseNameRef - reactive phase name
  * @param {import('vue').Ref<any>} selectedBurialRef - reactive selected burial to auto-reset view
  */
-export function useBurialRecordModal(clusterTypeRef, phaseNameRef, selectedBurialRef = null) {
+export function useBurialRecordModal(
+    clusterTypeRef,
+    phaseNameRef,
+    selectedBurialRef = null,
+) {
     const imageError = ref(false);
     const isShowingLotImage = ref(false);
 
@@ -33,20 +37,23 @@ export function useBurialRecordModal(clusterTypeRef, phaseNameRef, selectedBuria
     const imageSrc = computed(() => {
         if (normalizedType.value === "underground") {
             return isPhase1A.value
-                ? "/images/labeled-lots/underground-reversed.png"
-                : "/images/labeled-lots/underground.png";
+                ? "/images/labeled-lots/underground-reversed.webp"
+                : "/images/labeled-lots/underground.webp";
         }
         if (normalizedType.value === "apartment") {
             return isPhase1A.value
-                ? "/images/labeled-lots/apartment-reversed.png"
-                : "/images/labeled-lots/apartment.png";
+                ? "/images/labeled-lots/apartment-reversed.webp"
+                : "/images/labeled-lots/apartment.webp";
         }
         return null;
     });
 
     const imageLabel = computed(() => {
         if (!imageSrc.value) return "No image";
-        const base = normalizedType.value === "underground" ? "Underground" : "Apartment";
+        const base =
+            normalizedType.value === "underground"
+                ? "Underground"
+                : "Apartment";
         return isPhase1A.value ? `${base} (Phase 1A – Reversed)` : base;
     });
 

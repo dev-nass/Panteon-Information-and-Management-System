@@ -11,11 +11,11 @@ const modalId = "junction-modal";
 
 const getJunctionImage = (id) => {
     if (id === 1) {
-        return "/images/entrance.jpg";
+        return "/images/entrance.webp";
     } else if (id === 3 || id === 89) {
-        return "/images/roundabout.jpg";
+        return "/images/roundabout.webp";
     } else if (id === 217) {
-        return "/images/columbarium.jpg";
+        return "/images/columbarium-junction.webp";
     }
     return null;
 };
@@ -53,6 +53,8 @@ const getJunctionSubheader = (id) => {
                     :src="getJunctionImage(junctionId)"
                     :alt="getJunctionTitle(junctionId)"
                     class="w-full h-64 object-cover rounded-xl"
+                    loading="lazy"
+                    decoding="async"
                     @error="
                         $event.target.src =
                             'https://via.placeholder.com/600x400?text=Junction+Image'

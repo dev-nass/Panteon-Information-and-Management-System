@@ -7,6 +7,11 @@ import SidebarLink from "@/Components/Dashboard/SidebarLink.vue";
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+
+// Bound in script so Vue does not rewrite it into a Vite asset import.
+// Served straight from public/ so it picks up the cache headers in
+// public/.htaccess and stays out of the hashed build manifest.
+const logoSrc = "/" + "images/dasmarinas-logo.webp";
 const userRole = computed(() =>
     page.props.auth?.user?.role?.toLowerCase()?.trim(),
 );
@@ -72,7 +77,7 @@ const handleLogout = () => {
                     >
                         <img
                             class="h-9"
-                            src="/public/images/dasmarinas-logo.png"
+                            :src="logoSrc"
                             alt="Dasmariñas Logo"
                         />
                         <p class="mt-0.5">panteon.</p>

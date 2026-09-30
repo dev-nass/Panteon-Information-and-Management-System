@@ -18,7 +18,7 @@ const handleSubmit = () => {
         <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
             <!-- Background Image -->
             <div
-                class="absolute inset-0 bg-cover bg-center bg-[url('/images/entrance.jpg')]"
+                class="absolute inset-0 bg-cover bg-center bg-[url('/images/entrance.webp')]"
             ></div>
 
             <!-- Gradient Overlay -->
