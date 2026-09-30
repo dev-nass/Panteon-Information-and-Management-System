@@ -29,6 +29,7 @@ const isModalOpened = (id: string) => openedModalIds.has(id);
 const lotTypePreviewImage = "/" + "images/columbarium-thumb.webp";
 
 const lotTypeModalImages = [
+    "/" + "images/columbarium-thumb.webp",
     "/" + "images/underground.webp",
     "/" + "images/apartment.webp",
 ];
@@ -327,7 +328,7 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
             <!-- End Lot Types -->
 
             <Teleport to="body">
-                <Modal id="hs-lot-type" size="xl" :no-padding="true">
+                <Modal id="hs-lot-type" size="screen" :no-padding="true">
                     <template v-slot:main>
                         <div
                             class="relative flex items-center justify-center bg-black"
@@ -353,7 +354,7 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
                                             "
                                             width="628"
                                             height="490"
-                                            class="mx-auto max-h-[85vh] w-auto max-w-full object-contain"
+                                            class="w-full h-[90vh] object-cover"
                                         />
                                     </div>
                                 </div>
@@ -481,7 +482,7 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
             <!-- End Facilities -->
 
             <Teleport to="body">
-                <Modal id="hs-facilities" size="xl" :no-padding="true">
+                <Modal id="hs-facilities" size="screen" :no-padding="true">
                     <template v-slot:main>
                         <div class="relative">
                             <!-- Carousel -->
@@ -643,8 +644,10 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
 </template>
 
 <style scoped>
-/* Org Chart modal: override default white translucent modal bg to black */
-:deep(#hs-org-chart > div > div) {
+/* Gallery media modals: black background */
+:deep(#hs-org-chart > div > div),
+:deep(#hs-lot-type > div > div),
+:deep(#hs-facilities > div > div) {
     background-color: rgb(0 0 0) !important;
     border-color: rgb(255 255 255 / 0.1) !important;
 }
