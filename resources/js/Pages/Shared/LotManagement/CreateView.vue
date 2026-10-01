@@ -106,6 +106,39 @@ const selectedClusterForLot = computed(() =>
     availableClusters.value.find((c) => c.id == lotBulkForm.cluster_id),
 );
 
+/**
+ * Remaining slots are the total capacity minus the lots already plotted, never the
+ * total capacity on its own. `lot_count` is the number of lots already in the cluster.
+ */
+const clusterCapacity = (cluster) => {
+    if (!cluster) return null;
+
+    const total =
+        cluster.total_capacity === null ||
+        cluster.total_capacity === undefined
+            ? null
+            : Number(cluster.total_capacity);
+    const used = Number(cluster.lot_count ?? 0);
+
+    let remaining;
+    if (total !== null) {
+        remaining = total - used;
+    } else if (
+        cluster.remaining_capacity === null ||
+        cluster.remaining_capacity === undefined
+    ) {
+        remaining = null;
+    } else {
+        remaining = Number(cluster.remaining_capacity);
+    }
+
+    return { total, used, remaining };
+};
+
+const selectedClusterCapacity = computed(() =>
+    clusterCapacity(selectedClusterForLot.value),
+);
+
 const validateLotRange = () => {
     if (!lotBulkForm.cluster_id) {
         toast.error("Please select a cluster first");
@@ -136,25 +169,27 @@ const validateLotRange = () => {
         parseInt(lotBulkForm.end_column) -
         parseInt(lotBulkForm.start_column) +
         1;
-    const remaining = cluster.remaining_capacity;
+    const { total, used, remaining } = clusterCapacity(cluster);
     const valid = remaining === null || requested <= remaining;
 
     capacityStatus.value = {
         valid,
         requested,
         remaining,
-        total_capacity: cluster.total_capacity,
+        remaining_after: remaining === null ? null : remaining - requested,
+        used,
+        total_capacity: total,
     };
 
     if (valid) {
         toast.success(
             remaining === null
                 ? `${requested} lot(s) fit in this cluster.`
-                : `${requested} lot(s) fit — ${remaining} remaining.`,
+                : `${requested} lot(s) fit — ${remaining - requested} of ${total} lot(s) remaining.`,
         );
     } else {
         toast.error(
-            `Not enough space: ${requested} lot(s) requested but only ${remaining} remaining.`,
+            `Not enough space: ${requested} lot(s) requested but only ${remaining} of ${total} lot(s) remaining.`,
         );
     }
 };
@@ -613,15 +648,19 @@ watch(
                             {{ lotBulkForm.errors.cluster_id }}
                         </span>
                         <span
-                            v-if="selectedClusterForLot"
+                            v-if="selectedClusterCapacity"
                             class="block mt-1 text-xs text-gray-500 dark:text-gray-400"
                         >
-                            {{
-                                selectedClusterForLot.remaining_capacity ===
-                                null
-                                    ? "No capacity limit set"
-                                    : `${selectedClusterForLot.remaining_capacity} of ${selectedClusterForLot.total_capacity} lot(s) remaining`
-                            }}
+                            <template
+                                v-if="selectedClusterCapacity.remaining === null"
+                            >
+                                No capacity limit set
+                            </template>
+                            <template v-else>
+                                {{
+                                    `${selectedClusterCapacity.remaining} of ${selectedClusterCapacity.total} lot(s) remaining (${selectedClusterCapacity.used} already used)`
+                                }}
+                            </template>
                         </span>
                     </div>
 
@@ -729,17 +768,25 @@ watch(
                         "
                     >
                         <template v-if="capacityStatus.valid">
-                            ✓ {{ capacityStatus.requested }} lot(s) fit —
-                            {{
-                                capacityStatus.remaining === null
-                                    ? "no capacity limit set"
-                                    : `${capacityStatus.remaining} remaining`
-                            }}
+                            <template v-if="capacityStatus.remaining === null">
+                                ✓ {{ capacityStatus.requested }} lot(s) fit —
+                                no capacity limit set
+                            </template>
+                            <template v-else>
+                                ✓ {{ capacityStatus.requested }} lot(s) fit —
+                                {{
+                                    capacityStatus.remaining_after
+                                }}
+                                of {{ capacityStatus.total_capacity }} lot(s)
+                                remaining after this range
+                            </template>
                         </template>
                         <template v-else>
                             ✗ Not enough space:
                             {{ capacityStatus.requested }} lot(s) requested but
-                            only {{ capacityStatus.remaining }} remaining
+                            only {{ capacityStatus.remaining }} of
+                            {{ capacityStatus.total_capacity }} lot(s)
+                            remaining
                         </template>
                     </div>
 
