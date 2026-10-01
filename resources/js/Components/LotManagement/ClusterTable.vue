@@ -118,6 +118,9 @@ const cancelEditRow = () => {
     editingRow.value = null;
 };
 
+// Inertia shares validation errors as a single message per field, useForm gives an array
+const firstErrorMessage = (value) => (Array.isArray(value) ? value[0] : value);
+
 const saveEditRow = () => {
     const clusterName = editingRow.value.name;
     router.put(
@@ -132,6 +135,13 @@ const saveEditRow = () => {
                     {
                         duration: 3000,
                     },
+                );
+            },
+            onError: (errors) => {
+                toast.error(
+                    firstErrorMessage(errors?.name) ??
+                        "A cluster with this name and type already exists in this phase. Please use a different name.",
+                    { duration: 5000 },
                 );
             },
         },

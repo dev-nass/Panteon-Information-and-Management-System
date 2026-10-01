@@ -117,6 +117,9 @@ const cancelEditRow = () => {
     editingRow.value = null;
 };
 
+// Inertia shares validation errors as a single message per field, useForm gives an array
+const firstErrorMessage = (value) => (Array.isArray(value) ? value[0] : value);
+
 const saveEditRow = () => {
     const lotLabel = `${editingRow.value.column}${editingRow.value.row}`;
     router.put(
@@ -129,6 +132,14 @@ const saveEditRow = () => {
                 toast.success(`Lot "${lotLabel}" updated successfully!`, {
                     duration: 3000,
                 });
+            },
+            onError: (errors) => {
+                toast.error(
+                    firstErrorMessage(errors?.row) ??
+                        firstErrorMessage(errors?.column) ??
+                        "A lot with this row and column already exists in this cluster. Please use a different lot.",
+                    { duration: 5000 },
+                );
             },
         },
     );

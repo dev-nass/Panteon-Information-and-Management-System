@@ -28,6 +28,9 @@ const cancelEditRow = () => {
     editingRow.value = null;
 };
 
+// Inertia shares validation errors as a single message per field, useForm gives an array
+const firstErrorMessage = (value) => (Array.isArray(value) ? value[0] : value);
+
 const saveEditRow = () => {
     const phaseName = editingRow.value.name;
     router.put(
@@ -39,6 +42,13 @@ const saveEditRow = () => {
                 toast.success(`Phase "${phaseName}" updated successfully!`, {
                     duration: 3000,
                 });
+            },
+            onError: (errors) => {
+                toast.error(
+                    firstErrorMessage(errors?.name) ??
+                        "A phase with this name already exists. Please use a different name.",
+                    { duration: 5000 },
+                );
             },
         },
     );

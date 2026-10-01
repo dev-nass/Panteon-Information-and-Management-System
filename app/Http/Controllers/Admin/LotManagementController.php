@@ -7,6 +7,7 @@ use App\Models\Cluster;
 use App\Models\Lot;
 use App\Models\Phase;
 use App\Traits\LogsActivity;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -15,6 +16,12 @@ use Inertia\Inertia;
 class LotManagementController extends Controller
 {
     use LogsActivity;
+
+    /**
+     * Message shown when a lot position (LOT_NUM + LOT_LETTER) is already taken
+     * inside the same cluster.
+     */
+    private const LOT_DUPLICATE_MESSAGE = 'A lot with this row and column already exists in this cluster.';
 
     public function index()
     {
@@ -102,8 +109,15 @@ class LotManagementController extends Controller
     public function storePhase(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('phases', 'phase_name'),
+            ],
             'coordinates' => 'required|json',
+        ], [
+            'name.unique' => 'A phase with this name already exists.',
         ]);
 
         $phase = Phase::create([
@@ -169,29 +183,24 @@ class LotManagementController extends Controller
             'coordinates' => 'required|json',
         ]);
 
-        $existingLot = Lot::where('cluster_id', $validated['cluster_id'])
-            ->where('row', $validated['row'])
-            ->where('column', $validated['column'])
-            ->first();
+        $lotNumber = $this->normalizeLotNumber($validated['column']);
+        $lotLetter = $this->normalizeLotLetter($validated['row']);
 
-        if ($existingLot) {
-            return back()->withErrors([
-                'row' => 'A lot with this row and column already exists in this cluster.',
-                'column' => 'A lot with this row and column already exists in this cluster.',
-            ]);
+        if ($this->findDuplicateLot($validated['cluster_id'], $lotNumber, $lotLetter)) {
+            return $this->lotDuplicateError();
         }
 
         $lot = Lot::create([
             'cluster_id' => $validated['cluster_id'],
-            'column' => $validated['column'],
-            'row' => strtoupper($validated['row']),
+            'column' => $lotNumber,
+            'row' => $lotLetter,
             'coordinates' => DB::raw("ST_GeomFromGeoJSON('".$validated['coordinates']."')"),
         ]);
 
         $this->logActivity(
             'created',
             $lot,
-            "Created lot {$validated['row']}-{$validated['column']}",
+            "Created lot {$lotLetter}-{$lotNumber}",
         );
 
         return to_route('admin.lot_management.index')
@@ -210,10 +219,17 @@ class LotManagementController extends Controller
 
         $cluster = Cluster::findOrFail($validated['cluster_id']);
 
+        $lots = array_map(function (array $lot) {
+            $lot['column'] = $this->normalizeLotNumber($lot['column']);
+            $lot['row'] = $this->normalizeLotLetter($lot['row']);
+
+            return $lot;
+        }, $validated['lots']);
+
         // Check for duplicates within the submitted batch
         $seenKeys = [];
 
-        foreach ($validated['lots'] as $lot) {
+        foreach ($lots as $lot) {
             $key = $lot['column'].'|'.$lot['row'];
 
             if (isset($seenKeys[$key])) {
@@ -228,10 +244,10 @@ class LotManagementController extends Controller
         // Check for duplicates against existing lots in the cluster
         $existingKeys = Lot::where('cluster_id', $cluster->id)
             ->get(['column', 'row'])
-            ->map(fn ($lot) => $lot->column.'|'.$lot->row)
+            ->map(fn ($lot) => $this->normalizeLotNumber($lot->column).'|'.$this->normalizeLotLetter($lot->row))
             ->flip();
 
-        foreach ($validated['lots'] as $lot) {
+        foreach ($lots as $lot) {
             $key = $lot['column'].'|'.$lot['row'];
 
             if (isset($existingKeys[$key])) {
@@ -245,15 +261,15 @@ class LotManagementController extends Controller
         if ($cluster->total_capacity) {
             $remainingCapacity = $cluster->total_capacity - $cluster->lots()->count();
 
-            if (count($validated['lots']) > $remainingCapacity) {
+            if (count($lots) > $remainingCapacity) {
                 return back()->withErrors([
                     'lots' => 'Not enough capacity in this cluster. Only '.$remainingCapacity.' more lot(s) can be created.',
                 ]);
             }
         }
 
-        DB::transaction(function () use ($validated) {
-            foreach ($validated['lots'] as $lot) {
+        DB::transaction(function () use ($lots, $validated) {
+            foreach ($lots as $lot) {
                 Lot::create([
                     'cluster_id' => $validated['cluster_id'],
                     'column' => $lot['column'],
@@ -266,28 +282,42 @@ class LotManagementController extends Controller
         $this->logActivity(
             'created',
             $cluster,
-            'Bulk created '.count($validated['lots'])." lots in cluster {$cluster->cluster_name}",
+            'Bulk created '.count($lots)." lots in cluster {$cluster->cluster_name}",
             null,
-            ['lot_count' => count($validated['lots'])],
+            ['lot_count' => count($lots)],
         );
 
         return to_route('admin.lot_management.index')
-            ->with('success', count($validated['lots']).' lots created successfully.');
+            ->with('success', count($lots).' lots created successfully.');
     }
 
     public function updatePhase(Request $request, Phase $phase)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('phases', 'phase_name')->ignore($phase->id),
+            ],
             'coordinates' => 'nullable|json',
+        ], [
+            'name.unique' => 'A phase with this name already exists.',
         ]);
 
         $oldName = $phase->phase_name;
 
-        DB::update(
-            'UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
-            [$validated['name'], $validated['coordinates'], $phase->id]
-        );
+        if (isset($validated['coordinates'])) {
+            DB::update(
+                'UPDATE phases SET phase_name = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
+                [$validated['name'], $validated['coordinates'], $phase->id]
+            );
+        } else {
+            DB::update(
+                'UPDATE phases SET phase_name = ? WHERE id = ?',
+                [$validated['name'], $phase->id]
+            );
+        }
 
         $this->logActivity(
             'updated',
@@ -361,19 +391,33 @@ class LotManagementController extends Controller
             'coordinates' => 'nullable|json',
         ]);
 
+        $lotNumber = $this->normalizeLotNumber($validated['column']);
+        $lotLetter = $this->normalizeLotLetter($validated['row']);
+
+        if ($this->findDuplicateLot($lot->cluster_id, $lotNumber, $lotLetter, $lot->id)) {
+            return $this->lotDuplicateError();
+        }
+
         $oldValues = $lot->only(['column', 'row']);
 
-        DB::update(
-            'UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
-            [$validated['column'], $validated['row'], $validated['coordinates'], $lot->id]
-        );
+        if (isset($validated['coordinates'])) {
+            DB::update(
+                'UPDATE lots SET `column` = ?, `row` = ?, coordinates = ST_GeomFromGeoJSON(?) WHERE id = ?',
+                [$lotNumber, $lotLetter, $validated['coordinates'], $lot->id]
+            );
+        } else {
+            DB::update(
+                'UPDATE lots SET `column` = ?, `row` = ? WHERE id = ?',
+                [$lotNumber, $lotLetter, $lot->id]
+            );
+        }
 
         $this->logActivity(
             'updated',
             $lot,
-            "Updated lot {$validated['row']}-{$validated['column']}",
+            "Updated lot {$lotLetter}-{$lotNumber}",
             $oldValues,
-            ['column' => $validated['column'], 'row' => $validated['row']],
+            ['column' => $lotNumber, 'row' => $lotLetter],
         );
 
         return to_route('admin.lot_management.index')->with('success', 'Lot updated successfully.');
@@ -419,5 +463,45 @@ class LotManagementController extends Controller
 
         return to_route('admin.lot_management.index')
             ->with('success', 'Lot deleted successfully.');
+    }
+
+    /**
+     * Normalize a lot number (LOT_NUM, stored in the `column` column) so duplicate
+     * detection compares the exact value that gets persisted.
+     */
+    private function normalizeLotNumber(string $number): string
+    {
+        return trim($number);
+    }
+
+    /**
+     * Normalize a lot letter (LOT_LETTER, stored in the `row` column) so duplicate
+     * detection compares the exact value that gets persisted.
+     */
+    private function normalizeLotLetter(string $letter): string
+    {
+        return strtoupper(trim($letter));
+    }
+
+    /**
+     * A lot position is unique per cluster, so LOT_NUM + LOT_LETTER inside the same
+     * cluster identifies an existing lot. Pass $ignoreId to exclude the lot itself
+     * while it is being updated.
+     */
+    private function findDuplicateLot(int|string $clusterId, string $lotNumber, string $lotLetter, int|string|null $ignoreId = null): ?Lot
+    {
+        return Lot::where('cluster_id', $clusterId)
+            ->where('column', $lotNumber)
+            ->where('row', $lotLetter)
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->first();
+    }
+
+    private function lotDuplicateError(): RedirectResponse
+    {
+        return back()->withErrors([
+            'row' => self::LOT_DUPLICATE_MESSAGE,
+            'column' => self::LOT_DUPLICATE_MESSAGE,
+        ]);
     }
 }
