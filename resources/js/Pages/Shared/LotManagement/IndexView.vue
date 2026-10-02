@@ -455,6 +455,7 @@ defineOptions({
             <div v-else-if="activeTab === 'cluster'">
                 <ClusterTable
                     :phase-id="selectedPhase?.id"
+                    :phases="phases"
                     :search="search"
                     :user-role="userRole"
                     :role-route="roleRoutes[userRole].map.route"

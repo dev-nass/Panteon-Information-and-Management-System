@@ -829,6 +829,7 @@ watch(
         <!-- Phase Plotting Modal -->
         <PhasePlottingModal
             v-if="showPhaseModal"
+            :phases="phases"
             @coordinates-set="handlePhaseCoordinatesSet"
             @close="closePhaseModal"
         />

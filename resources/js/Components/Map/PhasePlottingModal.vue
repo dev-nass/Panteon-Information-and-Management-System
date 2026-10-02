@@ -4,13 +4,17 @@ import { useCreatePlotPhase } from "@/composables/lot_management/create/useCreat
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 
+const props = defineProps({
+    phases: { type: Array, default: () => [] },
+});
+
 const emit = defineEmits(["coordinatesSet", "close"]);
 
 const { coordinates, initializeMap, cleanupMap, getCoordinates } =
     useCreatePlotPhase();
 
 onMounted(() => {
-    initializeMap("phase-plotting-map");
+    initializeMap("phase-plotting-map", props.phases);
 });
 
 onBeforeUnmount(() => {

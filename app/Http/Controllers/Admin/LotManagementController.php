@@ -348,7 +348,7 @@ class LotManagementController extends Controller
                     ->ignore($cluster->id),
             ],
             'type' => 'required|in:apartment,underground,columbarium',
-            'total_capacity' => 'nullable|integer|min:1',
+            'total_capacity' => 'nullable|integer|min:5',
             'coordinates' => 'nullable|json',
         ], [
             'name.unique' => 'A cluster with this name and type already exists in this phase.',

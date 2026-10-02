@@ -8,6 +8,7 @@ import ClusterEditModal from "@/Components/Map/ClusterEditModal.vue";
 
 const props = defineProps({
     phaseId: Number,
+    phases: { type: Array, default: () => [] },
     search: String,
     userRole: String,
     roleRoute: String, // contain route for "view on map"
@@ -122,6 +123,10 @@ const cancelEditRow = () => {
 const firstErrorMessage = (value) => (Array.isArray(value) ? value[0] : value);
 
 const saveEditRow = () => {
+    if (editingRow.value.total_capacity < 5) {
+        toast.error("Total capacity must be at least 5.", { duration: 4000 });
+        return;
+    }
     const clusterName = editingRow.value.name;
     router.put(
         route("admin.lot_management.update.cluster", editingRow.value.id),
@@ -154,11 +159,13 @@ const openClusterCoordinateModal = (cluster) => {
 };
 
 const handleClusterCoordinatesSet = (coords) => {
+    const clusterName = editingItem.value?.name;
     router.put(
         route("admin.lot_management.update.cluster", editingItem.value.id),
         {
             name: editingItem.value.name,
             type: editingItem.value.type,
+            total_capacity: editingItem.value.total_capacity,
             coordinates: JSON.stringify(coords),
         },
         {
@@ -166,7 +173,15 @@ const handleClusterCoordinatesSet = (coords) => {
             onSuccess: () => {
                 showClusterModal.value = false;
                 editingItem.value = null;
+                editingRow.value = null;
                 fetchClusters();
+                toast.success(
+                    `Cluster "${clusterName}" coordinates updated successfully!`,
+                    { duration: 3000 },
+                );
+            },
+            onError: () => {
+                toast.error("Failed to update cluster coordinates.", { duration: 3000 });
             },
         },
     );
@@ -488,6 +503,7 @@ onMounted(() => {
     <ClusterEditModal
         v-if="showClusterModal"
         :phase-id="phaseId"
+        :phases="phases"
         :existing-coordinates="editingItem?.coordinates"
         @coordinates-set="handleClusterCoordinatesSet"
         @close="showClusterModal = false"

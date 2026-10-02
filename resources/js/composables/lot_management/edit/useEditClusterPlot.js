@@ -114,13 +114,14 @@ export function useEditClusterPlot() {
 
                 L.geoJSON(feature, {
                     style: {
-                        color: "#9ca3af",
-                        fillColor: "#9ca3af",
-                        fillOpacity: 0.1,
+                        color: "#f59e0b",
+                        fillColor: "#f59e0b",
+                        fillOpacity: 0.08,
                         weight: 2,
-                        dashArray: "5, 5",
+                        dashArray: "6 4",
                     },
-                }).addTo(map.value);
+                }).bindTooltip(phase.name ?? "Phase", { permanent: false, sticky: true })
+                  .addTo(map.value);
             } catch (error) {
                 console.error("Error loading phase:", error);
             }

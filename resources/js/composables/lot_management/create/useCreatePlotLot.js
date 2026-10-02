@@ -78,6 +78,27 @@ export function useCreatePlotLot() {
     const loadCluster = (clusterId, phases) => {
         if (!map.value || !clusterId) return;
 
+        // Draw all existing phases as reference layers
+        for (const phase of phases) {
+            if (!phase.coordinates) continue;
+            try {
+                let geojson = phase.coordinates;
+                if (typeof geojson === "string") geojson = JSON.parse(geojson);
+                L.geoJSON({ type: "Feature", geometry: geojson, properties: {} }, {
+                    style: {
+                        color: "#f59e0b",
+                        fillColor: "#f59e0b",
+                        fillOpacity: 0.08,
+                        weight: 2,
+                        dashArray: "6 4",
+                    },
+                }).bindTooltip(phase.name ?? "Phase", { permanent: false, sticky: true })
+                  .addTo(map.value);
+            } catch (e) {
+                console.error("Error loading phase reference:", e);
+            }
+        }
+
         // Find cluster from phases
         let cluster = null;
         for (const phase of phases) {
@@ -93,8 +114,6 @@ export function useCreatePlotLot() {
                 if (typeof geojson === "string") {
                     geojson = JSON.parse(geojson);
                 }
-
-                // console.log("Cluster coordinates:", geojson);
 
                 // Create GeoJSON feature
                 const feature = {
@@ -112,8 +131,6 @@ export function useCreatePlotLot() {
                         weight: 2,
                     },
                 }).addTo(map.value);
-
-                // console.log("Cluster layer added:", clusterLayer);
 
                 // Fit map to cluster bounds
                 const bounds = clusterLayer.getBounds();

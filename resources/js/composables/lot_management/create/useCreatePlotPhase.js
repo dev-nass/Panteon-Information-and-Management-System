@@ -13,7 +13,7 @@ export function useCreatePlotPhase() {
     const drawControl = ref(null);
     const coordinates = ref(null);
 
-    const initializeMap = (mapContainerElem) => {
+    const initializeMap = (mapContainerElem, existingPhases = []) => {
         map.value = L.map(mapContainerElem, {
             maxZoom: 22,
             minZoom: 5,
@@ -33,6 +33,27 @@ export function useCreatePlotPhase() {
             errorTileUrl:
                 "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
         }).addTo(map.value);
+
+        // Draw existing phases as reference layers
+        for (const phase of existingPhases) {
+            if (!phase.coordinates) continue;
+            try {
+                let geojson = phase.coordinates;
+                if (typeof geojson === "string") geojson = JSON.parse(geojson);
+                L.geoJSON({ type: "Feature", geometry: geojson, properties: {} }, {
+                    style: {
+                        color: "#f59e0b",
+                        fillColor: "#f59e0b",
+                        fillOpacity: 0.08,
+                        weight: 2,
+                        dashArray: "6 4",
+                    },
+                }).bindTooltip(phase.name ?? "Phase", { permanent: false, sticky: true })
+                  .addTo(map.value);
+            } catch (e) {
+                console.error("Error loading phase reference:", e);
+            }
+        }
 
         drawnItems.value = new L.FeatureGroup();
         map.value.addLayer(drawnItems.value);
