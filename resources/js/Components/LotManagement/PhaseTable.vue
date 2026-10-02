@@ -258,6 +258,7 @@ onMounted(() => {
 
     <PhaseEditModal
         v-if="showPhaseModal"
+        :phases="phases.filter(p => p.id !== editingItem?.id)"
         :existing-coordinates="editingItem?.coordinates"
         @coordinates-set="handlePhaseCoordinatesSet"
         @close="showPhaseModal = false"

@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 
 const props = defineProps({
+    phases: { type: Array, default: () => [] },
     existingCoordinates: { type: [String, Object], default: null },
 });
 
@@ -15,7 +16,7 @@ const { coordinates, initializeMap, cleanupMap, getCoordinates } =
     useEditPhasePlot();
 
 onMounted(() => {
-    initializeMap("phase-edit-map", props.existingCoordinates);
+    initializeMap("phase-edit-map", props.existingCoordinates, props.phases);
 });
 
 onBeforeUnmount(() => {
