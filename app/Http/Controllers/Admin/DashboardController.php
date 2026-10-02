@@ -17,7 +17,9 @@ class DashboardController extends Controller
     {
         $tab = $request->get('tab', 'summary');
         $filter = $request->get('filter', 'monthly');
-        $year = $request->get('year', now()->year);
+        $yearParam = $request->get('year', (string) now()->year);
+        $allTime = $yearParam === 'all' || $yearParam === null;
+        $year = $allTime ? null : (int) $yearParam;
         $phaseId = $request->get('phase_id');
         $clusterPage = $request->get('cluster_page', 1);
         $clusterType = $request->get('cluster_type');
@@ -34,13 +36,13 @@ class DashboardController extends Controller
             'total_disposal_stats' => $this->dashboardService->getDisposalStats(),
             'current_tab' => $tab,
             'current_filter' => $filter,
-            'selected_year' => (int) $year,
+            'selected_year' => $allTime ? 'all' : $year,
             'active_filters' => $filters,
         ];
 
         if ($tab === 'summary') {
-            $summaryFilters = array_merge($filters, ['year' => (int) $year]);
-            $data['activity_data'] = $this->dashboardService->getActivityData($filter, (int) $year, $summaryFilters);
+            $summaryFilters = array_merge($filters, $allTime ? ['all_time' => true] : ['year' => $year]);
+            $data['activity_data'] = $this->dashboardService->getActivityData($filter, $year, $summaryFilters);
             $data['demographic_data'] = $this->dashboardService->getAgeDistribution($summaryFilters);
             $data['geographic_data'] = $this->dashboardService->getGeographicDistribution($summaryFilters);
             $data['filter_options'] = $this->dashboardService->getFilterOptions();

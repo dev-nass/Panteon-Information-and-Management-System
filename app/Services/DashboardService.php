@@ -56,9 +56,29 @@ class DashboardService
         ];
     }
 
-    public function getActivityData(string $filter, int $year, array $filters = []): array
+    public function getActivityData(string $filter, ?int $year, array $filters = []): array
     {
         $now = Carbon::now();
+
+        if ($filter === 'yearly' && $year === null) {
+            $query = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+                ->select(
+                    DB::raw('YEAR(deceased_records.date_of_depository) as period'),
+                    DB::raw('count(*) as count')
+                )
+                ->whereNull('burial_records.archived_at')
+                ->whereRaw('YEAR(deceased_records.date_of_depository) >= 2013')
+                ->groupBy('period')
+                ->orderBy('period');
+
+            $this->applyDeceasedTableFilters($query, $filters, 'deceased_records');
+
+            $rows = $query->get();
+            $labels = $rows->pluck('period')->map(fn ($y) => (string) $y)->toArray();
+            $values = $rows->pluck('count')->map(fn ($c) => (int) $c)->toArray();
+
+            return ['labels' => $labels, 'values' => $values];
+        }
 
         if ($filter === 'today') {
             $query = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
@@ -165,7 +185,7 @@ class DashboardService
         $selects[] = "SUM(CASE WHEN {$ageExpr} IS NULL THEN 1 ELSE 0 END) as `Unknown`";
 
         $query = BurialRecord::query()->whereNull('burial_records.archived_at');
-        $this->applyDeceasedJoinAndFilters($query, $filters);
+        $this->applyDeceasedJoinAndFilters($query, $filters, skipYear: isset($filters['all_time']) && $filters['all_time']);
 
         $row = $query->selectRaw(implode(', ', $selects))->first();
 
@@ -177,17 +197,18 @@ class DashboardService
 
     public function getGeographicDistribution(array $filters = [], int $limit = 10): array
     {
-        $query = DeceasedRecord::query();
-        $this->applyDeceasedTableFilters($query, $filters);
+        $query = BurialRecord::query()->whereNull('burial_records.archived_at');
+        $this->applyDeceasedJoinAndFilters($query, $filters, skipYear: isset($filters['all_time']) && $filters['all_time']);
+        $query->select('deceased_records.address', DB::raw('count(*) as cnt'));
 
-        $rows = $query->select('address', DB::raw('count(*) as cnt'))
-            ->whereNotNull('address')
-            ->where('address', '!=', '')
-            ->where('address', '!=', 'None')
-            ->groupBy('address')
+        $rows = $query
+            ->whereNotNull('deceased_records.address')
+            ->where('deceased_records.address', '!=', '')
+            ->where('deceased_records.address', '!=', 'None')
+            ->groupBy('deceased_records.address')
             ->get();
 
-        $normalized = $rows->groupBy(fn ($row) => $this->normalizeBarangay($row->address))
+        $normalized = $rows->groupBy(fn ($row) => $this->normalizeBarangay($row->address ?? ''))
             ->map(fn ($group) => [
                 'count' => $group->sum('cnt'),
                 'display' => $this->mostCommonAddress($group->pluck('address')),
@@ -283,11 +304,11 @@ class DashboardService
     /**
      * Join deceased_records to a BurialRecord query and apply filters.
      */
-    private function applyDeceasedJoinAndFilters(Builder $query, array $filters): void
+    private function applyDeceasedJoinAndFilters(Builder $query, array $filters, bool $skipYear = false): void
     {
         $query->join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id');
 
-        if (! empty($filters['year'])) {
+        if (! $skipYear && ! empty($filters['year'])) {
             $query->whereYear('deceased_records.date_of_depository', (int) $filters['year']);
         }
 

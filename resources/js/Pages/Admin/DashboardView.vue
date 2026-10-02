@@ -31,12 +31,12 @@ const props = defineProps({
     selected_type: { type: String, default: "" },
     current_tab: { type: String, default: "summary" },
     current_filter: { type: String, default: "monthly" },
-    selected_year: { type: Number, default: new Date().getFullYear() },
+    selected_year: { type: [Number, String], default: new Date().getFullYear() },
 });
 
 const activeTab = ref(props.current_tab);
 const activeFilter = ref(props.current_filter);
-const selectedYear = ref(props.selected_year);
+const selectedYear = ref(props.selected_year ?? new Date().getFullYear());
 const selectedPhaseId = ref(props.selected_phase_id);
 const selectedType = ref(props.selected_type);
 
@@ -44,10 +44,13 @@ const activeAgeRange = ref(props.active_filters?.age_range ?? null);
 const activeBarangay = ref(props.active_filters?.barangay ?? null);
 
 const currentYear = new Date().getFullYear();
-const yearOptions = Array.from(
-    { length: currentYear - 2013 + 1 },
-    (_, i) => 2013 + i,
-).reverse();
+const yearOptions = [
+    { value: 'all', label: 'All Time' },
+    ...Array.from({ length: currentYear - 2013 + 1 }, (_, i) => ({
+        value: 2013 + i,
+        label: String(2013 + i),
+    })).reverse(),
+];
 
 const hasActiveDashboardFilters = computed(() => {
     return activeAgeRange.value !== null || activeBarangay.value !== null;
@@ -190,7 +193,7 @@ const changeClusterPage = (page) => {
 const performanceData = computed(() => {
     if (!props.activity_data) return null;
     return {
-        labels: props.activity_data.labels,
+        labels: props.activity_data.labels.map(String),
         datasets: [
             {
                 label: "Burial Records",
@@ -205,20 +208,21 @@ const performanceData = computed(() => {
     };
 });
 
-const performanceOptions = {
+const performanceOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: { legend: { display: false } },
     scales: {
         x: {
-            title: { display: true, text: "Time Period", font: { size: 12 } },
+            type: 'category',
+            title: { display: true, text: activeFilter.value === 'yearly' && selectedYear.value === 'all' ? 'Year' : 'Time Period', font: { size: 12 } },
         },
         y: {
             title: { display: true, text: "Number of Records", font: { size: 12 } },
             beginAtZero: true,
         },
     },
-};
+}));
 
 /* DOUGHNUT DATA */
 const attendanceData = computed(() => {
@@ -519,11 +523,11 @@ defineOptions({
                             class="px-3 py-2 border bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 rounded-lg text-sm text-gray-800 dark:text-neutral-200 focus:border-green-500 focus:ring-2 focus:ring-green-500"
                         >
                             <option
-                                v-for="year in yearOptions"
-                                :key="year"
-                                :value="year"
+                                v-for="opt in yearOptions"
+                                :key="opt.value"
+                                :value="opt.value"
                             >
-                                {{ year }}
+                                {{ opt.label }}
                             </option>
                         </select>
                     </div>
