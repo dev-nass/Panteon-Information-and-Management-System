@@ -8,7 +8,7 @@ import BarChart from "@/Components/Charts/BarChart.vue";
 import DoughnutChart from "@/Components/Charts/DoughnutChart.vue";
 import HorizontalBarChart from "@/Components/Charts/HorizontalBarChart.vue";
 
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
@@ -40,6 +40,9 @@ const selectedYear = ref(props.selected_year ?? new Date().getFullYear());
 const selectedPhaseId = ref(props.selected_phase_id);
 const selectedType = ref(props.selected_type);
 
+watch(() => props.selected_phase_id, (val) => { if (val) selectedPhaseId.value = val; });
+watch(() => props.selected_type, (val) => { selectedType.value = val; });
+
 const activeAgeRange = ref(props.active_filters?.age_range ?? null);
 const activeBarangay = ref(props.active_filters?.barangay ?? null);
 
@@ -58,7 +61,12 @@ const hasActiveDashboardFilters = computed(() => {
 
 const changeTab = (tab) => {
     activeTab.value = tab;
-    router.get(route("admin.dashboard"), { tab }, { preserveState: true });
+    const params = { tab };
+    if (tab === 'clusters') {
+        params.phase_id = selectedPhaseId.value;
+        params.cluster_type = selectedType.value;
+    }
+    router.get(route("admin.dashboard"), params, { preserveState: true });
 };
 
 const changeFilter = (filter) => {
