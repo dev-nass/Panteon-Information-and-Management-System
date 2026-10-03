@@ -40,7 +40,7 @@ const lotTypeModalImages = [
 // browser serves it from cache once the hero has loaded.
 const orgChartImage = "/" + "images/org-chart.webp";
 
-const facilitiesPreviewImage = "/" + "images/facilities.webp";
+const facilitiesPreviewImage = "/" + "images/facilities-665.webp";
 
 const facilitiesImages = [
     "/" + "images/facilities/IMG_20260327_163528_636-1920.webp",

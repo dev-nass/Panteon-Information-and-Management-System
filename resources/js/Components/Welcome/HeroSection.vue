@@ -15,7 +15,7 @@ const heroImageSrcset = [768, 1280, 1920, 2560, 3072, 3840]
 // cropping to the 358px slot. The browser has to be told that, or it
 // sizes against the 390px viewport, picks the 768w candidate and renders
 // a 346px-tall file into a 600px-tall box.
-const heroImageSizes = "(min-width: 768px) 125vw, 372vw";
+const heroImageSizes = "(min-width: 768px) 125vw, 342vw";
 </script>
 
 <template>
