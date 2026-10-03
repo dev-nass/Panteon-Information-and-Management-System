@@ -1,5 +1,7 @@
 <script setup>
 import { useMap } from "@/composables/useMap";
+import "leaflet/dist/leaflet.css";
+import "@/utils/leafletPatch.js";
 import {
     ref,
     onMounted,

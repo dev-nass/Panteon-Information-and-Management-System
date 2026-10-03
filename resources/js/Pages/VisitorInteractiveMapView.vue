@@ -1,5 +1,7 @@
 <script setup>
 import { useVisitorMap } from "@/composables/useVisitorMap";
+import "leaflet/dist/leaflet.css";
+import "@/utils/leafletPatch.js";
 import { useSearch } from "@/composables/map/search/useSearch";
 import { useMapSearchStates } from "@/stores/useMapSearchStates";
 import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";

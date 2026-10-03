@@ -13,10 +13,6 @@ if (typeof window !== "undefined") {
 import { createApp, h } from "vue";
 import { createInertiaApp, router } from "@inertiajs/vue3";
 
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
-import "./utils/leafletPatch.js";
-
 import { ZiggyVue } from "ziggy-js"; // laravel routes
 
 import NProgress from "nprogress"; // progress indicator
@@ -36,8 +32,8 @@ createInertiaApp({
         showSpinner: false,
     },
     resolve: (name) => {
-        const pages = import.meta.glob("./Pages/**/*.vue", { eager: true });
-        return pages[`./Pages/${name}.vue`];
+        const pages = import.meta.glob("./Pages/**/*.vue");
+        return pages[`./Pages/${name}.vue`]();
     },
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
