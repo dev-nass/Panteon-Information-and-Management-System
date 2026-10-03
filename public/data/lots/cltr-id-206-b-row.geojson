@@ -11,7 +11,7 @@
             "properties": {
                 "fid": 1,
                 "id": 1,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -25,7 +25,7 @@
             "properties": {
                 "fid": 2,
                 "id": 2,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -39,7 +39,7 @@
             "properties": {
                 "fid": 3,
                 "id": 3,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -53,7 +53,7 @@
             "properties": {
                 "fid": 4,
                 "id": 4,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -67,7 +67,7 @@
             "properties": {
                 "fid": 5,
                 "id": 5,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -81,7 +81,7 @@
             "properties": {
                 "fid": 6,
                 "id": 6,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -95,7 +95,7 @@
             "properties": {
                 "fid": 7,
                 "id": 7,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -109,7 +109,7 @@
             "properties": {
                 "fid": 8,
                 "id": 8,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -123,7 +123,7 @@
             "properties": {
                 "fid": 9,
                 "id": 9,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },
@@ -137,7 +137,7 @@
             "properties": {
                 "fid": 10,
                 "id": 10,
-                "cluster_id": 206,
+                "cluster_id": "206",
                 "column": null,
                 "row": "B"
             },

@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "cltr-id-167-a -row",
+"name": "cltr-id-167-a-row",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "fid": 1, "id": 1, "cluster_id": "167", "column": null, "row": "A" }, "geometry": { "type": "Point", "coordinates": [ 120.976046143456202, 14.305566884977631 ] } },

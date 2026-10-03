@@ -13,7 +13,7 @@
                 "id": 1,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -27,7 +27,7 @@
                 "id": 2,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -41,7 +41,7 @@
                 "id": 3,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -55,7 +55,7 @@
                 "id": 4,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -69,7 +69,7 @@
                 "id": 5,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -83,7 +83,7 @@
                 "id": 6,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -97,7 +97,7 @@
                 "id": 7,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -111,7 +111,7 @@
                 "id": 8,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -125,7 +125,7 @@
                 "id": 9,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -139,7 +139,7 @@
                 "id": 10,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -153,7 +153,7 @@
                 "id": 11,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -167,7 +167,7 @@
                 "id": 12,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -181,7 +181,7 @@
                 "id": 13,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -195,7 +195,7 @@
                 "id": 14,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
@@ -209,7 +209,7 @@
                 "id": 15,
                 "cluster_id": "158",
                 "column": null,
-                "row": "B"
+                "row": "A"
             },
             "geometry": {
                 "type": "Point",
