@@ -124,6 +124,8 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
             >
                 <img
                     :src="orgChartImage"
+                    :srcset="'/images/org-chart-886.webp 886w, /images/org-chart.webp 1672w'"
+                    sizes="(min-width: 1024px) 886px, 100vw"
                     width="1672"
                     height="941"
                     alt="Organizational chart of La Funeraria De Dasmariñas and Panteon De Dasmariñas"
@@ -415,6 +417,8 @@ const totalStaffCount = fieldStaffCount + officeStaffCount + leadership.length;
                 <div class="relative w-full overflow-hidden aspect-[4/3]">
                     <img
                         :src="facilitiesPreviewImage"
+                        :srcset="'/images/facilities-665.webp 665w, /images/facilities.webp 1120w'"
+                        sizes="(min-width: 640px) 665px, 100vw"
                         width="1120"
                         height="840"
                         alt="Cemetery office and facilities"

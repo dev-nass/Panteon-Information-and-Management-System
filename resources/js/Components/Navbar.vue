@@ -58,6 +58,10 @@ onBeforeUnmount(() => {
                     <img
                         class="h-10"
                         :src="logoSrc"
+                        :srcset="'/images/dasmarinas-logo-120.webp 120w, /images/dasmarinas-logo.webp 237w'"
+                        sizes="40px"
+                        width="40"
+                        height="40"
                         alt="Dasmariñas Logo"
                     />
                 </a>
