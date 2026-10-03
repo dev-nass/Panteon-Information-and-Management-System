@@ -12,6 +12,9 @@ export default defineConfig({
         tailwindcss(),
         vue(),
     ],
+    build: {
+        cssCodeSplit: false,
+    },
     server: {
         watch: {
             ignored: ["**/storage/framework/views/**"],

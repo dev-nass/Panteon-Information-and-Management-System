@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             EnsureSingleSession::class,
+            \App\Http\Middleware\CacheStaticAssets::class,
         ]);
 
         $middleware->alias([
