@@ -99,8 +99,8 @@ export function useBurialRecordModal(
 
     const modalContentClass = computed(() =>
         isShowingLotImage.value
-            ? "max-h-[94vh] h-[94vh] overflow-hidden flex flex-col bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50 rounded-2xl pointer-events-auto w-full"
-            : "max-h-full overflow-hidden flex flex-col bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50 rounded-2xl pointer-events-auto w-full",
+            ? "max-h-[94vh] h-[94vh] overflow-hidden flex flex-col bg-white dark:bg-neutral-900 border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50 rounded-2xl pointer-events-auto w-full"
+            : "max-h-full overflow-hidden flex flex-col bg-white dark:bg-neutral-900 border border-white/20 dark:border-white/10 shadow-lg shadow-gray-200/50 dark:shadow-black/50 rounded-2xl pointer-events-auto w-full",
     );
 
     watch(imageSrc, () => {

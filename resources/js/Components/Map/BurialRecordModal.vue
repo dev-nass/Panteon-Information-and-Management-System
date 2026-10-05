@@ -16,6 +16,7 @@ const burialShowRoute = computed(() => {
 const props = defineProps({
     clusterId: { type: Number, default: null },
     feature: { type: Object, default: null },
+    burialId: { type: [Number, String], default: null },
 });
 
 const fetchedFeature = ref(null);
@@ -112,13 +113,50 @@ watch(
     { immediate: true },
 );
 
-// Reset state when feature prop changes
-watch(
-    () => props.feature,
-    () => {
-        searchTerm.value = "";
+const selectBurialFromFeature = () => {
+    const feat = props.feature || fetchedFeature.value;
+    if (!feat?.lots) {
         selectedBurial.value = null;
+        return;
+    }
+
+    const allBurials = feat.lots.flatMap((lot) =>
+        (lot.burial_records || []).map((burial) => ({
+            ...burial,
+            lot: lot.lot,
+        })),
+    );
+
+    if (allBurials.length === 0) {
+        selectedBurial.value = null;
+        return;
+    }
+
+    if (props.burialId !== null && props.burialId !== undefined) {
+        const found = allBurials.find(
+            (b) => String(b.burial?.id) === String(props.burialId),
+        );
+        if (found) {
+            selectedBurial.value = found;
+            return;
+        }
+    }
+
+    selectedBurial.value = allBurials[0];
+};
+
+// When feature or burialId prop changes (search mode)
+watch(
+    [() => props.feature, () => props.burialId],
+    ([newFeature]) => {
+        searchTerm.value = "";
+        if (newFeature) {
+            selectBurialFromFeature();
+        } else {
+            selectedBurial.value = null;
+        }
     },
+    { immediate: true },
 );
 
 const filteredBurials = computed(() => {
@@ -187,7 +225,10 @@ const formatDate = (dateStr) => {
 <template>
     <div
         id="hs-scroll-inside-body-modal"
-        class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto bg-black/40 backdrop-blur-sm pointer-events-none"
+        class="hs-overlay hidden size-full fixed top-0 start-0 z-[2000] overflow-x-hidden overflow-y-auto pointer-events-none"
+        data-hs-overlay-options='{
+            "backdropClasses": "transition duration fixed inset-0 bg-gray-900/50 dark:bg-neutral-900/80 backdrop-blur-sm"
+        }'
         role="dialog"
         tabindex="-1"
         aria-labelledby="hs-scroll-inside-body-modal-label"
@@ -196,7 +237,7 @@ const formatDate = (dateStr) => {
             <div :class="modalContentClass">
                 <!-- Header -->
                 <div
-                    class="flex justify-between items-center py-3 px-4 border-b border-white/20 dark:border-white/10 bg-white/40 dark:bg-neutral-800/40 backdrop-blur-md shrink-0"
+                    class="flex justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shrink-0"
                 >
                     <div>
                         <h3
@@ -206,6 +247,8 @@ const formatDate = (dateStr) => {
                             {{
                                 isShowingLotImage && selectedBurial
                                     ? "Lot Image"
+                                    : selectedBurial
+                                    ? "Deceased Details"
                                     : "Cluster Details"
                             }}
                         </h3>
@@ -523,7 +566,7 @@ const formatDate = (dateStr) => {
                             </button>
 
                         <div
-                            class="p-5 rounded-xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-md"
+                            class="p-5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50/80 dark:bg-neutral-800/80"
                         >
                             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                                 <div class="flex items-center gap-4 min-w-0 flex-1 w-full">
@@ -550,10 +593,14 @@ const formatDate = (dateStr) => {
                                         >
                                             {{
                                                 selectedBurial.deceased
-                                                    ?.first_name +
+                                                    ?.full_name ||
+                                                (
+                                                    (selectedBurial.deceased
+                                                        ?.first_name || "") +
                                                     " " +
-                                                    selectedBurial.deceased
-                                                        ?.last_name ?? "Unknown"
+                                                    (selectedBurial.deceased
+                                                        ?.last_name || "")
+                                                ).trim() || "Unknown"
                                             }}
                                         </h3>
 
@@ -618,7 +665,10 @@ const formatDate = (dateStr) => {
                                     <div class="font-medium">
                                         {{
                                             activeFeature?.cluster?.properties
-                                                ?.phase ?? "N/A"
+                                                ?.phase ??
+                                            selectedBurial.lot?.properties
+                                                ?.phase ??
+                                            "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -632,7 +682,10 @@ const formatDate = (dateStr) => {
                                     <div class="font-medium">
                                         {{
                                             activeFeature?.cluster?.properties
-                                                ?.name ?? "N/A"
+                                                ?.name ??
+                                            selectedBurial.lot?.properties
+                                                ?.cluster ??
+                                            "N/A"
                                         }}
                                     </div>
                                 </div>
@@ -679,7 +732,8 @@ const formatDate = (dateStr) => {
                                         {{
                                             formatDate(
                                                 selectedBurial.deceased?.burial
-                                                    ?.date,
+                                                    ?.date ||
+                                                    selectedBurial.burial?.date,
                                             )
                                         }}
                                     </div>

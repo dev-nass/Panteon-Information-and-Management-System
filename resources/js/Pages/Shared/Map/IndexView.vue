@@ -152,6 +152,7 @@ window.openLotDetailsModal = function (feature) {
 
 const clusterIdForModal = ref(null);
 const featureForModal = ref(null);
+const burialIdForModal = ref(null);
 
 // Junction modal state
 const junctionModalData = ref({
@@ -163,20 +164,55 @@ const junctionModalData = ref({
 /**
  * Description: Definition of a global function for apartment, comlabrium and search
  * result lot using 'window' API
- * TODO: what does the else do?
  */
-window.openBurialRecordModal = function (clusterIdOrFeature) {
+window.openBurialRecordModal = function (clusterIdOrFeature, burialId = null) {
     // If it's a number, it's a clusterId (normal mode)
     if (typeof clusterIdOrFeature === "number") {
         clusterIdForModal.value = clusterIdOrFeature;
         featureForModal.value = null;
+        burialIdForModal.value = null;
     } else {
         // Otherwise it's a feature object (search mode)
         featureForModal.value = clusterIdOrFeature;
         clusterIdForModal.value = null;
+        if (burialId) {
+            burialIdForModal.value = burialId;
+        }
     }
 
     HSOverlay.open("#hs-scroll-inside-body-modal");
+};
+
+const handleSelectSuggestion = async (suggestion) => {
+    if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+    }
+
+    burialIdForModal.value = suggestion.burial_id;
+    const clusterData = await fetchClusterByBurialId(suggestion.burial_id);
+
+    if (clusterData) {
+        featureForModal.value = clusterData;
+        clusterIdForModal.value = null;
+        await nextTick();
+        setTimeout(() => {
+            const overlay =
+                typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+            overlay?.open("#hs-scroll-inside-body-modal");
+        }, 100);
+    }
+};
+
+const handleClearSearch = () => {
+    featureForModal.value = null;
+    clusterIdForModal.value = null;
+    burialIdForModal.value = null;
+    try {
+        const overlay =
+            typeof HSOverlay !== "undefined" ? HSOverlay : window.HSOverlay;
+        overlay?.close("#hs-scroll-inside-body-modal");
+    } catch (_) {}
+    clearSearch();
 };
 
 /**
@@ -214,12 +250,6 @@ defineOptions({
 
 onMounted(() => {
     initializeMap(mapContainer.value);
-
-    setTimeout(() => {
-        document
-            .querySelectorAll("#hs-cookies")
-            .forEach((el) => HSOverlay.open(el));
-    });
 });
 
 onBeforeUnmount(() => {
@@ -236,73 +266,31 @@ onBeforeUnmount(() => {
         class="relative w-full isolate"
         style="height: 100vh"
     >
-        <!--- NOTE: Uncomment this later -->
-        <!-- <Teleport to="body"> -->
-        <BurialRecordModal
-            :cluster-id="clusterIdForModal"
-            :feature="featureForModal"
-            @view-path="(burialId) => fetchClusterByBurialId(burialId)"
-        />
-        <PhaseModal
-            :feature="phaseModalFeature"
-            @view-on-table="handleViewPhaseOnTable"
-        />
-        <ClusterModal
-            :feature="clusterModalFeature"
-            @view-on-table="handleViewClusterOnTable"
-        />
-        <LotModal
-            :feature="lotModalFeature"
-            @view-on-table="handleViewLotOnTable"
-        />
-        <JunctionLandMarkModal
-            :junction-id="junctionModalData.junctionId"
-            :junction-number="junctionModalData.junctionNumber"
-            :junction-type="junctionModalData.junctionType"
-        />
-        <!--     <Modal> -->
-        <!--         <template v-slot:header> -->
-        <!--             <svg -->
-        <!--                 xmlns="http://www.w3.org/2000/svg" -->
-        <!--                 width="24" -->
-        <!--                 height="24" -->
-        <!--                 viewBox="0 0 24 24" -->
-        <!--                 fill="none" -->
-        <!--                 stroke="currentColor" -->
-        <!--                 stroke-width="2" -->
-        <!--                 stroke-linecap="round" -->
-        <!--                 stroke-linejoin="round" -->
-        <!--                 class="lucide lucide-info-icon lucide-info" -->
-        <!--             > -->
-        <!--                 <circle cx="12" cy="12" r="10" /> -->
-        <!--                 <path d="M12 16v-4" /> -->
-        <!--                 <path d="M12 8h.01" /> -->
-        <!--             </svg> -->
-        <!--         </template> -->
-        <!---->
-        <!--         <template v-slot:main> -->
-        <!--             <h3 -->
-        <!--                 id="hs-cookies-label" -->
-        <!--                 class="-mt-2 text-2xl font-bold text-green-600 dark:text-green-400" -->
-        <!--             > -->
-        <!--                 Notice -->
-        <!--             </h3> -->
-        <!---->
-        <!--             <p class="text-gray-600 dark:text-neutral-300 max-w-sm"> -->
-        <!--                 Slowly zoom in the map to see the markings and polygon -->
-        <!--             </p> -->
-        <!--         </template> -->
-        <!--         <template v-slot:footer> -->
-        <!--             <button -->
-        <!--                 type="button" -->
-        <!--                 class="w-full py-3 text-sm font-semibold text-green-600 dark:text-green-400 hover:bg-green-500/10 transition" -->
-        <!--                 data-hs-overlay="#hs-cookies" -->
-        <!--             > -->
-        <!--                 Got it -->
-        <!--             </button> -->
-        <!--         </template> -->
-        <!--     </Modal> -->
-        <!-- </Teleport> -->
+        <Teleport to="body">
+            <BurialRecordModal
+                :cluster-id="clusterIdForModal"
+                :feature="featureForModal"
+                :burial-id="burialIdForModal"
+                @view-path="(burialId) => fetchClusterByBurialId(burialId)"
+            />
+            <PhaseModal
+                :feature="phaseModalFeature"
+                @view-on-table="handleViewPhaseOnTable"
+            />
+            <ClusterModal
+                :feature="clusterModalFeature"
+                @view-on-table="handleViewClusterOnTable"
+            />
+            <LotModal
+                :feature="lotModalFeature"
+                @view-on-table="handleViewLotOnTable"
+            />
+            <JunctionLandMarkModal
+                :junction-id="junctionModalData.junctionId"
+                :junction-number="junctionModalData.junctionNumber"
+                :junction-type="junctionModalData.junctionType"
+            />
+        </Teleport>
 
         <!-- Main Content Start -->
         <div class="h-full w-full">
@@ -322,10 +310,8 @@ onBeforeUnmount(() => {
                 :isOnSearch="isOnSearchMode"
                 :rateLimitError="rateLimitError"
                 @input="fetchSuggestions"
-                @select-suggestion="
-                    (suggestion) => fetchClusterByBurialId(suggestion.burial_id)
-                "
-                @clear-search="clearSearch"
+                @select-suggestion="handleSelectSuggestion"
+                @clear-search="handleClearSearch"
             />
 
             <div class="flex gap-x-2">
