@@ -22,6 +22,7 @@ const showLotModal = ref(false);
 const editingItem = ref(null);
 const currentPage = ref(1);
 const perPage = ref(10);
+const statusFilter = ref('all'); // 'all' | 'available' | 'occupied'
 
 const paginatedLots = computed(() => {
     const start = (currentPage.value - 1) * perPage.value;
@@ -90,23 +91,24 @@ const fetchLots = async () => {
 
 watch(() => props.clusterId, fetchLots, { immediate: true });
 
-// Reset to page 1 when search changes
+// Reset to page 1 when search or filter changes
 watch(
-    () => props.search,
+    [() => props.search, statusFilter],
     () => {
         currentPage.value = 1;
     },
 );
 
 const filteredLots = computed(() =>
-    lots.value.filter(
-        (l) =>
+    lots.value.filter((l) => {
+        const matchesSearch =
             l.column.toLowerCase().includes(props.search.toLowerCase()) ||
             l.row.toLowerCase().includes(props.search.toLowerCase()) ||
-            `${l.column}${l.row}`
-                .toLowerCase()
-                .includes(props.search.toLowerCase()),
-    ),
+            `${l.column}${l.row}`.toLowerCase().includes(props.search.toLowerCase());
+        const matchesStatus =
+            statusFilter.value === 'all' || l.status === statusFilter.value;
+        return matchesSearch && matchesStatus;
+    }),
 );
 
 const startEditRow = (lot) => {
@@ -237,6 +239,25 @@ const redirectToLotBurialRecordShow = (lotId) => {
 </script>
 
 <template>
+    <!-- STATUS FILTER -->
+    <div class="px-6 py-3 border-b border-gray-200 dark:border-neutral-700 flex items-center gap-2">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Status:</span>
+        <div class="flex gap-1 bg-gray-100 dark:bg-neutral-900 p-1 rounded-xl">
+            <button
+                v-for="opt in [{ value: 'all', label: 'All' }, { value: 'available', label: 'Available' }, { value: 'occupied', label: 'Occupied' }]"
+                :key="opt.value"
+                @click="statusFilter = opt.value"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+                :class="statusFilter === opt.value ? 'bg-green-500/20 text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'"
+            >
+                {{ opt.label }}
+            </button>
+        </div>
+        <span class="ml-auto text-xs text-gray-400 dark:text-neutral-500">
+            {{ filteredLots.length }} lot{{ filteredLots.length !== 1 ? 's' : '' }}
+        </span>
+    </div>
+
     <div v-if="loading" class="p-8">
         <div class="animate-pulse space-y-4">
             <div v-for="i in 5" :key="i" class="flex gap-4">

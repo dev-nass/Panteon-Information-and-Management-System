@@ -24,6 +24,7 @@ const showClusterModal = ref(false);
 const editingItem = ref(null);
 const currentPage = ref(1);
 const perPage = ref(10);
+const availabilityFilter = ref('all'); // 'all' | 'available' | 'full'
 
 const paginatedClusters = computed(() => {
     const start = (currentPage.value - 1) * perPage.value;
@@ -97,18 +98,23 @@ const fetchClusters = async () => {
 
 watch(() => props.phaseId, fetchClusters, { immediate: true });
 
-// Reset to page 1 when search changes
+// Reset to page 1 when search or filter changes
 watch(
-    () => props.search,
+    [() => props.search, availabilityFilter],
     () => {
         currentPage.value = 1;
     },
 );
 
 const filteredClusters = computed(() =>
-    clusters.value.filter((c) =>
-        c.name.toLowerCase().includes(props.search.toLowerCase()),
-    ),
+    clusters.value.filter((c) => {
+        const matchesSearch = c.name.toLowerCase().includes(props.search.toLowerCase());
+        const matchesAvailability =
+            availabilityFilter.value === 'all' ||
+            (availabilityFilter.value === 'available' && c.occupants < c.total_capacity) ||
+            (availabilityFilter.value === 'full' && c.occupants >= c.total_capacity);
+        return matchesSearch && matchesAvailability;
+    }),
 );
 
 const startEditRow = (cluster) => {
@@ -254,6 +260,25 @@ onMounted(() => {
 </script>
 
 <template>
+    <!-- AVAILABILITY FILTER -->
+    <div class="px-6 py-3 border-b border-gray-200 dark:border-neutral-700 flex items-center gap-2">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Availability:</span>
+        <div class="flex gap-1 bg-gray-100 dark:bg-neutral-900 p-1 rounded-xl">
+            <button
+                v-for="opt in [{ value: 'all', label: 'All' }, { value: 'available', label: 'Has Availability' }, { value: 'full', label: 'Full' }]"
+                :key="opt.value"
+                @click="availabilityFilter = opt.value"
+                class="px-3 py-1 rounded-lg text-sm font-medium transition"
+                :class="availabilityFilter === opt.value ? 'bg-green-500/20 text-green-400' : 'text-gray-600 dark:text-gray-400 hover:bg-green-500/10'"
+            >
+                {{ opt.label }}
+            </button>
+        </div>
+        <span class="ml-auto text-xs text-gray-400 dark:text-neutral-500">
+            {{ filteredClusters.length }} cluster{{ filteredClusters.length !== 1 ? 's' : '' }}
+        </span>
+    </div>
+
     <div v-if="loading" class="p-8">
         <div class="animate-pulse space-y-4">
             <div v-for="i in 5" :key="i" class="flex gap-4">
