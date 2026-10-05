@@ -11,15 +11,16 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            font-size: 14px;
+            font-family: 'Century Gothic', Arial, sans-serif;
+            font-size: 12pt;
             margin: 0;
             padding: 0;
             color: #222;
         }
 
         .cert-title {
-            font-size: 32px;
+            font-family: 'Rockwell', serif;
+            font-size: 26pt;
             font-weight: bold;
             letter-spacing: 6px;
             color: #222;
@@ -28,7 +29,8 @@
         }
 
         .body-text {
-            font-size: 14px;
+            font-family: 'Century Gothic', Arial, sans-serif;
+            font-size: 12pt;
             line-height: 1.9;
             text-align: justify;
             text-indent: 40px;
@@ -36,7 +38,8 @@
         }
 
         .body-text-center {
-            font-size: 14px;
+            font-family: 'Century Gothic', Arial, sans-serif;
+            font-size: 12pt;
             line-height: 1.9;
             text-align: center;
             margin: 55px 0 0 0;
