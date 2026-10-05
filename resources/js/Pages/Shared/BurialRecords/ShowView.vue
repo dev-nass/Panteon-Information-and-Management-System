@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onBeforeUnmount, ref, watch, computed } from "vue";
+import { onMounted, onBeforeUnmount, ref, watch, computed, nextTick } from "vue";
 import { Link, usePage, router } from "@inertiajs/vue3";
 import { has, isEqual } from "lodash";
 import { useToast } from "vue-toast-notification";
@@ -76,6 +76,15 @@ const back = () => {
 
 const editing = ref(false);
 const hasChanges = ref(false);
+
+const barangays = ref([]);
+const barangayNames = computed(() => barangays.value.map((b) => b.name).sort());
+const isOtherAddress = computed(() =>
+    localData.value.deceased?.address &&
+    barangayNames.value.length > 0 &&
+    !barangayNames.value.includes(localData.value.deceased?.address)
+);
+const otherAddress = ref("");
 
 // deep copy original data
 const originalData = ref(JSON.parse(JSON.stringify(props.burial_record.data)));
@@ -290,13 +299,17 @@ const deleteBurialRecord = () => {
 };
 
 const saveChanges = () => {
+    const addressToSave = localData.value.deceased.address === "Other"
+        ? otherAddress.value
+        : localData.value.deceased.address;
+
     router.post(
         route(
             "clerk.burial_records.update",
             props.burial_record.data.burial.id,
         ),
         {
-            deceased: localData.value.deceased,
+            deceased: { ...localData.value.deceased, address: addressToSave },
             lot_id: selectedLotId.value,
         },
         {
@@ -423,8 +436,18 @@ const cleanupAllOverlays = () => {
 };
 
 // added to close the modal from Clerk/Map/IndexView
-onMounted(() => {
+onMounted(async () => {
     cleanupAllOverlays();
+    try {
+        const res = await fetch(route("api.barangays"));
+        barangays.value = await res.json();
+        if (isOtherAddress.value) {
+            otherAddress.value = localData.value.deceased.address;
+            localData.value.deceased.address = "Other";
+        }
+    } catch {
+        barangays.value = [];
+    }
 });
 
 onBeforeUnmount(() => {
@@ -893,14 +916,35 @@ onBeforeUnmount(() => {
                         (val) => (localData.deceased.occupation.name = val)
                     "
                 />
-                <Display
-                    label="Address"
-                    :modelValue="localData.deceased?.address"
-                    :editing="editing"
-                    @update:modelValue="
-                        (val) => (localData.deceased.address = val)
-                    "
-                />
+                <div>
+                    <label class="text-sm text-gray-500 dark:text-gray-400">Barangay</label>
+                    <select
+                        v-if="editing"
+                        v-model="localData.deceased.address"
+                        class="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    >
+                        <option value="" disabled>Select barangay</option>
+                        <option v-for="name in barangayNames" :key="name" :value="name">{{ name }}</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input
+                        v-else
+                        type="text"
+                        :value="localData.deceased?.address"
+                        disabled
+                        placeholder="—"
+                        class="mt-1 w-full rounded-lg border-none bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 hover:text-green-600 hover:dark:text-green-400 px-3 py-2 text-sm"
+                    />
+                </div>
+                <div v-if="editing && localData.deceased.address === 'Other'">
+                    <label class="text-sm text-gray-500 dark:text-gray-400">Address (Other)</label>
+                    <input
+                        v-model="otherAddress"
+                        type="text"
+                        placeholder="Enter address"
+                        class="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    />
+                </div>
                 <Display
                     label="Part of LGBTQ"
                     :modelValue="localData.deceased?.lgbtq"

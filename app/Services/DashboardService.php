@@ -107,7 +107,7 @@ class DashboardService
         if ($filter === 'today') {
             $query = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
                 ->select(
-                    DB::raw('HOUR(deceased_records.date_of_depository) as period'),
+                    DB::raw('HOUR(deceased_records.time_of_depository) as period'),
                     DB::raw('count(*) as count')
                 )
                 ->whereNull('burial_records.archived_at')
