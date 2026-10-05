@@ -24,6 +24,7 @@ const props = defineProps({
         type: Object,
         default: () => ({ age_range: null, barangay: null }),
     },
+    period_burial_count: { type: Number, default: null },
     phase_data: { type: Object, default: null },
     cluster_data: { type: Object, default: null },
     phases: { type: Array, default: () => [] },
@@ -385,36 +386,21 @@ const phaseOccupancyOptions = {
 
 /* CLUSTER OCCUPANCY DATA */
 const clusterOccupancyData = computed(() => {
-    if (!props.cluster_data) return null;
-
-    const types = props.cluster_data.types ?? {};
-    const occupied = [];
-    const available = [];
-
-    for (let i = 0; i < props.cluster_data.labels.length; i++) {
-        let occ = 0;
-        let avail = 0;
-        for (const type of Object.values(types)) {
-            occ += type.occupied[i] ?? 0;
-            avail += type.available[i] ?? 0;
-        }
-        occupied.push(occ);
-        available.push(avail);
-    }
+    if (!props.cluster_data?.labels?.length) return null;
 
     return {
         labels: props.cluster_data.labels,
         datasets: [
             {
                 label: "Occupied",
-                data: occupied,
+                data: props.cluster_data.occupied,
                 backgroundColor: "rgba(34,197,94,0.7)",
                 borderColor: "rgba(34,197,94,1)",
                 borderWidth: 1,
             },
             {
                 label: "Available",
-                data: available,
+                data: props.cluster_data.available,
                 backgroundColor: "rgba(156,163,175,0.5)",
                 borderColor: "rgba(156,163,175,1)",
                 borderWidth: 1,
@@ -624,16 +610,16 @@ defineOptions({
         </div>
 
         <!-- STAT CARDS -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div v-if="activeTab === 'summary'" class="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-                title="Total Burial Records"
-                :value="stats.total_burial_records.toString()"
+                :title="activeFilter === 'today' ? 'Burials Today' : activeFilter === 'weekly' ? 'Burials This Week' : activeFilter === 'yearly' ? `Burials in ${selectedYear === 'all' ? 'All Time' : selectedYear}` : 'Burials This Month'"
+                :value="(period_burial_count ?? stats.total_burial_records).toString()"
             />
 
             <StatCard title="Total Lots" :value="stats.total_lots.toString()" />
 
             <StatCard
-                title="Occupied Lots"
+                :title="hasActiveDashboardFilters ? 'Occupied Lots (Filtered)' : 'Occupied Lots'"
                 :value="stats.occupied_lots.toString()"
             />
 

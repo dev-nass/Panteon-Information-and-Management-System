@@ -46,6 +46,7 @@ class DashboardController extends Controller
             $data['demographic_data'] = $this->dashboardService->getAgeDistribution($summaryFilters);
             $data['geographic_data'] = $this->dashboardService->getGeographicDistribution($summaryFilters);
             $data['filter_options'] = $this->dashboardService->getFilterOptions();
+            $data['period_burial_count'] = $this->dashboardService->getBurialCountForPeriod($filter, $year, $filters);
         } elseif ($tab === 'phases') {
             $data['phase_data'] = $this->getPhaseOccupancyData();
         } elseif ($tab === 'clusters') {
@@ -118,27 +119,19 @@ class DashboardController extends Controller
         $clusters = $query->paginate(10, ['*'], 'page', $page);
 
         $labels = [];
-        $types = [
-            'underground' => ['occupied' => [], 'available' => []],
-            'apartment' => ['occupied' => [], 'available' => []],
-            'columbarium' => ['occupied' => [], 'available' => []],
-        ];
+        $occupied = [];
+        $available = [];
 
         foreach ($clusters->items() as $cluster) {
-            $type = $cluster->cluster_type;
-
-            if (! isset($types[$type])) {
-                $type = 'underground';
-            }
-
             $labels[] = $cluster->cluster_name;
-            $types[$type]['occupied'][] = $cluster->occupied_lots;
-            $types[$type]['available'][] = $cluster->total_lots - $cluster->occupied_lots;
+            $occupied[] = $cluster->occupied_lots;
+            $available[] = $cluster->total_lots - $cluster->occupied_lots;
         }
 
         return [
             'labels' => $labels,
-            'types' => $types,
+            'occupied' => $occupied,
+            'available' => $available,
             'current_page' => $clusters->currentPage(),
             'last_page' => $clusters->lastPage(),
             'total' => $clusters->total(),

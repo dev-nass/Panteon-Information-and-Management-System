@@ -56,6 +56,30 @@ class DashboardService
         ];
     }
 
+    public function getBurialCountForPeriod(string $filter, ?int $year, array $filters = []): int
+    {
+        $now = Carbon::now();
+        $query = BurialRecord::join('deceased_records', 'burial_records.deceased_record_id', '=', 'deceased_records.id')
+            ->whereNull('burial_records.archived_at');
+
+        if ($filter === 'today') {
+            $query->whereDate('deceased_records.date_of_depository', $now->toDateString());
+        } elseif ($filter === 'weekly') {
+            $query->whereBetween('deceased_records.date_of_depository', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+        } elseif ($filter === 'yearly') {
+            if ($year !== null) {
+                $query->whereYear('deceased_records.date_of_depository', $year);
+            }
+        } else { // monthly
+            $query->whereYear('deceased_records.date_of_depository', $now->year)
+                ->whereMonth('deceased_records.date_of_depository', $now->month);
+        }
+
+        $this->applyDeceasedTableFilters($query, $filters, 'deceased_records');
+
+        return $query->count();
+    }
+
     public function getActivityData(string $filter, ?int $year, array $filters = []): array
     {
         $now = Carbon::now();
