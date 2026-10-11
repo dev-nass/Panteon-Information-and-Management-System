@@ -9,26 +9,33 @@ trait LogsActivity
 {
     protected function logActivity(
         string $action,
-        Model $subject,
+        ?Model $subject,
         string $description,
         ?array $oldValues = null,
         ?array $newValues = null,
+        ?array $extraProperties = null,
     ): ActivityLog {
-        $properties = null;
-        if ($oldValues || $newValues) {
-            $properties = array_filter([
-                'old' => $oldValues,
-                'new' => $newValues,
-            ]);
+        $properties = [];
+
+        if ($oldValues !== null) {
+            $properties['old'] = $oldValues;
+        }
+
+        if ($newValues !== null) {
+            $properties['new'] = $newValues;
+        }
+
+        if ($extraProperties) {
+            $properties = array_merge($properties, $extraProperties);
         }
 
         return ActivityLog::create([
             'user_id' => auth()->id(),
             'action' => $action,
-            'subject_type' => get_class($subject),
-            'subject_id' => $subject->id,
+            'subject_type' => $subject ? get_class($subject) : null,
+            'subject_id' => $subject?->id,
             'description' => $description,
-            'properties' => $properties,
+            'properties' => ! empty($properties) ? $properties : null,
             'ip_address' => request()->ip(),
         ]);
     }

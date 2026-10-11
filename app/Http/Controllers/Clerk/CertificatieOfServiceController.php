@@ -128,7 +128,18 @@ class CertificatieOfServiceController extends Controller
 
         $filename = 'certificate_of_service_'.$burial_record->id.'.pdf';
 
-        $this->logActivity('generated', $burial_record, $description);
+        $this->logActivity(
+            'generated',
+            $burial_record,
+            $description,
+            extraProperties: [
+                'snapshot' => [
+                    'deceased_name' => $data['deceased_name'],
+                    'template' => $templateName,
+                    'generated_at' => now()->toDateTimeString(),
+                ],
+            ],
+        );
 
         return response($fpdi->Output('S', $filename), 200, [
             'Content-Type' => 'application/pdf',

@@ -55,10 +55,27 @@ class BurialRecordController extends Controller
             createdBy: auth()->id(),
         );
 
+        $burialRecord->load(['deceasedRecord.applicant', 'lot.cluster.phase']);
+        $deceased = $burialRecord->deceasedRecord;
+        $lot = $burialRecord->lot;
+        $applicant = $deceased->applicant;
+
         $this->logActivity(
             'created',
             $burialRecord,
-            "Created burial record for {$burialRecord->deceasedRecord->first_name} {$burialRecord->deceasedRecord->last_name}",
+            "Created burial record for {$deceased->first_name} {$deceased->last_name}",
+            extraProperties: [
+                'snapshot' => array_filter([
+                    'deceased_name' => trim("{$deceased->first_name} {$deceased->middle_name} {$deceased->last_name}"),
+                    'date_of_birth' => $deceased->date_of_birth,
+                    'date_of_death' => $deceased->date_of_death,
+                    'date_of_depository' => $deceased->date_of_depository,
+                    'address' => $deceased->address,
+                    'plot' => $lot ? "{$lot->cluster->phase->phase_name} / {$lot->cluster->cluster_name} / {$lot->row}-{$lot->column}" : null,
+                    'applicant' => $applicant ? trim("{$applicant->first_name} {$applicant->last_name}") : null,
+                    'relationship' => $applicant?->relationship,
+                ]),
+            ],
         );
 
         return to_route('clerk.burial_records.show', $burialRecord->id)
@@ -117,12 +134,16 @@ class BurialRecordController extends Controller
     {
         $this->service->archive($burial_record, $request->validated(), auth()->id());
 
+        $deceased = $burial_record->deceasedRecord;
+        $deceasedName = $deceased
+            ? trim("{$deceased->first_name} {$deceased->last_name}")
+            : "Record #{$burial_record->id}";
+
         $this->logActivity(
             'archived',
             $burial_record,
-            "Archived burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
-            null,
-            $request->validated(),
+            "Archived burial record for {$deceasedName}",
+            extraProperties: ['reason' => $request->validated()['reason'] ?? null, 'notes' => $request->validated()['notes'] ?? null],
         );
 
         return to_route('clerk.burial_records.index')
@@ -133,10 +154,20 @@ class BurialRecordController extends Controller
     {
         $this->service->restore($burial_record);
 
+        $deceased = $burial_record->deceasedRecord;
+        $deceasedName = $deceased
+            ? trim("{$deceased->first_name} {$deceased->last_name}")
+            : "Record #{$burial_record->id}";
+
         $this->logActivity(
             'restored',
             $burial_record,
-            "Restored burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
+            "Restored burial record for {$deceasedName}",
+            extraProperties: [
+                'snapshot' => [
+                    'deceased_name' => $deceased ? trim("{$deceased->first_name} {$deceased->middle_name} {$deceased->last_name}") : "Record #{$burial_record->id}",
+                ],
+            ],
         );
 
         return to_route('clerk.burial_records.index')
@@ -145,10 +176,28 @@ class BurialRecordController extends Controller
 
     public function destroy(BurialRecord $burial_record)
     {
+        $deceased = $burial_record->deceasedRecord;
+        $lot = $burial_record->lot;
+        $applicant = $deceased?->applicant;
+        $deceasedName = $deceased
+            ? trim("{$deceased->first_name} {$deceased->last_name}")
+            : "Record #{$burial_record->id}";
+
         $this->logActivity(
             'deleted',
             $burial_record,
-            "Deleted burial record for {$burial_record->deceasedRecord->first_name} {$burial_record->deceasedRecord->last_name}",
+            "Deleted burial record for {$deceasedName}",
+            extraProperties: [
+                'snapshot' => array_filter([
+                    'deceased_name' => $deceased ? trim("{$deceased->first_name} {$deceased->middle_name} {$deceased->last_name}") : null,
+                    'date_of_birth' => $deceased?->date_of_birth,
+                    'date_of_death' => $deceased?->date_of_death,
+                    'date_of_depository' => $deceased?->date_of_depository,
+                    'address' => $deceased?->address,
+                    'plot' => $lot ? "{$lot->cluster->phase->phase_name} / {$lot->cluster->cluster_name} / {$lot->row}-{$lot->column}" : null,
+                    'applicant' => $applicant ? trim("{$applicant->first_name} {$applicant->last_name}") : null,
+                ]),
+            ],
         );
 
         $burial_record->delete();

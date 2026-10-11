@@ -110,8 +110,10 @@ class UserManagementController extends Controller
             'terminated',
             $user,
             "Terminated user {$user->first_name} {$user->last_name}",
-            null,
-            $request->validated(),
+            extraProperties: [
+                'reason' => $request->validated()['terminated_reason'] ?? $request->validated()['reason'] ?? null,
+                'notes' => $request->validated()['notes'] ?? null,
+            ],
         );
 
         return to_route('admin.user_management.index')->with('success', 'User terminated successfully.');
@@ -125,8 +127,10 @@ class UserManagementController extends Controller
             'reinstated',
             $user,
             "Reinstated user {$user->first_name} {$user->last_name}",
-            null,
-            $request->validated(),
+            extraProperties: [
+                'reason' => $request->validated()['reinstated_reason'] ?? $request->validated()['reason'] ?? null,
+                'notes' => $request->validated()['notes'] ?? null,
+            ],
         );
 
         return to_route('admin.user_management.index')->with('success', 'User reinstated successfully.');
@@ -146,6 +150,14 @@ class UserManagementController extends Controller
             'deleted',
             $user,
             "Deleted user {$user->first_name} {$user->last_name}",
+            extraProperties: [
+                'snapshot' => [
+                    'name' => trim("{$user->first_name} {$user->middle_name} {$user->last_name}"),
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'contact_number' => $user->contact_number,
+                ],
+            ],
         );
 
         $user->delete();

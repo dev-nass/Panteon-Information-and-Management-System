@@ -66,24 +66,15 @@ it('requires authentication to generate a certificate', function () {
         ->assertRedirect(route('login'));
 });
 
-it('logs certificate generation without a template', function () {
+it('requires a template to generate a certificate', function () {
     actingAs($this->clerk)
         ->post(route('clerk.certificate_of_service.generate', $this->burialRecord), certificatePayload())
-        ->assertSuccessful()
-        ->assertHeader('content-type', 'application/pdf');
+        ->assertSessionHasErrors(['template_id']);
 
-    expect(ActivityLog::count())->toBe(1);
-
-    $log = ActivityLog::first();
-
-    expect($log->user_id)->toBe($this->clerk->id)
-        ->and($log->action)->toBe('generated')
-        ->and($log->subject_type)->toBe(BurialRecord::class)
-        ->and($log->subject_id)->toBe($this->burialRecord->id)
-        ->and($log->description)->toBe('Generated certificate of service for Juan Dela Cruz');
+    expect(ActivityLog::count())->toBe(0);
 });
 
-it('logs the template name when generating with a template', function () {
+it('logs the template name and snapshot when generating with a template', function () {
     Storage::disk('local')->put(
         'certificate_templates/tpl.pdf',
         file_get_contents(base_path('tests/Fixtures/certificate_template_sample.pdf')),
@@ -105,7 +96,11 @@ it('logs the template name when generating with a template', function () {
     $log = ActivityLog::first();
 
     expect($log->action)->toBe('generated')
-        ->and($log->description)->toBe('Generated certificate of service for Juan Dela Cruz using template "Standard Template"');
+        ->and($log->description)->toBe('Generated certificate of service for Juan Dela Cruz using template "Standard Template"')
+        ->and($log->properties['snapshot'])->toMatchArray([
+            'deceased_name' => 'Juan Dela Cruz',
+            'template' => 'Standard Template',
+        ]);
 });
 
 it('does not log when validation fails', function () {

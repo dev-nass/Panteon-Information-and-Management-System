@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +11,8 @@ use Inertia\Inertia;
 
 class BackupController extends Controller
 {
+    use LogsActivity;
+
     public function index()
     {
         $files = collect(Storage::disk('backups')->files($this->directory()))
@@ -35,7 +37,23 @@ class BackupController extends Controller
         try {
             Artisan::call('backup:run', ['--only-db' => true, '--no-interaction' => true]);
 
-            $this->logBackupActivity('created', 'Created a database backup');
+            $files = collect(Storage::disk('backups')->files($this->directory()))
+                ->filter(fn (string $path) => str_ends_with($path, '.zip'))
+                ->sortByDesc(fn ($path) => Storage::disk('backups')->lastModified($path))
+                ->first();
+
+            $this->logActivity(
+                'created',
+                null,
+                'Created a database backup',
+                extraProperties: [
+                    'snapshot' => [
+                        'filename' => $files ? basename($files) : null,
+                        'size' => $files ? Storage::disk('backups')->size($files) : null,
+                        'disk' => 'backups',
+                    ],
+                ],
+            );
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to create backup: '.$e->getMessage());
         }
@@ -65,7 +83,12 @@ class BackupController extends Controller
 
         Storage::disk('backups')->delete($path);
 
-        $this->logBackupActivity('deleted', 'Deleted backup '.basename($path));
+        $this->logActivity(
+            'deleted',
+            null,
+            'Deleted backup '.basename($path),
+            extraProperties: ['snapshot' => ['filename' => basename($path), 'disk' => 'backups']],
+        );
 
         return back()->with('success', 'Backup deleted successfully.');
     }
@@ -83,18 +106,5 @@ class BackupController extends Controller
     private function backupPath(string $filename): string
     {
         return $this->directory().'/'.basename($filename);
-    }
-
-    private function logBackupActivity(string $action, string $description): void
-    {
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'action' => $action,
-            'subject_type' => null,
-            'subject_id' => null,
-            'description' => $description,
-            'properties' => null,
-            'ip_address' => request()->ip(),
-        ]);
     }
 }

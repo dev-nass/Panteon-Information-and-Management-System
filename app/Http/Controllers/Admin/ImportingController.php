@@ -282,8 +282,15 @@ class ImportingController extends Controller
                     'imported',
                     $importLog,
                     "Import failed for {$fileName} — no records imported",
-                    null,
-                    ['status' => 'failed', 'errors' => count($errors)],
+                    extraProperties: [
+                        'snapshot' => [
+                            'file_name' => $fileName,
+                            'import_type' => $importType,
+                            'status' => 'failed',
+                            'imported' => 0,
+                            'skipped' => count($errors),
+                        ],
+                    ],
                 );
 
                 return back()->with('error', 'No records were imported')->with('importErrors', $errors);
@@ -302,8 +309,15 @@ class ImportingController extends Controller
                 'imported',
                 $importLog,
                 "Imported {$imported} records from {$fileName} ({$importType})",
-                null,
-                ['status' => 'successful', 'imported' => $imported, 'skipped' => count($errors)],
+                extraProperties: [
+                    'snapshot' => [
+                        'file_name' => $fileName,
+                        'import_type' => $importType,
+                        'status' => 'successful',
+                        'imported' => $imported,
+                        'skipped' => count($errors),
+                    ],
+                ],
             );
 
             return back()->with('success', $message)->with('importErrors', $errors);

@@ -129,6 +129,7 @@ class LotManagementController extends Controller
             'created',
             $phase,
             "Created phase {$validated['name']}",
+            extraProperties: ['snapshot' => ['phase_name' => $validated['name']]],
         );
 
         return to_route('admin.lot_management.index')
@@ -167,6 +168,14 @@ class LotManagementController extends Controller
             'created',
             $cluster,
             "Created cluster {$validated['name']}",
+            extraProperties: [
+                'snapshot' => [
+                    'cluster_name' => $validated['name'],
+                    'type' => $validated['type'],
+                    'capacity' => $validated['total_capacity'],
+                    'phase_id' => $validated['phase_id'],
+                ],
+            ],
         );
 
         return to_route('admin.lot_management.index')
@@ -201,6 +210,13 @@ class LotManagementController extends Controller
             'created',
             $lot,
             "Created lot {$lotLetter}-{$lotNumber}",
+            extraProperties: [
+                'snapshot' => [
+                    'row' => $lotLetter,
+                    'column' => $lotNumber,
+                    'cluster_id' => $validated['cluster_id'],
+                ],
+            ],
         );
 
         return to_route('admin.lot_management.index')
@@ -283,8 +299,12 @@ class LotManagementController extends Controller
             'created',
             $cluster,
             'Bulk created '.count($lots)." lots in cluster {$cluster->cluster_name}",
-            null,
-            ['lot_count' => count($lots)],
+            extraProperties: [
+                'snapshot' => [
+                    'cluster_name' => $cluster->cluster_name,
+                    'lot_count' => count($lots),
+                ],
+            ],
         );
 
         return to_route('admin.lot_management.index')
@@ -429,6 +449,7 @@ class LotManagementController extends Controller
             'deleted',
             $phase,
             "Deleted phase {$phase->phase_name}",
+            extraProperties: ['snapshot' => ['phase_name' => $phase->phase_name]],
         );
 
         $phase->delete();
@@ -443,6 +464,13 @@ class LotManagementController extends Controller
             'deleted',
             $cluster,
             "Deleted cluster {$cluster->cluster_name}",
+            extraProperties: [
+                'snapshot' => [
+                    'cluster_name' => $cluster->cluster_name,
+                    'type' => $cluster->cluster_type,
+                    'capacity' => $cluster->total_capacity,
+                ],
+            ],
         );
 
         $cluster->delete();
@@ -457,6 +485,7 @@ class LotManagementController extends Controller
             'deleted',
             $lot,
             "Deleted lot {$lot->row}-{$lot->column}",
+            extraProperties: ['snapshot' => ['row' => $lot->row, 'column' => $lot->column]],
         );
 
         $lot->delete();

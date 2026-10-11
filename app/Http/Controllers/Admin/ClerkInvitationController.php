@@ -84,6 +84,13 @@ class ClerkInvitationController extends Controller
             'created',
             $invitation,
             "Invited {$request->email} as clerk",
+            extraProperties: [
+                'snapshot' => [
+                    'email' => $request->email,
+                    'role' => 'clerk',
+                    'expires_at' => $invitation->expires_at?->toDateTimeString(),
+                ],
+            ],
         );
 
         $url = route('clerk.register', ['token' => $token]);
