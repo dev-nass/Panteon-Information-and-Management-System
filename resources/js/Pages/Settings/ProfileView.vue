@@ -210,18 +210,31 @@ const saveChanges = () => {
                             </svg>
                         </div>
 
-                        <div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <p
+                                    class="text-base font-semibold text-gray-800 dark:text-white truncate"
+                                >
+                                    {{ localData.first_name }}
+                                    {{ localData.middle_name }}
+                                    {{ localData.last_name }}
+                                </p>
+                                <span
+                                    v-if="user?.role"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                >
+                                    {{ user.role }}
+                                </span>
+                            </div>
                             <p
-                                class="text-sm font-medium text-gray-800 dark:text-white"
+                                class="text-sm text-gray-500 dark:text-neutral-400 truncate mt-0.5"
                             >
-                                {{ localData.first_name }}
-                                {{ localData.middle_name }}
-                                {{ localData.last_name }}
+                                {{ user?.email }}
                             </p>
                             <p
                                 class="text-xs text-gray-400 dark:text-neutral-500 mt-0.5"
                             >
-                                {{ user?.created_at }}
+                                Member since {{ user?.created_at }}
                             </p>
                         </div>
                     </div>
@@ -255,6 +268,87 @@ const saveChanges = () => {
                             :editing="editing"
                             :error="errors['last_name']"
                         />
+
+                        <!-- Email (Read-only) -->
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <label class="text-sm text-gray-500 dark:text-gray-400">
+                                    Email Address
+                                </label>
+                                <span
+                                    v-if="editing"
+                                    class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-neutral-500"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="12"
+                                        height="12"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <rect
+                                            width="18"
+                                            height="11"
+                                            x="3"
+                                            y="11"
+                                            rx="2"
+                                            ry="2"
+                                        />
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
+                                    Cannot be changed
+                                </span>
+                            </div>
+                            <div class="relative mt-1">
+                                <input
+                                    type="text"
+                                    :value="user?.email"
+                                    disabled
+                                    placeholder="—"
+                                    :class="
+                                        editing
+                                            ? 'w-full rounded-lg border border-gray-200 dark:border-neutral-700/60 bg-gray-100/70 dark:bg-neutral-800/50 text-gray-500 dark:text-neutral-400 px-3 py-2 pr-9 text-sm cursor-not-allowed select-none focus:outline-none'
+                                            : 'w-full rounded-lg border-none bg-white dark:bg-neutral-900 text-gray-800 dark:text-gray-200 px-3 py-2 text-sm cursor-default focus:outline-none'
+                                    "
+                                />
+                                <div
+                                    v-if="editing"
+                                    class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 dark:text-neutral-500"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <rect
+                                            width="18"
+                                            height="11"
+                                            x="3"
+                                            y="11"
+                                            rx="2"
+                                            ry="2"
+                                        />
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p
+                                v-if="editing"
+                                class="mt-1 text-xs text-gray-400 dark:text-neutral-500"
+                            >
+                                Your email address is linked to your account login and cannot be modified. Contact an administrator if you need to update it.
+                            </p>
+                        </div>
 
                         <!-- Contact Number -->
                         <Display
