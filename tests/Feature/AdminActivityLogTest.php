@@ -405,3 +405,35 @@ it('logs burial record creation with full snapshot', function () {
         ])
         ->and($log->subject_exists)->toBeTrue();
 });
+
+it('serializes activity logs without errors even when subject contains raw binary coordinates', function () {
+    $phase = Phase::create(['phase_name' => 'Phase 1']);
+    $cluster = Cluster::create([
+        'phase_id' => $phase->id,
+        'cluster_name' => 'Cluster A',
+        'cluster_type' => 'apartment',
+    ]);
+
+    // Simulate raw binary geometry from MySQL spatial column
+    $cluster->coordinates = "\x00\x00\x00\x00\x01\x01\x00\x00\x00\x80";
+    $cluster->save();
+
+    ActivityLog::create([
+        'user_id' => $this->admin->id,
+        'action' => 'created',
+        'subject_type' => Cluster::class,
+        'subject_id' => $cluster->id,
+        'description' => 'Created cluster Cluster A',
+    ]);
+
+    actingAs($this->admin)
+        ->get(route('admin.activity_log.index'))
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/ActivityLog/IndexView')
+            ->has('logs.data', 1)
+            ->where('logs.data.0.subject_exists', true)
+            ->where('logs.data.0.subject_title', 'Cluster')
+            ->missing('logs.data.0.subject')
+        );
+});

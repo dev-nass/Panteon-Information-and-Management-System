@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\PhaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cluster extends Model
 {
-    /** @use HasFactory<\Database\Factories\PhaseFactory> */
+    /** @use HasFactory<PhaseFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -17,6 +18,10 @@ class Cluster extends Model
         'cluster_name',
         'cluster_type',
         'total_capacity',
+        'coordinates',
+    ];
+
+    protected $hidden = [
         'coordinates',
     ];
 

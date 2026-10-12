@@ -18,6 +18,10 @@ class ActivityLog extends Model
         'ip_address',
     ];
 
+    protected $hidden = [
+        'subject',
+    ];
+
     protected $appends = [
         'subject_title',
         'subject_url',
