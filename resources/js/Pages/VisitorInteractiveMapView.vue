@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
             :is-loading="isVisitorDetailLoading"
             @view-path="handleVisitorViewPath"
         />
-        <PhaseModal :feature="phaseModalFeature" />
+        <PhaseModal :feature="phaseModalFeature" :show-view-on-table="false" />
         <ClusterModal :feature="clusterModalFeature" />
         <LotModal :feature="lotModalFeature" />
         <JunctionLandMarkModal

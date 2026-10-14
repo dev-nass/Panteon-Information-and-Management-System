@@ -5,6 +5,7 @@ import { route } from "ziggy-js";
 
 const props = defineProps({
     feature: { type: Object, default: null },
+    showViewOnTable: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["viewOnTable"]);
@@ -102,19 +103,20 @@ const totalClusters = computed(() => {
                                         <p
                                             class="text-xs text-gray-500 dark:text-gray-400"
                                         >
-                                            Phase ID #{{
-                                                feature.properties?.id
-                                            }}
+                                            Phase ID #{{ feature?.id }}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div class="flex items-center gap-2">
+                                <div
+                                    v-if="showViewOnTable"
+                                    class="flex items-center gap-2"
+                                >
                                     <button
                                         @click="
                                             emit(
                                                 'viewOnTable',
-                                                feature.properties?.id
+                                                feature.properties?.id,
                                             )
                                         "
                                         class="px-3 py-1.5 text-sm font-medium rounded-lg transition bg-green-500/10 text-green-400 border-transparent hover:bg-green-500/20 hover:border-green-500/40 hover:text-green-600 dark:hover:text-green-300"
@@ -146,7 +148,10 @@ const totalClusters = computed(() => {
                                         Total Clusters
                                     </span>
                                     <div class="font-medium">
-                                        {{ feature.properties?.total_clusters || 0 }}
+                                        {{
+                                            feature.properties
+                                                ?.total_clusters || 0
+                                        }}
                                     </div>
                                 </div>
 
