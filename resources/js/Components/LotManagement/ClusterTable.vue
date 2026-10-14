@@ -380,12 +380,16 @@ onMounted(() => {
                         <span v-else>{{ cluster.total_capacity }}</span>
                     </TableData>
                     <TableData>
-                        <input
+                        <select
                             v-if="editingRow?.id === cluster.id"
                             v-model="editingRow.type"
                             @click.stop
                             class="w-full px-3 py-2 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-900 dark:text-gray-100"
-                        />
+                        >
+                            <option value="underground">Underground</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="columbarium">Columbarium</option>
+                        </select>
                         <span v-else>{{ cluster.type }}</span>
                     </TableData>
                     <TableData>

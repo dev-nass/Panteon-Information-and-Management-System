@@ -39,7 +39,7 @@ export function useEditClusterPlot() {
 
         drawControl.value = new L.Control.Draw({
             draw: {
-                polygon: true,
+                polygon: false,
                 rectangle: false,
                 circle: false,
                 marker: false,
