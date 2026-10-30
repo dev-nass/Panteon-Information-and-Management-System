@@ -62,6 +62,9 @@ class LotManagementSearchController extends Controller
             'lots' => function ($query) {
                 $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
             },
+            'lots.burialRecords' => function ($query) {
+                $query->whereNull('archived_at');
+            },
             'lots.burialRecords.deceasedRecord',
             'lots.burialRecords.user',
         ]);
@@ -90,6 +93,9 @@ class LotManagementSearchController extends Controller
         $lotModel = Lot::find($lot->id);
         $lotModel->coordinates = $lot->coordinates;
         $lotModel->load([
+            'burialRecords' => function ($query) {
+                $query->whereNull('archived_at');
+            },
             'burialRecords.deceasedRecord',
             'burialRecords.user',
         ]);

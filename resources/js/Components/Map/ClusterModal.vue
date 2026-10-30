@@ -160,7 +160,7 @@ const emit = defineEmits(["viewOnTable"]);
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Occupants
+                                        Occupied Lots
                                     </span>
                                     <div class="font-medium">
                                         {{

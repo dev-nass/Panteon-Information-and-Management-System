@@ -41,6 +41,8 @@ $table->text('archived_notes')->nullable()->after('archived_by');
 
 Lot semantics: `lot_id` is **kept** on archived row for audit/history, but archived rows are excluded from occupancy counts — the lot immediately becomes available. On recover, lot availability is re-validated.
 
+> **Superseded by the shared-lot refactor (2026-10-30):** restore now always keeps `lot_id` and no longer blocks when another active record uses the same lot. Multiple active burial records may share a lot; the old "lot is now occupied" recovery guard described below is historical.
+
 `activity_logs.action` enum extended via second migration: add `'archived','restored'` (or alter to `string` if enum ALTER is painful on MySQL).
 
 ### 2. Hidden-by-Default + `Archived` Filter on Index

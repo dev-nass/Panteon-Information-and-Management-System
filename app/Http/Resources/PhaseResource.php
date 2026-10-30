@@ -19,6 +19,18 @@ class PhaseResource extends JsonResource
             ->join('lots', 'burial_records.lot_id', '=', 'lots.id')
             ->join('clusters', 'lots.cluster_id', '=', 'clusters.id')
             ->where('clusters.phase_id', $this->id)
+            ->whereNull('burial_records.archived_at')
+            ->count();
+
+        $occupiedLots = DB::table('lots')
+            ->join('clusters', 'lots.cluster_id', '=', 'clusters.id')
+            ->where('clusters.phase_id', $this->id)
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('burial_records')
+                    ->whereColumn('burial_records.lot_id', 'lots.id')
+                    ->whereNull('burial_records.archived_at');
+            })
             ->count();
 
         $totalClusters = DB::table('clusters')
@@ -40,6 +52,7 @@ class PhaseResource extends JsonResource
                     // 'status' => $this->status,
                     'total_capacity' => $totalCapacity,
                     'occupants' => $occupants,
+                    'occupied_lots' => $occupiedLots,
                     'total_clusters' => $totalClusters,
                 ],
             ],

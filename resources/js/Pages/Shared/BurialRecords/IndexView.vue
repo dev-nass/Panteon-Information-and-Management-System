@@ -98,6 +98,16 @@ const { search } = useSearchBurialRecords(
     roleRoutes[userRole.value].route_search,
 );
 
+const clearLotFilterUrl = computed(() =>
+    route(roleRoutes[userRole.value].route_search, {
+        search: props.filters.search,
+        filter: props.filters.filter,
+        sort_field: props.filters.sort_field,
+        sort_direction: props.filters.sort_direction,
+        disposal: props.filters.disposal,
+    }),
+);
+
 const applyFilter = (filterValue) => {
     router.get(
         route(roleRoutes[userRole.value].route_search),
@@ -247,9 +257,7 @@ defineOptions({
                         </span>
                     </p>
                     <Link
-                        :href="
-                            route(roleRoutes[userRole.value].route_search)
-                        "
+                        :href="clearLotFilterUrl"
                         class="text-sm font-semibold text-green-700 dark:text-green-300 hover:underline"
                     >
                         Clear lot filter

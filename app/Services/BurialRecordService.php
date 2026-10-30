@@ -200,6 +200,7 @@ class BurialRecordService
                                         'column' => $lot->column,
                                         'row' => $lot->row,
                                         'coordinates' => $lot->coordinates,
+                                        'burial_count' => $lot->active_burial_count,
                                     ];
                                 }),
                             ];

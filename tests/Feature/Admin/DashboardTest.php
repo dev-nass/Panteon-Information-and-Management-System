@@ -90,6 +90,7 @@ beforeEach(function () {
         'barangays' => [],
     ]);
     $mock->shouldReceive('normalizeBarangay')->andReturnUsing(fn ($val) => strtolower(trim($val)));
+    $mock->shouldReceive('getBurialCountForPeriod')->andReturn(0);
     $this->app->instance(DashboardService::class, $mock);
 });
 

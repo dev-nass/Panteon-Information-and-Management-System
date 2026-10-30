@@ -372,6 +372,16 @@ const availableLots = computed(() => {
     return cluster?.lots || [];
 });
 
+const formatLotOption = (lot) => {
+    const count = lot.burial_count || 0;
+
+    if (count === 0) {
+        return `${lot.column} - ${lot.row}`;
+    }
+
+    return `${lot.column} - ${lot.row} (${count} ${count === 1 ? "record" : "records"})`;
+};
+
 const selectedLotColumn = computed(() => {
     if (!selectedLotId.value) return null;
     const lot = availableLots.value.find((l) => l.id == selectedLotId.value);
@@ -1241,7 +1251,7 @@ onBeforeUnmount(() => {
                             :key="lot.id"
                             :value="lot.id"
                         >
-                            {{ lot.column }} - {{ lot.row }}
+                            {{ formatLotOption(lot) }}
                         </option>
                     </select>
                     <p v-else class="text-gray-900 dark:text-gray-100">

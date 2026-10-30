@@ -9,11 +9,10 @@ class LotResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $burialRecordsCount = $this->whenLoaded('burialRecords', function () {
-            return $this->burialRecords->count();
-        }, 0);
-
-        $status = $burialRecordsCount > 0 ? 'occupied' : 'available';
+        $hasLoadedBurialRecords = $this->relationLoaded('burialRecords');
+        $burialRecordsCount = $hasLoadedBurialRecords
+            ? $this->burialRecords->count()
+            : null;
 
         return [
             'lot' => [
@@ -27,8 +26,14 @@ class LotResource extends JsonResource
                     'lot_id' => $this->id,
                     'column' => $this->column,
                     'row' => $this->row,
-                    'status' => $status,
-                    'burial_count' => $burialRecordsCount,
+                    'status' => $this->when(
+                        $hasLoadedBurialRecords,
+                        $burialRecordsCount > 0 ? 'occupied' : 'available',
+                    ),
+                    'burial_count' => $this->when(
+                        $hasLoadedBurialRecords,
+                        $burialRecordsCount,
+                    ),
                 ],
             ],
 

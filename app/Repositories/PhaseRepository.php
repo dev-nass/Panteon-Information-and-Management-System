@@ -42,7 +42,10 @@ class PhaseRepository extends Repository
                     $query->select('id', 'phase_id', 'cluster_name', 'cluster_type', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
                 },
                 'clusters.lots' => function ($query) {
-                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'));
+                    $query->select('id', 'cluster_id', DB::raw('`column`'), DB::raw('`row`'), DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
+                        ->withCount([
+                            'burialRecords as active_burial_count' => fn ($q) => $q->whereNull('archived_at'),
+                        ]);
                 },
             ])
             ->get();

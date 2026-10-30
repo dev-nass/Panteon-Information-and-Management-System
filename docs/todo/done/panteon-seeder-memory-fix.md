@@ -60,6 +60,8 @@ Why `rangeToArray` not just `setReadDataOnly`: `ColumnAndRowAttributes.php:188` 
 
 ### 2.2 Lot Cache `database/seeders/PanteonDataSeeder.php:245-286`
 
+> **Superseded by the shared-lot refactor (2026-10-30):** the `usedLotIds` skip logic was removed. Seeding intentionally no longer skips lots that already have burial records, because multiple active records may share a lot.
+
 ```php
 // Before: 21k queries
 $lot = Lot::where('column', $column)->where('row', $rowLetter)->whereHas('cluster', ...)->whereDoesntHave('burialRecords')->first();

@@ -130,20 +130,26 @@ window.openBurialRecordModal = function (clusterIdOrFeature) {
 
 /**
  * Tailored visitor modal: opened automatically after a search.
- * If the highlighted cluster polygon is clicked, reopen the same tailored view
- * instead of the generic BurialRecordModal list flow.
+ * If the highlighted cluster polygon is clicked, reopen the tailored view when
+ * the result has one record, or the list flow when multiple records share it.
  */
 window.openVisitorDeceasedDetailModal = function (feature) {
     if (feature) {
-        visitorSearchFeature.value = feature;
-        // infer burialId if not yet set (e.g. direct polygon click)
-        if (
-            !visitorSelectedBurialId.value &&
-            feature?.lots?.[0]?.burial_records?.[0]?.burial?.id
-        ) {
-            visitorSelectedBurialId.value =
-                feature.lots[0].burial_records[0].burial.id;
+        const activeRecords = (feature.lots || []).flatMap(
+            (lot) => lot.burial_records || [],
+        );
+        const clusterId = feature.cluster?.properties?.cluster_id;
+
+        if (activeRecords.length > 1 && clusterId) {
+            visitorSearchFeature.value = null;
+            visitorSelectedBurialId.value = null;
+            window.openBurialRecordModal(clusterId);
+            return;
         }
+
+        visitorSearchFeature.value = feature;
+        visitorSelectedBurialId.value =
+            activeRecords[0]?.burial?.id ?? visitorSelectedBurialId.value;
     }
     HSOverlay.open("#hs-visitor-deceased-modal");
 };

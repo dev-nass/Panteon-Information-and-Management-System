@@ -342,7 +342,7 @@ const formatDate = (dateStr) => {
                                 {{ activeFeature.cluster?.properties?.type }}
                             </p>
                             <p>
-                                <strong>Occupants:</strong>
+                                <strong>Occupied Lots:</strong>
                                 {{
                                     activeFeature.cluster?.properties
                                         ?.occupied_lots
@@ -562,7 +562,7 @@ const formatDate = (dateStr) => {
                                         d="M15 19l-7-7 7-7"
                                     />
                                 </svg>
-                                Back to occupants
+                                Back to records
                             </button>
 
                         <div

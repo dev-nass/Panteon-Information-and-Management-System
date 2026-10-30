@@ -159,7 +159,21 @@ const totalClusters = computed(() => {
                                     <span
                                         class="text-gray-500 dark:text-gray-400"
                                     >
-                                        Occupants
+                                        Occupied Lots
+                                    </span>
+                                    <div class="font-medium">
+                                        {{
+                                            feature.properties?.occupied_lots ||
+                                            0
+                                        }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span
+                                        class="text-gray-500 dark:text-gray-400"
+                                    >
+                                        Burial Records
                                     </span>
                                     <div class="font-medium">
                                         {{ feature.properties?.occupants || 0 }}

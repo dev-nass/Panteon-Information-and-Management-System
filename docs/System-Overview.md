@@ -28,7 +28,7 @@ Phase (e.g. "Phase 1", "Phase 2")
 ```
 
 ### Core Records
-- **BurialRecord** — links a deceased person to a lot, recorded by a user (clerk)
+- **BurialRecord** — links a deceased person to a lot, recorded by a user (clerk). Multiple active burial records may share one lot; occupancy is informational and does not block assignment.
 - **DeceasedRecord** — detailed personal info, death details, disposal method, family info
 - **Applicant** — the person who arranged the burial
 
