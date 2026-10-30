@@ -21,7 +21,7 @@ class BurialRecordService
         protected LotRepository $lot_repo
     ) {}
 
-    public function index(string $sortField, string $sortDirection, ?string $search, string $filter, ?string $disposal = null, ?int $userId = null)
+    public function index(string $sortField, string $sortDirection, ?string $search, string $filter, ?string $disposal = null, ?int $userId = null, ?int $lotId = null)
     {
         return $this->burial_repo->getBurialRecordsWithFilters(
             $sortField,
@@ -29,7 +29,8 @@ class BurialRecordService
             $search,
             $filter,
             $disposal,
-            $userId
+            $userId,
+            $lotId
         )->paginate(25)->withQueryString();
     }
 
@@ -42,7 +43,7 @@ class BurialRecordService
     {
         return DB::transaction(function () use ($applicantData, $createdBy, $deceasedData, $lotData) {
 
-            $lot = $this->lot_repo->validateLotAvailability($lotData['lot_id']);
+            $lot = $this->lot_repo->findLotForAssignment($lotData['lot_id']);
 
             $applicant = $this->applicant_repo->findOrCreateApplicant($applicantData);
 
@@ -91,8 +92,7 @@ class BurialRecordService
 
     public function getCreateData()
     {
-        return $this->phase_repo->getPhasesWithAvailableLotsForCreate()
-            ->with('clusters.lots.burialRecords')
+        return $this->phase_repo->getPhasesWithLotsForCreate()
             ->get()
             ->map(function ($phase) {
                 return [
@@ -108,7 +108,8 @@ class BurialRecordService
                                     'id' => $lot->id,
                                     'column' => $lot->column,
                                     'row' => $lot->row,
-                                    'is_occupied' => $lot->burialRecords->isNotEmpty(),
+                                    'is_occupied' => $lot->active_burial_count > 0,
+                                    'burial_count' => $lot->active_burial_count,
                                 ];
                             }),
                         ];
@@ -138,25 +139,13 @@ class BurialRecordService
     {
         abort_if($record->archived_at === null, 422, 'Not archived.');
 
-        $shouldNullLot = false;
-
-        if ($record->lot_id && BurialRecord::active()->where('lot_id', $record->lot_id)->where('id', '!=', $record->id)->exists()) {
-            $shouldNullLot = true;
-        }
-
-        return DB::transaction(function () use ($record, $shouldNullLot) {
-            $data = [
+        return DB::transaction(function () use ($record) {
+            $record->update([
                 'archived_at' => null,
                 'archived_reason' => null,
                 'archived_by' => null,
                 'archived_notes' => null,
-            ];
-
-            if ($shouldNullLot) {
-                $data['lot_id'] = null;
-            }
-
-            $record->update($data);
+            ]);
 
             return $record;
         });
@@ -193,7 +182,7 @@ class BurialRecordService
             ] : null,
 
             'phases' => $this->phase_repo
-                ->getPhasesWithAvailableLotsForShow($burialRecord->id)
+                ->getPhasesWithLotsForShow()
                 ->map(function ($phase) {
                     return [
                         'id' => $phase->id,

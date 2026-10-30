@@ -172,8 +172,7 @@ const handlePhaseChange = (phaseId) => {
 const handleClusterChange = (clusterId) => {
     selectedClusterId.value = clusterId;
     const cluster = availableClusters.value.find((c) => c.id == clusterId);
-    availableLots.value =
-        cluster?.lots?.filter((lot) => !lot.is_occupied) || [];
+    availableLots.value = cluster?.lots || [];
     form.lot_id = "";
 };
 
@@ -839,7 +838,12 @@ defineOptions({
                                 :key="lot.id"
                                 :value="lot.id"
                             >
-                                {{ lot.column }} - {{ lot.row }}
+                                {{ lot.column }} - {{ lot.row
+                                }}{{
+                                    lot.burial_count > 0
+                                        ? ` (${lot.burial_count} ${lot.burial_count === 1 ? "record" : "records"})`
+                                        : ""
+                                }}
                             </option>
                         </select>
                         <span

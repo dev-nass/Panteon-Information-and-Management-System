@@ -81,11 +81,9 @@ class ImportingController extends Controller
 
             // Preload lots via shared service (typed + generic maps to handle UG disambiguation)
             [$lotsMap, $lotsMapGeneric] = $this->normalizer->buildLotMaps(Lot::with('cluster.phase')->get());
-            $usedLotIds = Lot::whereHas('burialRecords')->pluck('id')->flip()->toArray();
             // In-file duplicate tracking: same deceased appears twice in uploaded Excel.
             // Keyed by normalized first|last|birth|death|depository to catch file-level duplicates before DB.
             $seenDeceasedKeys = [];
-            // Merge already occupied + in-batch used
             foreach ($rows as $index => $row) {
                 $rowNumber = $index + 2; // +2 because we removed header and arrays are 0-indexed
 
@@ -170,15 +168,12 @@ class ImportingController extends Controller
 
                     $lot = null;
                     if (! empty($column) && ! empty($rowLetter) && $normalizedCluster !== '') {
-                        $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
+                        $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $normalizedPhase, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                         if (! $lot) {
                             $phaseKeyRaw = strtoupper(trim($phaseName));
                             if ($phaseKeyRaw !== $normalizedPhase) {
-                                $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $usedLotIds, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
+                                $lot = $this->normalizer->findLotByClusterAndApt($lotsMap, $lotsMapGeneric, $phaseKeyRaw, $normalizedCluster, $clusterTypeHint, $rowLetter, $column);
                             }
-                        }
-                        if ($lot) {
-                            $usedLotIds[$lot->id] = true;
                         }
                     }
 
@@ -186,7 +181,7 @@ class ImportingController extends Controller
                         $lotLabel = $aptNumber !== '' ? $aptNumber : '—';
                         $phaseLabel = $phaseName !== '' ? $phaseName : '—';
                         $clusterLabel = $clusterName !== '' ? $clusterName : '—';
-                        $errors[] = "Row {$rowNumber}: Lot '{$lotLabel}' (Phase {$phaseLabel}, Cluster {$clusterLabel}) was not found or is already occupied — burial saved without a lot. Please assign a lot later.";
+                        $errors[] = "Row {$rowNumber}: Lot '{$lotLabel}' (Phase {$phaseLabel}, Cluster {$clusterLabel}) was not found — burial saved without a lot. Please assign a lot later.";
                     }
 
                     // Create applicant if data exists - handle single-word names gracefully
@@ -267,7 +262,7 @@ class ImportingController extends Controller
             // Free spreadsheet memory (avoid 6GB hold for 16k phantom cols)
             if (isset($spreadsheet)) {
                 $spreadsheet->disconnectWorksheets();
-                unset($spreadsheet, $worksheet, $rows, $lotsMap, $usedLotIds);
+                unset($spreadsheet, $worksheet, $rows, $lotsMap);
                 if (function_exists('gc_collect_cycles')) {
                     gc_collect_cycles();
                 }
@@ -325,7 +320,7 @@ class ImportingController extends Controller
             DB::rollBack();
             if (isset($spreadsheet)) {
                 $spreadsheet->disconnectWorksheets();
-                unset($spreadsheet, $worksheet, $rows, $lotsMap, $usedLotIds);
+                unset($spreadsheet, $worksheet, $rows, $lotsMap);
                 if (function_exists('gc_collect_cycles')) {
                     gc_collect_cycles();
                 }

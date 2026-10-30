@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Lot;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BurialRecordIndexRequest extends FormRequest
@@ -27,6 +28,7 @@ class BurialRecordIndexRequest extends FormRequest
             'disposal' => ['nullable', 'string'],
             'sort_field' => ['nullable', 'string'],
             'sort_direction' => ['nullable', 'string', 'in:asc,desc'],
+            'lot_id' => ['nullable', 'integer', 'exists:lots,id'],
         ];
     }
 
@@ -45,5 +47,36 @@ class BurialRecordIndexRequest extends FormRequest
     public function filterValue(): string
     {
         return $this->filter ?? 'all';
+    }
+
+    public function lotId(): ?int
+    {
+        return $this->filled('lot_id') ? (int) $this->lot_id : null;
+    }
+
+    /**
+     * @return array{id: int, column: string, row: string, cluster: string|null, phase: string|null}|null
+     */
+    public function selectedLot(): ?array
+    {
+        $lotId = $this->lotId();
+
+        if ($lotId === null) {
+            return null;
+        }
+
+        $lot = Lot::with('cluster.phase:id,phase_name')->find($lotId);
+
+        if (! $lot) {
+            return null;
+        }
+
+        return [
+            'id' => $lot->id,
+            'column' => $lot->column,
+            'row' => $lot->row,
+            'cluster' => $lot->cluster?->cluster_name,
+            'phase' => $lot->cluster?->phase?->phase_name,
+        ];
     }
 }

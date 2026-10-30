@@ -1,0 +1,1 @@
+- the system doesn't accommodate deceased records with two first name, maybe we can change the seeder to always threat the first two words as first names and the last word is last name

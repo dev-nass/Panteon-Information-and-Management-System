@@ -279,9 +279,8 @@ class RecordNormalizationService
      *
      * @param  array<string, Lot>  $lotsMap
      * @param  array<string, Lot>  $lotsMapGeneric
-     * @param  array<int, bool>  $usedLotIds
      */
-    public function findLotByClusterAndApt(array $lotsMap, array $lotsMapGeneric, array $usedLotIds, string $phaseKey, string $clusterName, ?string $typeHint, string $rowLetter, string $column): ?Lot
+    public function findLotByClusterAndApt(array $lotsMap, array $lotsMapGeneric, string $phaseKey, string $clusterName, ?string $typeHint, string $rowLetter, string $column): ?Lot
     {
         $phaseCandidates = [$phaseKey];
         if ($phaseKey === '1') {
@@ -292,13 +291,13 @@ class RecordNormalizationService
             if ($typeHint !== null) {
                 $key = $pk.'|'.$clusterName.'|'.$typeHint.'|'.$rowLetter.'|'.$column;
                 $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
+                if ($candidate) {
                     return $candidate;
                 }
 
                 $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
                 $candidate = $lotsMapGeneric[$genericKey] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
+                if ($candidate) {
                     return $candidate;
                 }
 
@@ -308,14 +307,14 @@ class RecordNormalizationService
             foreach (['apartment', 'underground'] as $type) {
                 $key = $pk.'|'.$clusterName.'|'.$type.'|'.$rowLetter.'|'.$column;
                 $candidate = $lotsMap[$key] ?? null;
-                if ($candidate && ! isset($usedLotIds[$candidate->id])) {
+                if ($candidate) {
                     return $candidate;
                 }
             }
 
             $genericKey = $pk.'|'.$clusterName.'|'.$rowLetter.'|'.$column;
             $candidate = $lotsMapGeneric[$genericKey] ?? null;
-            if ($candidate && ! isset($usedLotIds[$candidate->id])) {
+            if ($candidate) {
                 return $candidate;
             }
         }

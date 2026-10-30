@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class DeceasedRecord extends Model
 {
@@ -64,6 +65,22 @@ class DeceasedRecord extends Model
     public function burialRecords(): HasOne
     {
         return $this->hasOne(BurialRecord::class);
+    }
+
+    /**
+     * Read-only convenience relation. Lot assignments are still written to
+     * burial_records.lot_id.
+     */
+    public function lot(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Lot::class,
+            BurialRecord::class,
+            'deceased_record_id',
+            'id',
+            'id',
+            'lot_id',
+        );
     }
 
     public function applicant()

@@ -280,9 +280,7 @@ const confirmRestore = () => {
             },
             onError: (err) => {
                 const msg =
-                    err.lot_id ||
-                    err.message ||
-                    "Failed to recover — lot may be occupied.";
+                    err.lot_id || err.message || "Failed to recover burial record.";
                 $toast.error(msg);
             },
         },
@@ -371,11 +369,7 @@ const availableLots = computed(() => {
     const cluster = availableClusters.value.find(
         (c) => c.id == selectedClusterId.value,
     );
-    return (
-        cluster?.lots.filter(
-            (lot) => !lot.is_occupied || lot.id == selectedLotId.value,
-        ) || []
-    );
+    return cluster?.lots || [];
 });
 
 const selectedLotColumn = computed(() => {
@@ -1688,17 +1682,6 @@ onBeforeUnmount(() => {
                                     >
                                 </div>
                             </div>
-
-                            <p
-                                class="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2"
-                            >
-                                If this lot is currently occupied, the record
-                                will be restored as
-                                <span class="font-semibold">Unassigned</span>
-                                (no lot). You can assign a new lot afterwards.
-                                To keep the original lot, cancel (X) and free
-                                up the space first.
-                            </p>
                         </div>
                     </div>
 

@@ -18,6 +18,7 @@ export function useSearchBurialRecords(route_name) {
                     sort_field: page.props.filters.sort_field,
                     sort_direction: page.props.filters.sort_direction,
                     disposal: page.props.filters.disposal,
+                    lot_id: page.props.filters.lot_id,
                 },
                 {
                     preserveState: true,

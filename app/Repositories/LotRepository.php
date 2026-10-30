@@ -7,21 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class LotRepository extends Repository
 {
-
     public function __construct(Lot $model)
     {
         return parent::__construct($model);
     }
 
     /**
-     * Description: Used before the createBurialRecord
-     * on BurialRecordService; Check the lot avalability and returns it
+     * Description: Used before the createBurialRecord on BurialRecordService.
+     * A lot may be shared by multiple burial records, so this only resolves it.
      */
-    public function validateLotAvailability(int $lotId): Model
+    public function findLotForAssignment(int $lotId): Model
     {
         $lot = $this->find($lotId);
 
-        if (!$lot) {
+        if (! $lot) {
             throw new \Exception('Lot not found');
         }
 

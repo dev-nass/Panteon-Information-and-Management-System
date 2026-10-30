@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\ClusterResource;
-use App\Http\Resources\PhaseResource;
-use App\Http\Resources\LotResource;
 use App\Models\Cluster;
-use App\Models\Phase;
 use App\Models\Lot;
+use App\Models\Phase;
 use Illuminate\Support\Facades\DB;
 
 class LotManagementController extends Controller
@@ -23,8 +20,10 @@ class LotManagementController extends Controller
             ->withCount('lots')
             ->withCount([
                 'lots as occupied_lots' => function ($query) {
-                    $query->whereHas('burialRecords');
-                }
+                    $query->whereHas('burialRecords', function ($query) {
+                        $query->whereNull('archived_at');
+                    });
+                },
             ])
             ->get()
             ->map(function ($cluster) {
@@ -37,7 +36,7 @@ class LotManagementController extends Controller
                     'total_lots' => $cluster->lots_count, // num of lots
                     'total_capacity' => $cluster->total_capacity, // max num of lots
                     'coordinates' => $cluster->coordinates,
-                    'isCluster_mapped' => !is_null($cluster->coordinates),
+                    'isCluster_mapped' => ! is_null($cluster->coordinates),
                 ];
             });
 
@@ -51,10 +50,12 @@ class LotManagementController extends Controller
     {
         $lots = Lot::select('id', 'cluster_id', 'column', 'row', DB::raw('ST_AsGeoJSON(coordinates) as coordinates'))
             ->where('cluster_id', $clusterId)
-            ->with('burialRecords:id,lot_id')
+            ->withCount([
+                'burialRecords as active_burial_count' => fn ($query) => $query->whereNull('archived_at'),
+            ])
             ->get()
             ->map(function ($lot) {
-                $isOccupied = $lot->burialRecords->isNotEmpty();
+                $isOccupied = $lot->active_burial_count > 0;
 
                 return [
                     'id' => $lot->id,
@@ -62,8 +63,9 @@ class LotManagementController extends Controller
                     'column' => $lot->column,
                     'row' => $lot->row,
                     'status' => $isOccupied ? 'occupied' : 'available',
+                    'burial_count' => $lot->active_burial_count,
                     'coordinates' => $lot->coordinates,
-                    'isLot_mapped' => !is_null($lot->coordinates),
+                    'isLot_mapped' => ! is_null($lot->coordinates),
                 ];
             });
 

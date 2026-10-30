@@ -28,14 +28,14 @@
                 @php
                     $totalClusters += $phase['total_clusters'];
                     $totalLots += $phase['total_lots'];
-                    $totalOccupied += $phase['total_occupants'];
+                    $totalOccupied += $phase['occupied_lots'];
                     $totalAvailable += $phase['available_lots'];
                 @endphp
                 <tr>
                     <td>{{ $phase['phase_name'] }}</td>
                     <td style="text-align: center;">{{ $phase['total_clusters'] }}</td>
                     <td style="text-align: center;">{{ $phase['total_lots'] }}</td>
-                    <td style="text-align: center;">{{ $phase['total_occupants'] }}</td>
+                    <td style="text-align: center;">{{ $phase['occupied_lots'] }}</td>
                     <td style="text-align: center;">{{ $phase['available_lots'] }}</td>
                     <td style="text-align: center;">{{ number_format($phase['occupancy_rate'], 2) }}%</td>
                 </tr>

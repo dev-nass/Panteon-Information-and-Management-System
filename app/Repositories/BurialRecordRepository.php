@@ -18,7 +18,8 @@ class BurialRecordRepository extends Repository
         ?string $search,
         string $filter,
         ?string $disposal,
-        ?int $userId = null
+        ?int $userId = null,
+        ?int $lotId = null
     ) {
         return $this->query()->with(['deceasedRecord', 'lot', 'user', 'archivedBy'])
 
@@ -55,6 +56,9 @@ class BurialRecordRepository extends Repository
             })
             ->when(in_array($disposal, ['burial', 'muslim', 'cremation'], true), function ($q) use ($disposal) {
                 $q->where('deceased_records.corpse_disposal', $disposal);
+            })
+            ->when($lotId, function ($q) use ($lotId) {
+                $q->where('burial_records.lot_id', $lotId);
             })
             ->orderBy(
                 str_starts_with($sortField, 'deceased_')

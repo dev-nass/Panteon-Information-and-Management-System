@@ -290,15 +290,23 @@ class GenerateReportController extends Controller
                         return $lot->burialRecords->count();
                     });
                 });
-                $availableLots = $totalLots - $totalOccupants;
+                // A lot may hold multiple active records, so availability is
+                // based on distinct occupied lots, not the number of records.
+                $occupiedLots = $phase->clusters->sum(function ($cluster) {
+                    return $cluster->lots->filter(function ($lot) {
+                        return $lot->burialRecords->isNotEmpty();
+                    })->count();
+                });
+                $availableLots = $totalLots - $occupiedLots;
 
                 return [
                     'phase_name' => $phase->phase_name,
                     'total_clusters' => $totalClusters,
                     'total_lots' => $totalLots,
                     'total_occupants' => $totalOccupants,
+                    'occupied_lots' => $occupiedLots,
                     'available_lots' => $availableLots,
-                    'occupancy_rate' => $totalLots > 0 ? round(($totalOccupants / $totalLots) * 100, 2) : 0,
+                    'occupancy_rate' => $totalLots > 0 ? round(($occupiedLots / $totalLots) * 100, 2) : 0,
                 ];
             });
     }
@@ -441,6 +449,7 @@ class GenerateReportController extends Controller
             'Total Clusters' => 'Total Clusters',
             'Total Lots' => 'Total Lots',
             'Total Occupants' => 'Total Occupants',
+            'Occupied Lots' => 'Occupied Lots',
             'Available Lots' => 'Available Lots',
             'Occupancy Rate (%)' => 'Occupancy Rate (%)',
         ]);
@@ -451,6 +460,7 @@ class GenerateReportController extends Controller
                 'Total Clusters' => $phase['total_clusters'],
                 'Total Lots' => $phase['total_lots'],
                 'Total Occupants' => $phase['total_occupants'],
+                'Occupied Lots' => $phase['occupied_lots'],
                 'Available Lots' => $phase['available_lots'],
                 'Occupancy Rate (%)' => $phase['occupancy_rate'],
             ]);

@@ -28,6 +28,7 @@ class BurialRecordController extends Controller
             $request->search,
             $request->filterValue(),
             $request->disposal,
+            lotId: $request->lotId(),
         );
 
         return Inertia::render('Shared/BurialRecords/IndexView', [
@@ -35,7 +36,8 @@ class BurialRecordController extends Controller
                 $burialRecords
             ),
 
-            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal']),
+            'filters' => $request->only(['search', 'sort_field', 'sort_direction', 'filter', 'disposal', 'lot_id']),
+            'selected_lot' => $request->selectedLot(),
         ]);
     }
 

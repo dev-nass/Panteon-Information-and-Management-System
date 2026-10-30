@@ -85,6 +85,10 @@ const props = defineProps({
         type: Object,
     },
     filters: Object,
+    selected_lot: {
+        type: Object,
+        default: null,
+    },
 });
 
 // TODO: Remove this
@@ -103,6 +107,7 @@ const applyFilter = (filterValue) => {
             sort_field: props.filters.sort_field,
             sort_direction: props.filters.sort_direction,
             disposal: props.filters.disposal,
+            lot_id: props.filters.lot_id,
         },
         {
             preserveState: true,
@@ -120,6 +125,7 @@ const applyDisposalFilter = (disposalValue) => {
             sort_field: props.filters.sort_field,
             sort_direction: props.filters.sort_direction,
             disposal: disposalValue,
+            lot_id: props.filters.lot_id,
         },
         {
             preserveState: true,
@@ -150,6 +156,7 @@ const sort = (field) => {
             sort_field: field,
             sort_direction: direction,
             disposal: props.filters.disposal,
+            lot_id: props.filters.lot_id,
         },
         {
             preserveState: true,
@@ -221,6 +228,34 @@ defineOptions({
             <div
                 class="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl shadow-2xs overflow-hidden"
             >
+                <!-- Lot filter banner -->
+                <div
+                    v-if="selected_lot"
+                    class="flex flex-wrap items-center justify-between gap-2 px-6 py-3 border-b border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20"
+                >
+                    <p class="text-sm text-green-800 dark:text-green-300">
+                        Showing burial records for lot
+                        <span class="font-semibold">
+                            {{ selected_lot.column }}-{{ selected_lot.row }}
+                        </span>
+                        <span
+                            v-if="selected_lot.phase || selected_lot.cluster"
+                            class="text-green-700 dark:text-green-400"
+                        >
+                            — {{ selected_lot.phase || "N/A" }} /
+                            {{ selected_lot.cluster || "N/A" }}
+                        </span>
+                    </p>
+                    <Link
+                        :href="
+                            route(roleRoutes[userRole.value].route_search)
+                        "
+                        class="text-sm font-semibold text-green-700 dark:text-green-300 hover:underline"
+                    >
+                        Clear lot filter
+                    </Link>
+                </div>
+
                 <!-- Header -->
                 <div
                     class="px-6 py-4 grid gap-3 lg:flex lg:justify-between lg:items-center border-b border-gray-200 dark:border-neutral-700"

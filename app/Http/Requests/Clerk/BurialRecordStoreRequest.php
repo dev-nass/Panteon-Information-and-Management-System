@@ -63,7 +63,7 @@ class BurialRecordStoreRequest extends FormRequest
             'applicant_relationship' => 'nullable|string|max:255',
 
             // lot
-            'lot_id' => 'required|integer',
+            'lot_id' => 'required|integer|exists:lots,id',
         ];
     }
 

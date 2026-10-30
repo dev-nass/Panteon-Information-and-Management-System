@@ -44,18 +44,17 @@ class LotManagementController extends Controller
     }
 
     /**
-     * Description: Redirect to Burial Record Show by finding burial from lot
+     * Description: Redirect to the burial record index filtered by this lot
+     * so every record sharing the lot is listed.
      */
     public function show(Lot $lot)
     {
-        $burialRecord = $lot->burialRecords()->first();
-
-        if (! $burialRecord) {
+        if (! $lot->burialRecords()->exists()) {
             return to_route('admin.lot_management.index')
                 ->with('error', 'No burial record found for this lot.');
         }
 
-        return to_route('admin.burial_records.show', $burialRecord->id);
+        return to_route('admin.burial_records.index', ['lot_id' => $lot->id]);
     }
 
     public function create(Request $request)
