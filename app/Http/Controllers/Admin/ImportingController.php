@@ -62,6 +62,13 @@ class ImportingController extends Controller
             $highestDataColumn = $worksheet->getHighestDataColumn();
             $rows = $worksheet->rangeToArray("A1:{$highestDataColumn}{$highestDataRow}", null, true, false, false);
 
+            // Validate header row before removing it
+            $headerRow = $rows[0] ?? [];
+            $missingColumn = $this->validateHeaderColumns($headerRow, $importType);
+            if ($missingColumn !== null) {
+                return back()->with('error', "Import aborted: the column '{$missingColumn}' is missing from the file. Please check the file and try again.")->with('importErrors', ["Missing required column: '{$missingColumn}'"]);
+            }
+
             // Remove header row
             array_shift($rows);
 
@@ -393,6 +400,55 @@ class ImportingController extends Controller
         }
 
         return $clean;
+    }
+
+    /**
+     * Validates that all required columns for the given import type are present in the header row.
+     * Returns the name of the first missing column, or null if all are present.
+     */
+    private function validateHeaderColumns(array $headerRow, string $importType): ?string
+    {
+        $requiredColumns = match ($importType) {
+            'normal' => [
+                1 => 'Burial Date',
+                2 => 'Deceased Name',
+                3 => 'Applicant',
+                4 => 'Phase',
+                5 => 'Cluster',
+                6 => 'Apt/Lot Number',
+            ],
+            'muslim' => [
+                2  => 'Deceased Name',
+                6  => 'Applicant',
+                10 => 'Phase',
+                11 => 'Cluster',
+                12 => 'Apt/Lot Number',
+            ],
+            'columbarium' => [
+                1  => 'Precinct Number',
+                2  => 'Deceased Name',
+                3  => 'Address',
+                4  => 'Date of Birth',
+                5  => 'Date of Death',
+                6  => 'Cremation Date',
+                7  => 'Date of Depository',
+                8  => 'Cremation Place',
+                9  => 'Applicant',
+                10 => 'Relationship',
+                11 => 'Contact Number',
+                12 => 'Cluster',
+                13 => 'Apt/Lot Number',
+            ],
+            default => [],
+        };
+
+        foreach ($requiredColumns as $index => $label) {
+            if (empty(trim((string) ($headerRow[$index] ?? '')))) {
+                return $label;
+            }
+        }
+
+        return null;
     }
 
     /**
