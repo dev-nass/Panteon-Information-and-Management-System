@@ -404,46 +404,63 @@ class ImportingController extends Controller
 
     /**
      * Validates that all required columns for the given import type are present in the header row.
-     * Returns the name of the first missing column, or null if all are present.
+     * Checks both position AND that the header value loosely matches the expected label.
+     * Returns the name of the first missing/mismatched column, or null if all are present.
      */
     private function validateHeaderColumns(array $headerRow, string $importType): ?string
     {
+        // Each entry: [index, label, keywords that must appear in the header cell]
         $requiredColumns = match ($importType) {
             'normal' => [
-                1 => 'Burial Date',
-                2 => 'Deceased Name',
-                3 => 'Applicant',
-                4 => 'Phase',
-                5 => 'Cluster',
-                6 => 'Apt/Lot Number',
+                [1, 'Burial Date',    ['burial', 'date']],
+                [2, 'Deceased Name',  ['deceased', 'name']],
+                [3, 'Applicant',      ['applicant']],
+                [4, 'Phase',          ['phase']],
+                [5, 'Cluster',        ['cluster']],
+                [6, 'Apt/Lot Number', ['apt', 'lot', 'number', 'no']],
             ],
             'muslim' => [
-                2  => 'Deceased Name',
-                6  => 'Applicant',
-                10 => 'Phase',
-                11 => 'Cluster',
-                12 => 'Apt/Lot Number',
+                [2,  'Deceased Name',  ['deceased', 'name']],
+                [6,  'Applicant',      ['applicant', 'name']],
+                [10, 'Phase',          ['phase']],
+                [11, 'Cluster',        ['cluster']],
+                [12, 'Apt/Lot Number', ['apt', 'apartment', 'lot', 'no']],
             ],
             'columbarium' => [
-                1  => 'Precinct Number',
-                2  => 'Deceased Name',
-                3  => 'Address',
-                4  => 'Date of Birth',
-                5  => 'Date of Death',
-                6  => 'Cremation Date',
-                7  => 'Date of Depository',
-                8  => 'Cremation Place',
-                9  => 'Applicant',
-                10 => 'Relationship',
-                11 => 'Contact Number',
-                12 => 'Cluster',
-                13 => 'Apt/Lot Number',
+                [1,  'PRECINCT NO.',       ['precinct', 'precint']],
+                [2,  'NAME OF DECEASED',   ['deceased', 'name']],
+                [3,  'ADDRESS',            ['address']],
+                [4,  'BIRTHDATE',          ['birth', 'birthdate']],
+                [5,  'DATE OF DEATH',      ['death']],
+                [6,  'DATE OF CREMATION',  ['cremation']],
+                [7,  'DATE OF DEPOSITORY', ['depository']],
+                [8,  'PLACE OF CREMATION', ['cremation', 'place']],
+                [9,  'NAME OF APPLICANT',  ['applicant', 'name']],
+                [10, 'RELATIONSHIP',       ['relationship']],
+                [11, 'CONTACT #',          ['contact']],
+                [12, 'CLUSTER',            ['cluster']],
+                [13, 'APARTMENT',          ['apt', 'apartment']],
             ],
             default => [],
         };
 
-        foreach ($requiredColumns as $index => $label) {
-            if (empty(trim((string) ($headerRow[$index] ?? '')))) {
+        foreach ($requiredColumns as [$index, $label, $keywords]) {
+            $cell = strtolower(trim((string) ($headerRow[$index] ?? '')));
+
+            if ($cell === '') {
+                return $label;
+            }
+
+            // At least one keyword must appear in the header cell
+            $matched = false;
+            foreach ($keywords as $keyword) {
+                if (str_contains($cell, $keyword)) {
+                    $matched = true;
+                    break;
+                }
+            }
+
+            if (! $matched) {
                 return $label;
             }
         }
